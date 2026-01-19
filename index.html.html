@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JEE 2026 | TITAN OMEGA PRO</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+<style>
+  :root {
+    --bg-color: #000000;
+    --accent-red: #ff3e3e;
+    --accent-green: #00ff88;
+    --accent-orange: #f39c12;
+    --accent-blue: #00d4ff;
+    --text-main: #ffffff;
+    --text-dim: #888;
+    --current-aura: #00ff88; 
+  }
+
+  body {
+    margin: 0; height: 100vh; width: 100vw; display: flex;
+    background-color: var(--bg-color); color: var(--text-main);
+    font-family: 'Inter', system-ui, sans-serif; overflow: hidden;
+    transition: background 0.5s ease, filter 0.5s ease;
+  }
+
+  body.hard-focus { filter: grayscale(0.9) contrast(1.2); }
+  body.hard-focus #bigDisplay, body.hard-focus #progressBar { filter: grayscale(0) !important; }
+
+  @keyframes vibrate {
+    0% { transform: translate(0); }
+    25% { transform: translate(2px, -2px); }
+    50% { transform: translate(-2px, 2px); }
+    75% { transform: translate(2px, 2px); }
+    100% { transform: translate(0); }
+  }
+  .shake-active { animation: vibrate 0.15s linear infinite; }
+
+  @keyframes pulse-red {
+    0% { box-shadow: 0 0 5px var(--accent-red); }
+    50% { box-shadow: 0 0 20px var(--accent-red); }
+    100% { box-shadow: 0 0 5px var(--accent-red); }
+  }
+  .pulse-active { animation: pulse-red 1s infinite; }
+
+  #progressBar { 
+    position: fixed; top: 0; left: 0; height: 4px; 
+    background: var(--current-aura); width: 0%; z-index: 1000; 
+    box-shadow: 0 0 15px var(--current-aura); 
+    transition: width 0.3s linear, background 0.4s ease; 
+  }
+
+  .container { display: flex; flex: 1; height: 100vh; }
+  main { flex: 1; display: flex; flex-direction: column; position: relative; }
+
+  #urgentBanner { min-height: 90px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+  .urgent-timer { font-size: 3.2rem; font-weight: 900; color: var(--accent-red); font-variant-numeric: tabular-nums; }
+
+  .leaderboard-wrapper { width: 100%; display: flex; justify-content: center; margin: 10px 0; }
+  #leaderboardTicker { 
+    width: 85%; max-width: 800px; background: #0a0a0a; color: var(--accent-orange); 
+    padding: 12px; border-radius: 50px; text-align: center;
+    border: 1px solid #222; font-weight: 800; font-size: 0.85rem;
+  }
+
+  .display-area { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+  
+  #bigDisplay { 
+    font-size: clamp(5rem, 22vw, 18rem); font-weight: 900; 
+    font-variant-numeric: tabular-nums; cursor: pointer; 
+    line-height: 0.8; color: var(--current-aura);
+    transition: color 0.4s ease, text-shadow 0.4s ease;
+  }
+
+  .subject-tags { display: flex; gap: 15px; margin-bottom: 30px; }
+  .tag-btn { 
+    padding: 10px 25px; border-radius: 5px; font-size: 0.75rem; font-weight: 900; 
+    cursor: pointer; border: 1px solid #222; background: #111; color: #555; transition: 0.3s;
+  }
+  .tag-btn.active.P { border-color: var(--accent-blue); color: var(--accent-blue); box-shadow: 0 0 15px var(--accent-blue); }
+  .tag-btn.active.C { border-color: var(--accent-red); color: var(--accent-red); box-shadow: 0 0 15px var(--accent-red); }
+  .tag-btn.active.M { border-color: var(--accent-green); color: var(--accent-green); box-shadow: 0 0 15px var(--accent-green); }
+
+  #sidebar { 
+    width: 260px; background: #050505; border-left: 1px solid #1a1a1a; 
+    display: flex; flex-direction: column; padding: 25px 15px; gap: 15px; overflow-y: auto; transition: background 0.5s;
+  }
+  .sidebar-header { font-size: 0.75rem; font-weight: 900; color: #ddd; letter-spacing: 2.5px; text-transform: uppercase; margin-bottom: 5px; border-bottom: 1px solid #222; padding-bottom: 5px;}
+  
+  .exam-card { background: #0f0f0f; padding: 15px; border-radius: 10px; border: 1px solid #1a1a1a; text-align: center; margin-bottom: 10px; }
+  .exam-card .days { font-size: 2.2rem; font-weight: 900; display: block; line-height: 1; margin-bottom: 5px; }
+  .exam-card .label { font-size: 0.6rem; color: #777; text-transform: uppercase; font-weight: bold; }
+
+  #motivationBox {
+    background: #0a0a0a; border: 1px solid var(--current-aura); padding: 18px; border-radius: 12px;
+    font-size: 0.85rem; line-height: 1.5; color: #ffffff; font-style: italic; font-weight: 500;
+  }
+
+  footer { padding: 25px; display: flex; flex-direction: column; align-items: center; background: linear-gradient(transparent, #000); }
+  .controls { display: flex; gap: 12px; margin-bottom: 25px; }
+  input[type="number"] { width: 55px; background: #111; border: 1px solid #333; color: white; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; outline: none; }
+  .btn { padding: 12px 24px; cursor: pointer; border-radius: 8px; font-weight: 800; font-size: 0.75rem; background: #111; color: white; border: 1px solid #333; text-transform: uppercase; }
+  
+  #playPauseBtn { background: var(--current-aura); color: black; border: none; }
+
+  .status-line { width: 100%; max-width: 1000px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #111; padding-top: 15px; }
+  .status-val { font-size: 1.1rem; font-weight: 900; font-variant-numeric: tabular-nums; }
+  
+  /* Stats Overlay */
+  #statsOverlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000;
+    display: none; flex-direction: column; align-items: center; justify-content: center; padding: 40px;
+  }
+  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; width: 100%; max-width: 900px; margin-top: 30px; }
+  .stat-item { background: #0a0a0a; border: 1px solid #222; padding: 20px; border-radius: 15px; text-align: center; }
+  .stat-val-big { font-size: 2.5rem; font-weight: 900; color: var(--accent-green); display: block; }
+  
+  /* Session Toast */
+  #sessionReport {
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: #000; border: 2px solid var(--current-aura); padding: 40px; border-radius: 20px;
+    z-index: 3000; text-align: center; display: none;
+  }
+
+  #focusScoreDisplay { color: var(--accent-orange); font-weight: 900; }
+</style>
+</head>
+<body id="mainBody">
+
+<div id="progressBar"></div>
+
+<div id="statsOverlay" onclick="toggleStats()">
+    <h1 style="letter-spacing: 10px;">PERFORMANCE DASHBOARD</h1>
+    <div class="stats-grid" id="statsGrid"></div>
+    <p style="margin-top: 40px; color: #555;">PRESS 'S' TO CLOSE</p>
+</div>
+
+<div id="sessionReport">
+    <h2 id="reportTitle">SESSION COMPLETE</h2>
+    <div id="reportContent" style="font-size: 1.5rem; margin: 20px 0;"></div>
+</div>
+
+<div class="container">
+  <main>
+    <div id="urgentBanner"></div>
+    <div class="leaderboard-wrapper"><div id="leaderboardTicker">INITIALIZING...</div></div>
+
+    <div class="display-area">
+      <div class="subject-tags" id="subjectTags">
+        <div class="tag-btn P" id="btn-P" onclick="setSubject('P')">PHYSICS [1]</div>
+        <div class="tag-btn C" id="btn-C" onclick="setSubject('C')">CHEMISTRY [2]</div>
+        <div class="tag-btn M active" id="btn-M" onclick="setSubject('M')">MATHS [3]</div>
+      </div>
+      <div id="bigDisplay" onclick="swapDisplays()">00:00:00</div>
+    </div>
+
+    <footer>
+      <div class="controls">
+        <input type="number" id="hh" placeholder="00">
+        <input type="number" id="mm" placeholder="00">
+        <input type="number" id="ss" placeholder="00">
+        <button id="playPauseBtn" class="btn" onclick="toggleTimer()">START [SPACE]</button>
+        <button id="resetBtn" class="btn" onclick="resetTimer()">RESET [R]</button>
+        <button id="hardFocusBtn" class="btn" onclick="toggleHardFocus()" style="border-color: #555;">HARD FOCUS [H]</button>
+      </div>
+      <div class="status-line">
+        <div id="rankBadge" style="color: var(--accent-orange); font-weight: 900;">ASPIRANT</div>
+        <div id="focusScoreDisplay" class="status-val">FOCUS: --</div>
+        <div id="dailyTotal" class="status-val">P:0h C:0h M:0h</div>
+        <div id="smallDisplay" class="status-val" onclick="swapDisplays()" style="cursor:pointer">00:00:00</div>
+        <div id="milestoneBadge" style="font-weight: 900; letter-spacing: 2px;">OJAS KADAM</div>
+      </div>
+    </footer>
+  </main>
+
+  <aside id="sidebar">
+    <div class="sidebar-header" id="examHeader">Exam Countdown</div>
+    <div id="jeeTracker"></div>
+    <div class="sidebar-header">Mental Fuel</div>
+    <div id="motivationBox">"The pain of discipline is far less than the pain of regret."</div>
+  </aside>
+</div>
+
+<script>
+/** * TITAN OMEGA CORE v2.0
+ * Architecture: Logic -> Storage -> UI
+ */
+
+const State = {
+    totalSeconds: 0,
+    initialSeconds: 0,
+    running: false,
+    isSwapped: false,
+    isHardFocus: false,
+    lastTimestamp: performance.now(),
+    pauseCount: 0,
+    currentSubject: 'M',
+    dailyData: JSON.parse(localStorage.getItem('studyLog')) || {},
+    today: new Date().toISOString().split('T')[0]
+};
+
+// Ensure today exists in log
+if (!State.dailyData[State.today]) {
+    State.dailyData[State.today] = { P: 0, C: 0, M: 0, pauses: 0, sessions: 0 };
+}
+
+const Config = {
+    examDates: {
+        "Mains Jan": new Date("2026-01-24T14:00:00"),
+        "HSC Boards": new Date("2026-02-11T09:00:00"),
+        "Mains April": new Date("2026-04-01T09:00:00"),
+        "MHT-CET": new Date("2026-04-15T09:00:00"),
+        "Advanced": new Date("2026-06-07T09:00:00")
+    },
+    quotes: [
+        "IIT Bombay isn't built in a day, but it's lost in a second of laziness.",
+        "Your competition is studying right now. Are you?",
+        "JEE Advanced is a test of character, not just caliber.",
+        "Every MCQ you skip is someone else's rank improving.",
+        "Calculus doesn't care about your feelings.",
+        "Consistency is the difference between a dreamer and a topper."
+    ]
+};
+
+// --- CORE ENGINE ---
+
+function engine(timestamp) {
+    const delta = (timestamp - State.lastTimestamp) / 1000;
+    State.lastTimestamp = timestamp;
+
+    if (State.running && State.totalSeconds > 0) {
+        State.totalSeconds -= delta;
+        State.dailyData[State.today][State.currentSubject] += delta;
+        if (State.totalSeconds <= 0) finalizeSession();
+    }
+
+    updateUI();
+    requestAnimationFrame(engine);
+}
+
+// --- LOGIC ---
+
+function setSubject(sub) {
+    if (State.isHardFocus && State.running) return;
+    State.currentSubject = sub;
+    
+    document.querySelectorAll('.tag-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById('btn-' + sub).classList.add('active');
+    
+    const colors = { 'P': '#00d4ff', 'C': '#ff3e3e', 'M': '#00ff88' };
+    document.documentElement.style.setProperty('--current-aura', colors[sub]);
+}
+
+function toggleTimer() {
+    const btn = document.getElementById("playPauseBtn");
+    if (!State.running) {
+        if (State.totalSeconds <= 0) {
+            let h = parseInt(document.getElementById("hh").value) || 0;
+            let m = parseInt(document.getElementById("mm").value) || 0;
+            let s = parseInt(document.getElementById("ss").value) || 0;
+            State.totalSeconds = (h * 3600) + (m * 60) + s;
+            State.initialSeconds = State.totalSeconds;
+        }
+        if (State.totalSeconds > 0) {
+            State.running = true;
+            State.dailyData[State.today].sessions++;
+            btn.textContent = "PAUSE";
+            document.body.classList.remove('shake-active');
+        }
+    } else {
+        if (State.isHardFocus && State.pauseCount >= 1) return; // Only 1 pause in hard mode
+        State.running = false;
+        State.pauseCount++;
+        State.dailyData[State.today].pauses++;
+        btn.textContent = "RESUME";
+        if (State.pauseCount >= 3) applyAntiCopium();
+    }
+    saveData();
+}
+
+function applyAntiCopium() {
+    document.body.classList.add('shake-active');
+    document.getElementById('leaderboardTicker').textContent = "YOU'RE NOT TIRED. YOU'RE DODGING.";
+    document.getElementById('leaderboardTicker').style.color = "var(--accent-red)";
+}
+
+function finalizeSession() {
+    State.running = false;
+    State.totalSeconds = 0;
+    document.getElementById("playPauseBtn").textContent = "START";
+    
+    const report = document.getElementById('sessionReport');
+    const content = document.getElementById('reportContent');
+    content.innerHTML = `${State.currentSubject} Session: ${format(State.initialSeconds)}<br>Pauses: ${State.pauseCount}`;
+    report.style.display = 'block';
+    setTimeout(() => report.style.display = 'none', 4000);
+    
+    State.pauseCount = 0;
+    saveData();
+}
+
+function toggleHardFocus() {
+    State.isHardFocus = !State.isHardFocus;
+    document.body.classList.toggle('hard-focus', State.isHardFocus);
+    document.getElementById('hardFocusBtn').style.borderColor = State.isHardFocus ? "var(--accent-red)" : "#555";
+}
+
+// --- DATA & UI UPDATES ---
+
+function format(s) {
+    let h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = Math.floor(s%60);
+    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+}
+
+function updateUI() {
+    const timerStr = format(Math.max(0, State.totalSeconds));
+    const clockStr = new Date().toLocaleTimeString('en-IN', { hour12: false });
+
+    document.getElementById(State.isSwapped ? "smallDisplay" : "bigDisplay").textContent = timerStr;
+    document.getElementById(State.isSwapped ? "bigDisplay" : "smallDisplay").textContent = clockStr;
+
+    // Progress Bar Intelligence
+    if(State.initialSeconds > 0) {
+        const progress = ((State.initialSeconds - State.totalSeconds) / State.initialSeconds) * 100;
+        const bar = document.getElementById("progressBar");
+        bar.style.width = Math.min(100, progress) + "%";
+        
+        if (progress > 90) bar.classList.add('pulse-active');
+        else bar.classList.remove('pulse-active');
+        
+        // Color transition
+        if (progress < 50) bar.style.background = "var(--accent-green)";
+        else if (progress < 85) bar.style.background = "var(--accent-orange)";
+        else bar.style.background = "var(--accent-red)";
+    }
+
+    // Daily split display
+    const d = State.dailyData[State.today];
+    document.getElementById("dailyTotal").textContent = 
+        `P:${Math.floor(d.P/3600)}h C:${Math.floor(d.C/3600)}h M:${Math.floor(d.M/3600)}h`;
+
+    // Focus Score
+    const totalToday = d.P + d.C + d.M;
+    const score = totalToday === 0 ? 0 : Math.max(0, Math.floor(100 - (d.pauses * 5) + (totalToday / 3600 * 2)));
+    document.getElementById('focusScoreDisplay').textContent = `FOCUS: ${score}/100`;
+
+    // Rank Titles
+    let title = "ASPIRANT";
+    if (totalToday > 3600) title = "WARMED UP";
+    if (totalToday > 10800) title = "LOCKED IN";
+    if (totalToday > 21600) title = "ELITE DAY";
+    if (totalToday > 28800) title = "MONSTER SESSION";
+    document.getElementById('rankBadge').textContent = title;
+
+    // Danger Mode
+    const now = new Date();
+    if (now.getHours() >= 22 && totalToday < 10800) {
+        document.getElementById('sidebar').style.background = "#200";
+    }
+}
+
+function updateTracker() {
+    const now = new Date();
+    let html = "";
+    let mostUrgent = Infinity;
+
+    for (let exam in Config.examDates) {
+        const diffMs = Config.examDates[exam] - now;
+        const diffDays = Math.ceil(diffMs / 86400000);
+        mostUrgent = Math.min(mostUrgent, diffDays);
+
+        let displayVal = diffDays + "d";
+        let color = "var(--accent-green)";
+
+        if (diffDays < 7) {
+            const diffHrs = Math.floor(diffMs / 3600000);
+            displayVal = diffHrs + "h";
+            color = "var(--accent-red)";
+        } else if (diffDays < 30) {
+            color = "var(--accent-orange)";
+        }
+
+        html += `<div class="exam-card"><span class="days" style="color:${color}">${displayVal}</span><span class="label">${exam}</span></div>`;
+    }
+
+    if (mostUrgent < 30) document.getElementById('examHeader').style.color = "var(--accent-orange)";
+    document.getElementById("jeeTracker").innerHTML = html;
+}
+
+function toggleStats() {
+    const overlay = document.getElementById('statsOverlay');
+    const isVisible = overlay.style.display === 'flex';
+    
+    if (!isVisible) {
+        const d = State.dailyData[State.today];
+        const total = (d.P + d.C + d.M) / 3600;
+        
+        // Simple rolling average logic (last 7 days in log)
+        const logs = Object.values(State.dailyData);
+        const avg = logs.slice(-7).reduce((acc, curr) => acc + (curr.P + curr.C + curr.M), 0) / (logs.length > 7 ? 7 : logs.length) / 3600;
+
+        document.getElementById('statsGrid').innerHTML = `
+            <div class="stat-item"><span class="label">TODAY TOTAL</span><span class="stat-val-big">${total.toFixed(1)}h</span></div>
+            <div class="stat-item"><span class="label">7-DAY AVG</span><span class="stat-val-big">${avg.toFixed(1)}h</span></div>
+            <div class="stat-item"><span class="label">PAUSES</span><span class="stat-val-big">${d.pauses}</span></div>
+            <div class="stat-item"><span class="label">PHYSICS</span><span class="stat-val-big">${(d.P/3600).toFixed(1)}h</span></div>
+            <div class="stat-item"><span class="label">CHEMISTRY</span><span class="stat-val-big">${(d.C/3600).toFixed(1)}h</span></div>
+            <div class="stat-item"><span class="label">MATHS</span><span class="stat-val-big">${(d.M/3600).toFixed(1)}h</span></div>
+        `;
+        overlay.style.display = 'flex';
+    } else {
+        overlay.style.display = 'none';
+    }
+}
+
+function saveData() {
+    localStorage.setItem('studyLog', JSON.stringify(State.dailyData));
+}
+
+function resetTimer() {
+    if (State.isHardFocus && State.running) return;
+    State.running = false; State.totalSeconds = 0; State.pauseCount = 0;
+    document.body.classList.remove('shake-active');
+    document.getElementById("playPauseBtn").textContent = "START";
+}
+
+function swapDisplays() { State.isSwapped = !State.isSwapped; }
+
+// --- CONTROLS ---
+
+document.addEventListener('keydown', (e) => {
+    if (document.activeElement.tagName === 'INPUT') return;
+    const key = e.key.toLowerCase();
+    if (key === '1') setSubject('P');
+    if (key === '2') setSubject('C');
+    if (key === '3') setSubject('M');
+    if (key === 'r') resetTimer();
+    if (key === 's') toggleStats();
+    if (key === 'h') toggleHardFocus();
+    if (key === 'd') swapDisplays();
+    if (e.code === 'Space') { e.preventDefault(); toggleTimer(); }
+});
+
+setInterval(() => {
+    const ghost = ["AIR_1 is currently solving Irodov.", "User_99 just hit 8 hours.", "Someone in Kota just finished a mock test."];
+    document.getElementById('leaderboardTicker').textContent = ghost[Math.floor(Math.random() * ghost.length)];
+    document.getElementById('motivationBox').textContent = `"${Config.quotes[Math.floor(Math.random() * Config.quotes.length)]}"`;
+    updateTracker();
+    saveData();
+}, 60000);
+
+// Init
+updateTracker();
+requestAnimationFrame(engine);
+
+</script>
+</body>
+</html>
