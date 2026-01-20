@@ -323,7 +323,7 @@
         <div id="focusScore">FOCUS: 100/100</div>
         <div id="dailyTotal">LOG: 0h 0m</div>
         <div id="smallDisplay" onclick="swapDisplays()" style="cursor:pointer; opacity: 0.7;">00:00:00</div>
-        <div class="clickable-stat" id="username" onclick="changeUsername()">OJAS KADAM</div>
+        <div class="clickable-stat" id="username" onclick="changeUsername()">Your Name</div>
         <div class="clickable-stat" onclick="openLeaderboard()">LEADERBOARD</div>
       </div>
     </footer>
@@ -644,7 +644,7 @@ function openLevelModal() {
     
     document.getElementById('levelTitle').textContent = titles[idx].toUpperCase();
     document.getElementById('rankBadge').textContent = titles[idx].toUpperCase();
-    document.getElementById('levelDesc').textContent = `Protocol check for OJAS KADAM. Cumulative depth: ${totalH.toFixed(2)} hours.`;
+    document.getElementById('levelDesc').textContent = `Protocol check for Your Name. Cumulative depth: ${totalH.toFixed(2)} hours.`;
     document.getElementById('levelBar').style.width = progress + "%";
     document.getElementById('levelStats').textContent = `${(nextT - totalH).toFixed(1)}H TO NEXT RANK`;
     document.getElementById('levelModal').style.display = 'flex';
@@ -656,7 +656,7 @@ function openLeaderboard() {
     const myHours = mySeconds / 3600;
     
     // FETCH THE UPDATED NAME FROM LOCAL STORAGE
-    const currentName = localStorage.getItem('username') || "OJAS KADAM";
+    const currentName = localStorage.getItem('username') || "Your Name";
     
     // Mix user into competitors with the correct name
     const liveRanking = [...Competitors, { name: currentName, hours: myHours, isMe: true }];
@@ -709,7 +709,7 @@ function swapDisplays() { State.isSwapped = !State.isSwapped; }
 function closeModals() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
 function saveData() { localStorage.setItem('studyLog_v2', JSON.stringify(State.dailyData)); }
 function updateUsername() {
-    const name = localStorage.getItem('username') || "OJAS KADAM";
+    const name = localStorage.getItem('username') || "Your Name";
     document.getElementById('username').textContent = name;
 }
 
@@ -770,7 +770,7 @@ function toggleFullscreen() {
 }
 
 function changeUsername() {
-    const current = localStorage.getItem('username') || "OJAS KADAM";
+    const current = localStorage.getItem('username') || "Your Name";
     const name = prompt("Enter your name/callsign:", current);
 
     if (name && name.trim().length > 0) {
@@ -802,3 +802,4 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
