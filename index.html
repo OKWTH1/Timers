@@ -17,9 +17,9 @@
     --accent-blue: #00d4ff;
     --text-main: #ffffff;
     --glass: rgba(255, 255, 255, 0.05);
-    --glass-border: rgba(255, 255, 255, 0.15); /* Increased visibility */
+    --glass-border: rgba(255, 255, 255, 0.15); 
     --current-aura: #00ff88;
-    --panel-bg: rgba(12, 12, 12, 0.85); /* Darker, more readable background */
+    --panel-bg: rgba(12, 12, 12, 0.85); 
   }
 
   * { box-sizing: border-box; cursor: crosshair; user-select: none; }
@@ -35,7 +35,6 @@
   body.hard-focus { filter: grayscale(1) contrast(1.2); }
   body.hard-focus #bigDisplay { filter: grayscale(0); }
 
-  /* --- HUD --- */
   #progressBar { 
     position: fixed; top: 0; left: 0; height: 4px; 
     background: var(--current-aura); z-index: 1000; 
@@ -43,7 +42,6 @@
     box-shadow: 0 0 15px var(--current-aura);
   }
 
-  /* URGENT BAR (Overlay) - Fixed overlapping */
   #topUrgent {
     position: absolute; top: 0; left: 0; width: calc(100% - 340px); 
     height: 0; opacity: 0; pointer-events: none;
@@ -57,14 +55,12 @@
   .urgent-hms { font-family:'JetBrains Mono'; font-size: 3.5rem; font-weight: 700; color: var(--accent-red); letter-spacing: -2px; text-shadow: 0 0 30px var(--accent-red); line-height: 1; margin-bottom: 5px; }
   .urgent-label { font-size: 0.7rem; letter-spacing: 6px; color: #fff; opacity: 0.9; text-transform: uppercase; font-weight: 700;}
 
-  /* --- LAYOUT GRID --- */
   .container { 
     display: grid; 
-    grid-template-columns: 1fr 340px; /* Fixed Sidebar Width */
+    grid-template-columns: 1fr 340px; 
     height: 100vh; width: 100vw;
   }
   
-  /* MAIN AREA */
   main { 
     position: relative;
     display: flex; flex-direction: column; 
@@ -74,20 +70,17 @@
     height: 100vh; overflow: hidden;
     transition: padding-top 0.6s ease;
   }
-  /* Crucial Fix: Push content down when urgent bar is active */
   main.shifted { padding-top: 150px; }
 
-  /* TICKER (Ghost Bar) */
   #leaderboardTicker { 
     background: rgba(0, 255, 136, 0.08); border: 1px solid var(--current-aura);
     padding: 10px 30px; border-radius: 40px; font-size: 0.75rem; 
     color: var(--current-aura); letter-spacing: 2px; text-transform: uppercase;
     text-align: center; width: fit-content; margin-bottom: 20px;
     box-shadow: 0 0 15px rgba(0,255,136,0.1);
-    white-space: nowrap; z-index: 40;
+    white-space: nowrap; z-index: 40; transition: all 0.3s;
   }
 
-  /* TIMER CENTER */
   .timer-box {
     display: flex; flex-direction: column; 
     justify-content: center; align-items: center; 
@@ -102,7 +95,6 @@
     text-shadow: 0 0 80px rgba(0,255,136,0.15); line-height: 1;
     cursor: pointer; margin: 20px 0;
   }
-  #bigDisplay:hover { opacity: 0.9; }
 
   .subject-tags { display: flex; gap: 15px; }
   .tag-btn { 
@@ -116,7 +108,6 @@
   .tag-btn.active.C { border-color: var(--accent-red); color: var(--accent-red); box-shadow: 0 0 15px rgba(255,49,49,0.1); background: rgba(255,49,49,0.05);}
   .tag-btn.active.M { border-color: var(--accent-green); color: var(--accent-green); box-shadow: 0 0 15px rgba(0,255,136,0.1); background: rgba(0,255,136,0.05);}
 
-  /* FOOTER CONTROLS */
   footer { 
     width: 100%; display: flex; flex-direction: column; gap: 20px; align-items: center;
     padding-bottom: 10px; z-index: 10;
@@ -133,25 +124,22 @@
     color: white; padding: 12px 0; width: 65px; font-family: 'Space Grotesk'; 
     font-weight: 700; font-size: 1.2rem; text-align: center; border-radius: 6px;
   }
-  input:focus { outline: 1px solid var(--current-aura); border-color: var(--current-aura); }
 
   .play-btn { 
     background: var(--current-aura); color: black; border: none; 
     padding: 12px 40px; font-weight: 700; letter-spacing: 1px; border-radius: 6px;
     min-width: 130px; transition: transform 0.1s; cursor: pointer;
   }
-  .play-btn:active { transform: scale(0.95); }
 
   .status-line { 
     display: flex; justify-content: space-between; width: 100%; 
-    font-size: 0.75rem; letter-spacing: 2px; color: #bbb; /* Brighter Text */
+    font-size: 0.75rem; letter-spacing: 2px; color: #bbb; 
     border-top: 1px solid var(--glass-border); padding-top: 20px;
     font-weight: 500;
   }
   .clickable-stat { cursor: pointer; transition: color 0.3s; }
   .clickable-stat:hover { color: var(--current-aura); text-shadow: 0 0 10px var(--current-aura); }
 
-  /* --- SIDEBAR (FIXED VISIBILITY) --- */
   #sidebar { 
     background: var(--panel-bg); 
     backdrop-filter: blur(35px);
@@ -163,7 +151,7 @@
   }
   
   .sidebar-header { 
-    font-size: 0.7rem; font-weight: 700; color: #ddd; /* Brighter Header */
+    font-size: 0.7rem; font-weight: 700; color: #ddd; 
     letter-spacing: 3px; 
     text-transform: uppercase; border-bottom: 1px solid var(--glass-border); 
     padding-bottom: 8px; margin-top: 5px;
@@ -177,7 +165,7 @@
   
   #motivationBox {
     font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;
-    color: #eee; line-height: 1.5; /* White text for readability */
+    color: #eee; line-height: 1.5; 
   }
 
   .exam-card { 
@@ -188,7 +176,6 @@
   .exam-card .days { font-size: 1.4rem; font-weight: 700; color: #fff; }
   .exam-card .label { font-size: 0.65rem; color: #ccc; text-transform: uppercase; font-weight: 600; }
 
-  /* --- MODALS --- */
   .modal {
     position: fixed; inset: 0; background: rgba(0,0,0,0.92);
     display: none; align-items: center; justify-content: center; z-index: 2000;
@@ -200,43 +187,43 @@
     box-shadow: 0 0 60px rgba(0,0,0,0.8);
   }
   
-  /* Leaderboard Styling */
   .rank-row {
     display: flex; justify-content: space-between; padding: 14px 0;
     border-bottom: 1px solid rgba(255,255,255,0.08); font-family: 'JetBrains Mono'; font-size: 0.95rem;
-    color: #888;
+    color: #888; align-items: center;
   }
   .rank-row.me { color: var(--current-aura); text-shadow: 0 0 15px rgba(0,255,136,0.3); font-weight: 700; border-color: rgba(0,255,136,0.2); }
-  .rank-row span:nth-child(1) { width: 70%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
-  .rank-row span:nth-child(2) { color: #fff; font-weight: 600;}
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 8px; }
 
-/* Better Scrollbars for Sidebar */
-#sidebar::-webkit-scrollbar { width: 4px; }
-#sidebar::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 10px; }
+  /* Global Chart Styles */
+  .chart-container {
+    height: 80px; display: flex; align-items: flex-end; gap: 4px; margin-top: 20px;
+    padding-bottom: 10px; border-bottom: 1px solid var(--glass-border);
+  }
+  .chart-bar { flex: 1; background: var(--current-aura); opacity: 0.3; border-radius: 2px 2px 0 0; transition: height 0.5s ease; }
 
-/* Subtle pulse for the Start Button to draw attention */
 @keyframes pulse-glow {
     0% { box-shadow: 0 0 5px var(--current-aura); }
     50% { box-shadow: 0 0 20px var(--current-aura); }
     100% { box-shadow: 0 0 5px var(--current-aura); }
 }
+.play-btn { animation: pulse-glow 3s infinite; text-transform: uppercase; }
 
-.play-btn {
-    animation: pulse-glow 3s infinite;
-    text-transform: uppercase;
-}
-
-/* Make subject tags feel more like tabs */
-.tag-btn {
-    border-bottom: 2px solid transparent;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
+@keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
 </style>
 </head>
 <body id="mainBody">
 
 <div id="progressBar"></div>
+
+<div id="onboardingModal" class="modal">
+    <div class="modal-box" style="border-color: var(--accent-blue); width: 600px;">
+        <div class="sidebar-header" style="color: var(--accent-blue);">System Initialization</div>
+        <h2 style="font-size: 2rem; margin: 10px 0;">ESTABLISH CALLSIGN</h2>
+        <input type="text" id="userInputName" placeholder="ENTER YOUR NAME..." style="width:100%; margin:20px 0; padding:15px; background:#111; border:1px solid var(--accent-blue); color:white; font-family:'Space Grotesk'; font-size:1.2rem; text-transform:uppercase;" maxlength="15">
+        <button class="play-btn" onclick="confirmIdentity()" style="width: 100%; background: var(--accent-blue);">INITIALIZE CORE PROTOCOL</button>
+    </div>
+</div>
 
 <div id="levelModal" class="modal" onclick="closeModals()">
     <div class="modal-box" onclick="event.stopPropagation()">
@@ -251,45 +238,22 @@
 </div>
 
 <div id="leaderboardModal" class="modal" onclick="closeModals()">
-    <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-box" style="width: 550px;" onclick="event.stopPropagation()">
         <div class="sidebar-header" style="display:flex; justify-content:space-between; align-items:center;">
             <span>Global Live Standing</span>
-            <span style="color:var(--accent-red); font-size:0.6rem; animation: blink 1s infinite;">● LIVE</span>
+            <span style="color:var(--accent-red); font-size:0.6rem; animation: blink 1s infinite;">● LIVE NODES: <span id="nodeCount">12</span></span>
         </div>
-        <div id="ghostList" style="margin-top: 20px; max-height: 450px; overflow-y: auto; scrollbar-width: none;"></div>
+        
+        <div class="chart-container" id="globalChart">
+            </div>
+        <div style="font-size: 0.6rem; color: #555; display: flex; justify-content: space-between; margin-top: 5px;">
+            <span>00:00</span><span>INTENSITY PROFILE</span><span>CURRENT</span>
+        </div>
+
+        <div id="ghostList" style="margin-top: 20px; max-height: 350px; overflow-y: auto; scrollbar-width: none;"></div>
         <div style="margin-top: 25px; font-size: 0.7rem; color: #444; text-align: center;">*Syncing with active nodes...</div>
     </div>
 </div>
-
-<div id="onboardingModal" class="modal" style="display:none;">
-    <div class="modal-box" style="border-color: var(--accent-blue); width: 600px;">
-        <div class="sidebar-header" style="color: var(--accent-blue);">System Initialization</div>
-        <h2 style="font-size: 2rem; margin: 10px 0;">WELCOME TO RANKLOCK</h2>
-        
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; font-size: 0.8rem; line-height: 1.6;">
-            <div>
-                <b style="color: var(--accent-blue);">1. SELECT SUBJECT</b><br>
-                Toggle P/C/M before starting. Your "Rank" grows based on cumulative hours per subject.
-            </div>
-            <div>
-                <b style="color: var(--accent-red);">2. HARD FOCUS (H)</b><br>
-                Enables grayscale mode. In JEE, there are no distractions. Train your brain to ignore the world.
-            </div>
-            <div>
-                <b style="color: var(--accent-green);">3. GLOBAL STANDING</b><br>
-                Check the Leaderboard (L) to see where you stand against simulated "Kota" grinders.
-            </div>
-            <div>
-                <b style="color: var(--accent-orange);">4. URGENT PROTOCOL</b><br>
-                Automatic countdowns for JEE Mains and Advanced appear at 7 days out.
-            </div>
-        </div>
-        
-        <button class="play-btn" onclick="closeOnboarding()" style="width: 100%; background: var(--accent-blue);">I UNDERSTAND - START GRIND</button>
-    </div>
-</div>
-
-<style> @keyframes blink { 50% { opacity: 0.4; } } </style>
 
 <div id="topUrgent">
     <div class="urgent-hms" id="urgentHMS">00:00:00</div>
@@ -323,7 +287,7 @@
         <div id="focusScore">FOCUS: 100/100</div>
         <div id="dailyTotal">LOG: 0h 0m</div>
         <div id="smallDisplay" onclick="swapDisplays()" style="cursor:pointer; opacity: 0.7;">00:00:00</div>
-        <div class="clickable-stat" id="username" onclick="changeUsername()">Your Name</div>
+        <div class="clickable-stat" id="username" onclick="changeUsername()">OJAS KADAM</div>
         <div class="clickable-stat" onclick="openLeaderboard()">LEADERBOARD</div>
       </div>
     </footer>
@@ -332,85 +296,61 @@
   <aside id="sidebar">
     <div class="sidebar-header">Deployment Timelines</div>
     <div id="jeeTracker"></div>
-    
     <div class="sidebar-header">Mental Fuel</div>
-    <div class="fuel-container">
-        <div id="motivationBox">"Initializing neurotransmitter optimization..."</div>
-    </div>
-
+    <div class="fuel-container"><div id="motivationBox">"Initializing neurotransmitter optimization..."</div></div>
     <div class="sidebar-header">System Log</div>
-    <div id="sessionHistory" style="font-family:'JetBrains Mono'; font-size:0.7rem; color:#aaa; display: flex; flex-direction: column; gap: 8px;">
-        No session data recorded for today.
-    </div>
+    <div id="sessionHistory" style="font-family:'JetBrains Mono'; font-size:0.7rem; color:#aaa; display: flex; flex-direction: column; gap: 8px;">No session data.</div>
     <div class="sidebar-header">Core Protocol</div>
-<div class="fuel-container" style="border-left-color: var(--accent-orange); margin-bottom: 20px;">
-    <div style="font-size: 0.85rem; font-weight: 700; color: var(--accent-orange); margin-bottom: 5px;">WHY RANKLOCK?</div>
-    <div style="font-size: 0.7rem; color: #bbb; line-height: 1.4;">
-        RankLock isn't a "pomodoro" timer. It's a JEE deployment interface. 
-        It tracks subject-specific depth, simulates competition via the Global Standing, 
-        and enforces 'Hard Focus' to build the mental stamina required for 3-hour papers.
+    <div class="fuel-container" style="border-left-color: var(--accent-orange); margin-bottom: 20px;">
+        <div style="font-size: 0.85rem; font-weight: 700; color: var(--accent-orange); margin-bottom: 5px;">WHY RANKLOCK?</div>
+        <div style="font-size: 0.7rem; color: #bbb; line-height: 1.4;">RankLock isn't a "pomodoro" timer. It's a JEE deployment interface. It tracks subject-specific depth, simulates competition via the Global Standing, and enforces 'Hard Focus' to build the mental stamina required for 3-hour papers.</div>
     </div>
-</div>
-
-<div style="padding: 0 10px; opacity: 0.4; font-size: 0.6rem; letter-spacing: 1px;">
-    SYSTEM: RANKLOCK v2.2<br>
-    STATUS: OPERATIONAL<br>
-    DESIGNED FOR: AIR 1 ASPIRANTS
-</div>
+    <div style="padding: 0 10px; opacity: 0.4; font-size: 0.6rem; letter-spacing: 1px;">SYSTEM: RANKLOCK v2.3<br>STATUS: OPERATIONAL<br>DESIGNED FOR: AIR 1 ASPIRANTS<br>DESIGNED BY: OJAS KADAM</div>
   </aside>
 </div>
 
 <script>
-/**
- * TITAN OMEGA CORE LOGIC v2.2 (Fixed NaN, Ranking & Visibility)
- */
-
 const State = {
-    totalSeconds: 0,
-    initialSeconds: 0,
-    running: false,
-    isSwapped: false,
-    isHardFocus: false,
-    lastTimestamp: performance.now(),
-    currentSubject: 'M',
-    pauseCount: 0,
+    totalSeconds: 0, initialSeconds: 0, running: false, isSwapped: false, isHardFocus: false,
+    lastTimestamp: performance.now(), currentSubject: 'M', pauseCount: 0,
     dailyData: JSON.parse(localStorage.getItem('studyLog_v2')) || {},
     today: new Date().toISOString().split('T')[0],
-    sessionActive: false,
-    urgentTarget: null
+    sessionActive: false, urgentTarget: null,
+    milestonesNotified: {},
+    intensityData: Array.from({length: 24}, () => Math.floor(Math.random() * 80) + 20)
 };
 
-// 1. DATA SANITIZATION (Fixes the NaN Error)
 if (!State.dailyData[State.today]) {
-    State.dailyData[State.today] = { P: 0, C: 0, M: 0, pauses: 0, sessions: [] };
-} else {
-    // Force numbers if they are missing or undefined
-    const d = State.dailyData[State.today];
-    if (typeof d.P !== 'number') d.P = 0;
-    if (typeof d.C !== 'number') d.C = 0;
-    if (typeof d.M !== 'number') d.M = 0;
-    if (!Array.isArray(d.sessions)) d.sessions = [];
+    State.dailyData = { [State.today]: { P: 0, C: 0, M: 0, pauses: 0, sessions: [] } };
 }
 
-// 2. SIMULATED COMPETITORS (Generates "Fake" Leaderboard Data)
 const Competitors = [];
-function initCompetitors() {
-    const names = ["AIR_1_Candidate", "Kota_Reaper", "Irodov_Slayer", "System_X", "Aspirant_007", "Physics_God", "Mains_Killer", "Silent_Topper", "Dorm_Room_Guy", "Library_Ghost", "Cengage_Boy", "Allen_Survivor"];
-    
-    for(let i=0; i<12; i++) {
-        // Create realistic base hours based on time of day
-        let currentHour = new Date().getHours();
-        let baseHours = (currentHour > 6) ? (currentHour - 6) * (0.5 + Math.random()*0.5) : 0;
-        baseHours += (Math.random() * 2);
+const competitorNames = ["AIR_1_Candidate", "Kota_Reaper", "Irodov_Slayer", "System_X", "Aspirant_007", "Physics_God", "Mains_Killer", "Silent_Topper", "Dorm_Room_Guy", "Library_Ghost", "Cengage_Boy", "Allen_Survivor", "Resonance_Radical", "Fiitjee_Fiend", "Pyq_Master", "Inorganic_Hater"];
 
-        Competitors.push({
-            name: names[i],
-            speed: 0.9 + (Math.random() * 0.3), // Study speed multiplier
-            hours: baseHours
+function initCompetitors() {
+    for(let i=0; i<12; i++) {
+        Competitors.push({ 
+            name: competitorNames[i], 
+            totalSeconds: (Math.random() * 14400), // Start with 0-4 hours
+            isActive: Math.random() > 0.3, 
+            statusTimer: Math.random() * 300 
         });
     }
 }
 initCompetitors();
+
+function spawnNewCompetitor() {
+    const name = "ASPIRANT_" + Math.floor(Math.random() * 9000 + 1000);
+    Competitors.push({ name: name, totalSeconds: 0, isActive: true, statusTimer: 600 });
+    const ticker = document.getElementById('leaderboardTicker');
+    ticker.style.background = "rgba(0, 212, 255, 0.2)";
+    ticker.style.borderColor = "var(--accent-blue)";
+    ticker.textContent = `NEW NODE DETECTED: ${name} JOINED THE GRIND`;
+    setTimeout(() => {
+        ticker.style.background = "rgba(0, 255, 136, 0.08)";
+        ticker.style.borderColor = "var(--current-aura)";
+    }, 5000);
+}
 
 const Config = {
     examDates: {
@@ -420,28 +360,10 @@ const Config = {
         "MHT-CET 2026": new Date("2026-04-15T09:00:00"),
         "JEE Advanced": new Date("2026-06-07T09:00:00")
     },
-    quotes: [
-        "IIT Bombay isn't built in a day, but it's lost in a second of laziness.",
-        "Your competition is studying right now. Are you?",
-        "JEE Advanced is a test of character, not just caliber.",
-        "Every MCQ you skip is someone else's rank improving.",
-        "Consistency is the difference between a dreamer and a topper.",
-        "Calculus doesn't care about your feelings.",
-        "Discipline shows up even when motivation ghosts you.",
-        "Pressure is proof you’re in the game.",
-        "Discipline shows up even when motivation ghosts you.", "No one remembers comfort, everyone remembers results.", "Today’s effort is tomorrow’s confidence.", "You don’t need a perfect day, just an honest one.", "Boring work builds extraordinary outcomes.", "Consistency is talent that doesn’t quit.", "Every focused hour compounds silently.", "You’re not behind, you’re building.", "Excuses feel good now, ranks feel good later.", "The grind you avoid today comes back tomorrow.", "Confidence is earned, not imagined.", "Do the work even when it feels pointless.", "Hard days are part of the syllabus.", "You’re training your mind, not just learning facts.", "The rank doesn’t care how you felt.", "Discipline is remembering what you want.", "You don’t rise to motivation, you fall to habits.", "The quiet sessions matter most.", "Pressure is proof you’re in the game.", "Small wins stack into big results.", "No one sees this effort, and that’s fine.", "Comfort delays progress.", "Focus is a competitive advantage.", "You don’t need more time, you need fewer excuses.", "The work you skip becomes your weakness.", "This phase decides the next decade.", "You’re allowed to be tired, not to quit.", "Serious goals demand serious days.", "Your future self is watching.", "Effort beats luck every single time.", "The grind is temporary, regret lasts longer.", "You’re building proof, not hope.", "Stay boring, stay consistent.", "Talent fades, discipline stays.", "Every session counts.", "This is where separation happens.", "Hard work makes pressure manageable.", "Results respect preparation.", "Do it right, even when it’s slow.", "You don’t need validation, you need progress.", "One more focused hour changes things.", "The work is the shortcut.", "Discipline creates freedom.", "Your ceiling rises with effort.", "Don’t negotiate with weakness.", "Momentum starts with action.", "Show up before confidence arrives.", "Today’s pain buys tomorrow’s calm.", "You’re closer than you think.", "No effort is wasted.", "Build stamina, not excuses.", "The process rewards loyalty.", "You’re earning resilience.", "This is training for life, not just an exam.", "Serious days create serious results.", "Stay present, stay disciplined.", "You don’t need intensity forever, just consistency.", "Growth hides in repetition.", "Trust the grind.", "Do it tired.", "Progress loves patience.", "Every honest session matters.", "You’re becoming harder to beat.", "Stay focused, stay dangerous.", "This work compounds quietly.", "Discipline never embarrasses you.", "Your habits are your rank.", "No shortcuts, just standards.", "Effort is always respected.", "Keep going.", "Stay locked in.", "Finish strong.", "Again tomorrow."
-    ],
-    ghosts: [
-        "AIR_1 is currently solving Irodov.",
-        "Someone in Kota just hit 14 hours.",
-        "User_772 upgraded to 'Titan' rank.",
-        "Server load high: Late night grinders active.",
-        "Physics cycle completed by 4,202 users.",
-        "User_99 just locked in for 8 hours straight, no music, no distractions.", "Someone in Kota just walked out of a full mock and went straight to analysis.", "A silent grinder in Chennai finished revising electrochem before sunrise.", "User_A17 fixed their sleep schedule and started studying at 5 a.m.", "Someone you’ll never meet just solved 50 calculus questions today.", "A dropper in Jaipur just crossed 200 consecutive study days.", "User_42 chose PYQs over reels tonight.", "Someone in a hostel just memorized all qualitative inorganic trends.", "A ranker-in-the-making just said no to a party.", "User_X just finished a 3-hour physics test without checking the clock.", "Someone in Kota redid the same mock to fix silly mistakes.", "User_88 finally stopped overthinking and started solving.", "A quiet competitor just completed NCERT line by line.", "Someone out there studied while everyone else slept.", "User_Z stayed back after coaching to clear doubts.", "A focused mind somewhere just mastered circles today.", "Someone just turned their phone off for the next 6 hours.", "User_19 just broke their personal best in accuracy.", "A serious aspirant just finished revision instead of starting something new.", "Someone you don’t see on Instagram is getting better every day.", "User_61 just solved that question you skipped.", "A Kota student just analyzed mistakes instead of blaming the paper.", "Someone just chose discipline over motivation.", "User_P kept going even after a bad mock.", "A competitor just improved speed by 10 percent today.", "Someone just realized consistency beats talent.", "User_73 is on their 4th study session today.", "A silent worker just finished coordination compounds.", "Someone just studied even when they didn’t feel like it.", "User_K fixed weak chapters instead of strong ones.", "A focused student somewhere just rewrote formulas.", "Someone just stopped waiting for the perfect mood.", "User_11 studied through mental fatigue.", "A grinder just finished p-block revision.", "Someone just did error analysis properly.", "User_90 chose long-term rank over short-term comfort.", "A determined aspirant just solved advanced-level problems.", "Someone just showed up, again.", "User_M completed a full-length test under time pressure.", "A serious student just accepted their mistakes.", "Someone just studied while it was boring.", "User_5 stayed disciplined after dinner.", "A competitor just strengthened their weakest subject.", "Someone just trusted the process.", "User_27 did focused revision, not random reading.", "A Kota aspirant just said no excuses today.", "Someone just built stamina by studying tired.", "User_Q stayed consistent on a bad day.", "A future ranker just chose effort over ego.", "Someone just got a little better than yesterday.", "User_81 didn’t quit midway.", "A disciplined mind just kept going.", "Someone just outworked their doubts.", "User_R stayed silent and studied.", "A competitor just turned pressure into progress.", "Someone just did the hard thing first.", "User_66 stayed locked in till the timer ended.", "A focused student just refused to drift.", "Someone just earned confidence through work.", "User_38 kept promises to themselves.", "A serious aspirant just finished revision on time.", "Someone just chose growth.", "User_N pushed through resistance.", "A silent winner just kept grinding.", "Someone just proved discipline beats mood.", "User_14 stayed honest with prep.", "A competitor just invested another hour.", "Someone just chose the long road.", "User_52 fixed concepts instead of shortcuts.", "A focused mind just stayed present.", "Someone just kept moving forward.", "User_100 didn’t stop when it got hard."
-    ]
+    quotes: ["IIT Bombay isn't built in a day, but it's lost in a second of laziness.", "Your competition is studying right now. Are you?", "JEE Advanced is a test of character, not just caliber.", "Every MCQ you skip is someone else's rank improving.", "Consistency is the difference between a dreamer and a topper.", "Calculus doesn't care about your feelings.", "Discipline shows up even when motivation ghosts you.", "Pressure is proof you’re in the game.", "No one remembers comfort, everyone remembers results.", "Today’s effort is tomorrow’s confidence.", "You don’t need a perfect day, just an honest one.", "Boring work builds extraordinary outcomes.", "Consistency is talent that doesn’t quit.", "Every focused hour compounds silently.", "You’re not behind, you’re building.", "Excuses feel good now, ranks feel good later.", "The grind you avoid today comes back tomorrow.", "Confidence is earned, not imagined.", "Do the work even when it feels pointless.", "Hard days are part of the syllabus.", "You’re training your mind, not just learning facts.", "The rank doesn’t care how you felt.", "Discipline is remembering what you want.", "You don’t rise to motivation, you fall to habits.", "The quiet sessions matter most.", "Pressure is proof you’re in the game.", "Small wins stack into big results.", "No one sees this effort, and that’s fine.", "Comfort delays progress.", "Focus is a competitive advantage.", "You don’t need more time, you need fewer excuses.", "The work you skip becomes your weakness.", "This phase decides the next decade.", "You’re allowed to be tired, not to quit.", "Serious goals demand serious days.", "Your future self is watching.", "Effort beats luck every single time.", "The grind is temporary, regret lasts longer.", "You’re building proof, not hope.", "Stay boring, stay consistent.", "Talent fades, discipline stays.", "Every session counts.", "This is where separation happens.", "Hard work makes pressure manageable.", "Results respect preparation.", "Do it right, even when it’s slow.", "You don’t need validation, you need progress.", "One more focused hour changes things.", "The work is the shortcut.", "Discipline creates freedom.", "Your ceiling rises with effort.", "Don’t negotiate with weakness.", "Momentum starts with action.", "Show up before confidence arrives.", "Today’s pain buys tomorrow’s calm.", "You’re closer than you think.", "No effort is wasted.", "Build stamina, not excuses.", "The process rewards loyalty.", "You’re earning resilience.", "This is training for life, not just an exam.", "Serious days create serious results.", "Stay present, stay disciplined.", "You don’t need intensity forever, just consistency.", "Growth hides in repetition.", "Trust the grind.", "Do it tired.", "Progress loves patience.", "Every honest session matters.", "You’re becoming harder to beat.", "Stay focused, stay dangerous.", "This work compounds quietly.", "Discipline never embarrasses you.", "Your habits are your rank.", "No shortcuts, just standards.", "Effort is always respected.", "Keep going.", "Stay locked in.", "Finish strong.", "Again tomorrow."],
+    ghosts: ["AIR_1 is currently solving Irodov.", "Someone in Kota just hit 14 hours.", "User_772 upgraded to 'Titan' rank.", "Server load high: Late night grinders active.", "Physics cycle completed by 4,202 users.", "User_99 just locked in for 8 hours straight, no music, no distractions.", "Someone in Kota just walked out of a full mock and went straight to analysis.", "A silent grinder in Chennai finished revising electrochem before sunrise.", "User_A17 fixed their sleep schedule and started studying at 5 a.m.", "Someone you’ll never meet just solved 50 calculus questions today.", "A dropper in Jaipur just crossed 200 consecutive study days.", "User_42 chose PYQs over reels tonight.", "Someone in a hostel just memorized all qualitative inorganic trends.", "A ranker-in-the-making just said no to a party.", "User_X just finished a 3-hour physics test without checking the clock.", "Someone in Kota redid the same mock to fix silly mistakes.", "User_88 finally stopped overthinking and started solving.", "A quiet competitor just completed NCERT line by line.", "Someone out there studied while everyone else slept.", "User_Z stayed back after coaching to clear doubts.", "A focused mind somewhere just mastered circles today.", "Someone just turned their phone off for the next 6 hours.", "User_19 just broke their personal best in accuracy.", "A serious aspirant just finished revision instead of starting something new.", "Someone you don’t see on Instagram is getting better every day.", "User_61 just solved that question you skipped.", "A Kota student just analyzed mistakes instead of blaming the paper.", "Someone just chose discipline over motivation.", "User_P kept going even after a bad mock.", "A competitor just improved speed by 10 percent today.", "Someone just realized consistency beats talent.", "User_73 is on their 4th study session today.", "A silent worker just finished coordination compounds.", "Someone just studied even when they didn’t feel like it.", "User_K fixed weak chapters instead of strong ones.", "A focused student somewhere just rewrote formulas.", "Someone just stopped waiting for the perfect mood.", "User_11 studied through mental fatigue.", "A grinder just finished p-block revision.", "Someone just did error analysis properly.", "User_90 chose long-term rank over short-term comfort.", "A determined aspirant just solved advanced-level problems.", "Someone just showed up, again.", "User_M completed a full-length test under time pressure.", "A serious student just accepted their mistakes.", "Someone just studied while it was boring.", "User_5 stayed disciplined after dinner.", "A competitor just strengthened their weakest subject.", "Someone just trusted the process.", "User_27 did focused revision, not random reading.", "A Kota aspirant just said no excuses today.", "Someone just built stamina by studying tired.", "User_Q stayed consistent on a bad day.", "A future ranker just chose effort over ego.", "Someone just got a little better than yesterday.", "User_81 didn’t quit midway.", "A disciplined mind just kept going.", "Someone just outworked their doubts.", "User_R stayed silent and studied.", "A competitor just turned pressure into progress.", "Someone just did the hard thing first.", "User_66 stayed locked in till the timer ended.", "A focused student just refused to drift.", "Someone just earned confidence through work.", "User_38 kept promises to themselves.", "A serious aspirant just finished revision on time.", "Someone just chose growth.", "User_N pushed through resistance.", "A silent winner just kept grinding.", "Someone just proved discipline beats mood.", "User_14 stayed honest with prep.", "A competitor just invested another hour.", "Someone just chose the long road.", "User_52 fixed concepts instead of shortcuts.", "A focused mind just stayed present.", "Someone just kept moving forward.", "User_100 didn’t stop when it got hard."]
 };
 
-// --- ENGINE (Runs ~60fps) ---
 function engine(timestamp) {
     const delta = (timestamp - State.lastTimestamp) / 1000;
     State.lastTimestamp = timestamp;
@@ -449,357 +371,201 @@ function engine(timestamp) {
     if (State.running && State.totalSeconds > 0) {
         State.totalSeconds -= delta;
         State.dailyData[State.today][State.currentSubject] += delta;
-        
-        if (State.totalSeconds <= 0) {
-            handleTimerComplete();
-        }
-    }
-    
-    // Increment Competitor Time (Simulation)
-    const hour = new Date().getHours();
-    if (hour >= 5 && hour <= 23) {
-        Competitors.forEach(c => {
-            if(Math.random() > 0.05) c.hours += (delta / 3600) * c.speed; 
-        });
+        checkDailyMilestones();
+        if (State.totalSeconds <= 0) handleTimerComplete();
     }
 
-    // LIVE URGENT TIMER UPDATE (Every frame logic)
+    // Realistic Global Progression Engine
+    Competitors.forEach(c => {
+        c.statusTimer -= delta;
+        if(c.statusTimer <= 0) {
+            c.isActive = !c.isActive; 
+            c.statusTimer = c.isActive ? (Math.random() * 3600 + 1800) : (Math.random() * 600 + 300);
+        }
+        if(c.isActive) c.totalSeconds += delta;
+    });
+
     if(State.urgentTarget) {
         const diff = State.urgentTarget - new Date();
-        if(diff > 0) {
-            document.getElementById('urgentHMS').textContent = formatHMS(Math.floor(diff/1000), true);
-        }
+        if(diff > 0) document.getElementById('urgentHMS').textContent = formatHMS(Math.floor(diff/1000), true);
     }
-
     updateUI();
     requestAnimationFrame(engine);
-}
-
-function handleTimerComplete() {
-    State.running = false;
-    State.sessionActive = false;
-    document.getElementById('playPauseBtn').textContent = "START";
-    new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg').play();
-    saveData();
-    State.totalSeconds = 0;
 }
 
 function updateUI() {
     const timerStr = formatHMS(Math.max(0, State.totalSeconds));
     const clockStr = new Date().toLocaleTimeString('en-IN', { hour12: false });
-    
     document.getElementById(State.isSwapped ? "smallDisplay" : "bigDisplay").textContent = timerStr;
     document.getElementById(State.isSwapped ? "bigDisplay" : "smallDisplay").textContent = clockStr;
-
-    // Progress Bar
     if(State.initialSeconds > 0) {
         const perc = ((State.initialSeconds - State.totalSeconds) / State.initialSeconds) * 100;
         const bar = document.getElementById("progressBar");
         bar.style.width = Math.min(100, perc) + "%";
-        
         const colors = perc < 60 ? 'var(--accent-green)' : (perc < 90 ? 'var(--accent-orange)' : 'var(--accent-red)');
-        bar.style.background = colors;
-        bar.style.boxShadow = `0 0 20px ${colors}`;
+        bar.style.background = colors; bar.style.boxShadow = `0 0 20px ${colors}`;
     }
-
-    // Stats - SAFE CALCULATION (Prevents NaN)
     const d = State.dailyData[State.today];
     const totalS = (d.P || 0) + (d.C || 0) + (d.M || 0);
-    const focus = totalS === 0 ? 100 : Math.max(0, Math.floor(100 - (State.pauseCount * 4) + (totalS / 10000)));
-    
+    const focus = totalS === 0 ? 100 : Math.max(0, Math.floor(100 - (State.pauseCount * 4)));
     document.getElementById('focusScore').textContent = `FOCUS: ${focus}/100`;
     document.getElementById('dailyTotal').textContent = `LOG: ${Math.floor(totalS/3600)}h ${Math.floor((totalS%3600)/60)}m`;
 }
 
-function updateTracker() {
-    const now = new Date();
-    let urgent = null;
-    let trackerHtml = "";
+function openLeaderboard() {
+    const myS = (State.dailyData[State.today].P || 0) + (State.dailyData[State.today].C || 0) + (State.dailyData[State.today].M || 0);
+    const myName = localStorage.getItem('username') || "OJAS KADAM";
+    const liveRanking = [...Competitors.map(c => ({name: c.name, hours: c.totalSeconds/3600, isActive: c.isActive})), { name: myName, hours: myS/3600, isMe: true, isActive: State.running }].sort((a,b) => b.hours - a.hours);
     
-    // Sort exams by date
-    const sortedExams = Object.entries(Config.examDates).sort((a,b) => a[1] - b[1]);
-
-    for (const [name, date] of sortedExams) {
-        const diff = date - now;
-        const days = Math.ceil(diff / 86400000);
-        
-        if (days > 0) {
-            // Check for Urgent Banner (First exam within 7 days)
-            if (!urgent && days < 8) urgent = { name, date };
-        
-            const color = days < 7 ? "var(--accent-red)" : (days < 30 ? "var(--accent-orange)" : "var(--accent-green)");
-            trackerHtml += `
-                <div class="exam-card" style="border-left: 2px solid ${color}">
-                    <span class="days" style="color:${color}">${days}d</span>
-                    <span class="label">${name}</span>
-                </div>
-            `;
-        }
-    }
-    document.getElementById("jeeTracker").innerHTML = trackerHtml;
-
-    // Handle Top Urgent Banner Visuals
-    const banner = document.getElementById('topUrgent');
-    const main = document.getElementById('mainFrame');
+    document.getElementById('ghostList').innerHTML = liveRanking.map((u, i) => `
+        <div class="rank-row ${u.isMe ? 'me' : ''}">
+            <span>
+                <span class="status-dot" style="background: ${u.isActive ? 'var(--accent-green)' : '#444'}"></span>
+                ${i+1 === 1 ? '👑' : i+1 <= 3 ? '⚡' : '#'} ${u.name}
+            </span>
+            <span style="font-size: 0.7rem; opacity: 0.6; margin-right: 15px;">${u.isActive ? 'STUDYING' : 'ON BREAK'}</span>
+            <span>${u.hours.toFixed(3)}h</span>
+        </div>`).join('');
     
-    if (urgent) {
-        State.urgentTarget = urgent.date; // Set for Engine Loop
-        banner.classList.add('active');
-        main.classList.add('shifted'); // Push content down
-        document.getElementById('urgentExamName').textContent = urgent.name.toUpperCase() + " DEADLINE";
-    } else {
-        State.urgentTarget = null;
-        banner.classList.remove('active');
-        main.classList.remove('shifted');
-    }
+    // Update Chart
+    const chart = document.getElementById('globalChart');
+    chart.innerHTML = State.intensityData.map(val => `<div class="chart-bar" style="height: ${val}%"></div>`).join('');
+    document.getElementById('nodeCount').textContent = Competitors.length;
+    document.getElementById('leaderboardModal').style.display = 'flex';
 }
 
-// --- CORE ACTIONS ---
+// Preserve existing functions
 function toggleTimer() {
     const btn = document.getElementById("playPauseBtn");
     if (!State.running) {
-        // If 0, load from inputs
         if (State.totalSeconds <= 0) {
             const h = parseInt(document.getElementById("hh").value) || 0;
             const m = parseInt(document.getElementById("mm").value) || 0;
-            State.totalSeconds = (h * 3600) + (m * 60);
-            State.initialSeconds = State.totalSeconds;
-            
-            if (State.totalSeconds > 0) {
-                State.dailyData[State.today].sessions.push({ sub: State.currentSubject, time: new Date().toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit'}) });
-                renderSessionLog();
-            }
+            State.totalSeconds = (h * 3600) + (m * 60); State.initialSeconds = State.totalSeconds;
+            if (State.totalSeconds > 0) { State.dailyData[State.today].sessions.push({ sub: State.currentSubject, time: new Date().toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit'}) }); renderSessionLog(); }
         }
-        
-        if (State.totalSeconds > 0) {
-            State.running = true;
-            btn.textContent = "PAUSE";
-            btn.style.background = "#fff"; 
-        }
-    } else {
-        // Pausing
-        State.running = false;
-        State.pauseCount++;
-        btn.textContent = "RESUME";
-        btn.style.background = "var(--current-aura)";
-    }
+        if (State.totalSeconds > 0) { State.running = true; btn.textContent = "PAUSE"; btn.style.background = "#fff"; }
+    } else { State.running = false; State.pauseCount++; btn.textContent = "RESUME"; btn.style.background = "var(--current-aura)"; }
     saveData();
 }
 
 function resetTimer() {
-    State.running = false;
-    State.totalSeconds = 0;
-    State.initialSeconds = 0;
+    State.running = false; State.totalSeconds = 0; State.initialSeconds = 0;
     document.getElementById("playPauseBtn").textContent = "START";
-    document.getElementById("playPauseBtn").style.background = "var(--current-aura)";
     document.getElementById("progressBar").style.width = "0%";
-    document.getElementById("hh").value = "";
-    document.getElementById("mm").value = "";
 }
 
 function setSubject(sub) {
     State.currentSubject = sub;
     document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('btn-' + sub).classList.add('active');
-    
     const auraMap = { 'P': '#00d4ff', 'C': '#ff3131', 'M': '#00ff88' };
     document.documentElement.style.setProperty('--current-aura', auraMap[sub]);
-    
-    if(!State.running) document.getElementById("playPauseBtn").style.background = auraMap[sub];
 }
 
 function toggleHardFocus() {
     State.isHardFocus = !State.isHardFocus;
     document.body.classList.toggle('hard-focus', State.isHardFocus);
     document.getElementById('hardBtn').textContent = State.isHardFocus ? "LOCKED" : "Hard Focus";
-    document.getElementById('hardBtn').style.borderColor = State.isHardFocus ? "var(--current-aura)" : "var(--glass-border)";
 }
 
-// --- MODAL & LOGIC (Fixed Calculations) ---
-function openLevelModal() {
-    // 1. Calculate safe total hours
-    let totalSeconds = 0;
-    Object.values(State.dailyData).forEach(day => {
-        totalSeconds += (day.P || 0) + (day.C || 0) + (day.M || 0);
-    });
-    
-    const totalH = totalSeconds / 3600;
-    
-    const thresholds = [0, 10, 50, 150, 400, 1000];
-    let idx = 0;
-    while(idx < thresholds.length - 1 && totalH >= thresholds[idx+1]) idx++;
-    
-    const titles = ["Novice", "Aspirant", "Grinder", "Titan", "Omega", "Immortal"];
-    
-    // Prevent index out of bounds
-    idx = Math.min(idx, titles.length - 1);
-    
-    const currentT = thresholds[idx];
-    const nextT = thresholds[idx+1] || (currentT * 2);
-    let progress = 0;
-    
-    if (nextT > currentT) {
-        progress = Math.min(100, ((totalH - currentT) / (nextT - currentT)) * 100);
+function checkDailyMilestones() {
+    const totalS = State.dailyData[State.today].P + State.dailyData[State.today].C + State.dailyData[State.today].M;
+    const totalH = Math.floor(totalS / 3600);
+    const user = localStorage.getItem('username') || "OJAS KADAM";
+    if (totalH > 0 && !State.milestonesNotified[totalH]) {
+        State.milestonesNotified[totalH] = true;
+        const msg = `UPDATE: ${user} has studied for ${totalH} hours today!`;
+        Config.ghosts.unshift(msg);
+        document.getElementById('leaderboardTicker').textContent = msg;
     }
-    
+}
+
+function handleTimerComplete() {
+    State.running = false; State.sessionActive = false;
+    document.getElementById('playPauseBtn').textContent = "START";
+    new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg').play();
+    saveData(); State.totalSeconds = 0;
+}
+
+function updateTracker() {
+    const now = new Date(); let urgent = null; let trackerHtml = "";
+    const sortedExams = Object.entries(Config.examDates).sort((a,b) => a[1] - b[1]);
+    for (const [name, date] of sortedExams) {
+        const diff = date - now; const days = Math.ceil(diff / 86400000);
+        if (days > 0) {
+            if (!urgent && days < 8) urgent = { name, date };
+            const color = days < 7 ? "var(--accent-red)" : (days < 30 ? "var(--accent-orange)" : "var(--accent-green)");
+            trackerHtml += `<div class="exam-card" style="border-left: 2px solid ${color}"><span class="days" style="color:${color}">${days}d</span><span class="label">${name}</span></div>`;
+        }
+    }
+    document.getElementById("jeeTracker").innerHTML = trackerHtml;
+    const banner = document.getElementById('topUrgent');
+    if (urgent) { State.urgentTarget = urgent.date; banner.classList.add('active'); document.getElementById('mainFrame').classList.add('shifted'); document.getElementById('urgentExamName').textContent = urgent.name.toUpperCase() + " DEADLINE"; }
+}
+
+function openLevelModal() {
+    const d = State.dailyData[State.today];
+    const totalH = ((d.P || 0) + (d.C || 0) + (d.M || 0)) / 3600;
+    const thresholds = [0, 2, 4, 6, 8, 10]; 
+    const titles = ["Novice", "Aspirant", "Grinder", "Titan", "Omega", "Immortal"];
+    let idx = 0; while(idx < thresholds.length - 1 && totalH >= thresholds[idx+1]) idx++;
+    const currentT = thresholds[idx]; const nextT = thresholds[idx+1] || (currentT * 1.5);
+    const progress = Math.min(100, ((totalH - currentT) / (nextT - currentT)) * 100);
     document.getElementById('levelTitle').textContent = titles[idx].toUpperCase();
     document.getElementById('rankBadge').textContent = titles[idx].toUpperCase();
-    document.getElementById('levelDesc').textContent = `Protocol check for Your Name. Cumulative depth: ${totalH.toFixed(2)} hours.`;
+    document.getElementById('levelDesc').textContent = `Daily Protocol check. Achievement resets at 00:00. Today's depth: ${totalH.toFixed(2)} hours.`;
     document.getElementById('levelBar').style.width = progress + "%";
     document.getElementById('levelStats').textContent = `${(nextT - totalH).toFixed(1)}H TO NEXT RANK`;
     document.getElementById('levelModal').style.display = 'flex';
 }
 
-function openLeaderboard() {
-    const d = State.dailyData[State.today];
-    const mySeconds = (d.P || 0) + (d.C || 0) + (d.M || 0);
-    const myHours = mySeconds / 3600;
-    
-    // FETCH THE UPDATED NAME FROM LOCAL STORAGE
-    const currentName = localStorage.getItem('username') || "Your Name";
-    
-    // Mix user into competitors with the correct name
-    const liveRanking = [...Competitors, { name: currentName, hours: myHours, isMe: true }];
-    
-    // Sort descending
-    liveRanking.sort((a,b) => b.hours - a.hours);
-
-    let html = "";
-    liveRanking.forEach((u, i) => {
-        const isMe = u.isMe ? 'me' : '';
-        const rank = i + 1;
-        const icon = rank === 1 ? '👑' : (rank <= 3 ? '⚡' : '#');
-        
-        html += `
-            <div class="rank-row ${isMe}">
-                <span>${icon}${rank} ${u.name}</span>
-                <span>${u.hours.toFixed(2)}h</span>
-            </div>
-        `;
-    });
-    
-    document.getElementById('ghostList').innerHTML = html;
-    document.getElementById('leaderboardModal').style.display = 'flex';
-}
-
 function renderSessionLog() {
     const sessions = State.dailyData[State.today].sessions || [];
-    const container = document.getElementById('sessionHistory');
-    
-    if (sessions.length === 0) {
-        container.innerHTML = "No session data recorded for today.";
-        return;
-    }
-    
-    container.innerHTML = sessions.slice().reverse().map(s => 
-        `<div style="border-bottom:1px solid #222; padding:8px 0;">
-            <span style="color:var(--current-aura); font-weight:700;">[${s.time}]</span> 
-            ${s.sub === 'P' ? 'PHYSICS' : (s.sub === 'C' ? 'CHEM' : 'MATHS')} INIT
-         </div>`
-    ).join('');
+    document.getElementById('sessionHistory').innerHTML = sessions.slice().reverse().map(s => `<div><span style="color:var(--current-aura);">[${s.time}]</span> ${s.sub === 'P' ? 'PHYSICS' : (s.sub === 'C' ? 'CHEM' : 'MATHS')} INIT</div>`).join('') || "No session data.";
 }
 
-// --- UTILS ---
 function formatHMS(s, full = false) {
     const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = Math.floor(s%60);
-    if(full) return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
     return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
 }
 function swapDisplays() { State.isSwapped = !State.isSwapped; }
-function closeModals() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
+function closeModals() { document.querySelectorAll('.modal').forEach(m => { if(m.id !== 'onboardingModal') m.style.display = 'none'; }); }
 function saveData() { localStorage.setItem('studyLog_v2', JSON.stringify(State.dailyData)); }
-function updateUsername() {
-    const name = localStorage.getItem('username') || "Your Name";
-    document.getElementById('username').textContent = name;
+function updateUsername() { document.getElementById('username').textContent = localStorage.getItem('username') || "OJAS KADAM"; }
+
+function confirmIdentity() {
+    const name = document.getElementById('userInputName').value.trim().toUpperCase();
+    if(name.length < 2) return alert("Designation too short.");
+    localStorage.setItem('username', name);
+    localStorage.setItem('onboardingComplete', 'true');
+    updateUsername(); document.getElementById('onboardingModal').style.display = 'none';
 }
 
-
-// Keyboard Shortcuts
 document.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT') return;
-
     const k = e.key.toLowerCase();
-
-    // TIMER
-    if (k === ' ' || e.code === 'Space') {
-        e.preventDefault();
-        toggleTimer();
-    }
-
-    // RESTART
+    if (k === ' ' || e.code === 'Space') { e.preventDefault(); toggleTimer(); }
     if (k === 'r') resetTimer();
-
-    // HARD FOCUS
     if (k === 'h') toggleHardFocus();
-
-    // FULLSCREEN
-    if (k === 'f') toggleFullscreen();
-
-    // SUBJECT SWITCH
-    if (k === 'm' || k === '3') setSubject('M'); // Maths
-    if (k === 'p' || k === '1') setSubject('P'); // Physics
-    if (k === 'c' || k === '2') setSubject('C'); // Chemistry
-    if (k === 'l') openLeaderboard(); // L = Leaderboard
-
+    if (k === 'f') { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(err => {}); else document.exitFullscreen(); }
+    if (k === 'm' || k === '3') setSubject('M');
+    if (k === 'p' || k === '1') setSubject('P');
+    if (k === 'c' || k === '2') setSubject('C');
+    if (k === 'l') openLeaderboard();
 });
 
-
-// Update ticker text occasionally
 setInterval(() => {
     document.getElementById('leaderboardTicker').textContent = Config.ghosts[Math.floor(Math.random() * Config.ghosts.length)];
     document.getElementById('motivationBox').textContent = `"${Config.quotes[Math.floor(Math.random() * Config.quotes.length)]}"`;
-    updateTracker(); // Check for urgent banner updates
-    saveData();
+    if(Math.random() > 0.85) spawnNewCompetitor();
+    updateTracker(); saveData();
 }, 20000);
 
-// Init
-updateTracker();
-renderSessionLog();
-openLevelModal(); // Calculate initial rank
-closeModals(); // Hide modal after calc
-setSubject('M'); // Default
-updateUsername();
-requestAnimationFrame(engine);
-
-function toggleFullscreen() {
-    if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(err => {});
-    } else {
-        document.exitFullscreen();
-    }
-}
-
-function changeUsername() {
-    const current = localStorage.getItem('username') || "Your Name";
-    const name = prompt("Enter your name/callsign:", current);
-
-    if (name && name.trim().length > 0) {
-        const cleanName = name.trim().toUpperCase();
-        localStorage.setItem('username', cleanName);
-        updateUsername(); // Updates the footer text
-        
-        // If the leaderboard is currently open, refresh it to show the new name
-        if (document.getElementById('leaderboardModal').style.display === 'flex') {
-            openLeaderboard();
-        }
-    }
-}
-
-function closeOnboarding() {
-    localStorage.setItem('onboardingComplete', 'true');
-    document.getElementById('onboardingModal').style.display = 'none';
-}
-
-// Check if user is new
-window.addEventListener('load', () => {
-    if (!localStorage.getItem('onboardingComplete')) {
-        setTimeout(() => {
-            document.getElementById('onboardingModal').style.display = 'flex';
-        }, 1000);
-    }
-});
-
+window.onload = () => {
+    if (!localStorage.getItem('onboardingComplete')) document.getElementById('onboardingModal').style.display = 'flex';
+    updateTracker(); renderSessionLog(); updateUsername(); requestAnimationFrame(engine);
+};
 </script>
 </body>
 </html>
-
