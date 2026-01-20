@@ -287,7 +287,7 @@
         <div id="focusScore">FOCUS: 100/100</div>
         <div id="dailyTotal">LOG: 0h 0m</div>
         <div id="smallDisplay" onclick="swapDisplays()" style="cursor:pointer; opacity: 0.7;">00:00:00</div>
-        <div class="clickable-stat" id="username" onclick="changeUsername()">OJAS KADAM</div>
+        <div class="clickable-stat" id="username" onclick="changeUsername()">Your Name</div>
         <div class="clickable-stat" onclick="openLeaderboard()">LEADERBOARD</div>
       </div>
     </footer>
@@ -305,7 +305,7 @@
         <div style="font-size: 0.85rem; font-weight: 700; color: var(--accent-orange); margin-bottom: 5px;">WHY RANKLOCK?</div>
         <div style="font-size: 0.7rem; color: #bbb; line-height: 1.4;">RankLock isn't a "pomodoro" timer. It's a JEE deployment interface. It tracks subject-specific depth, simulates competition via the Global Standing, and enforces 'Hard Focus' to build the mental stamina required for 3-hour papers.</div>
     </div>
-    <div style="padding: 0 10px; opacity: 0.4; font-size: 0.6rem; letter-spacing: 1px;">SYSTEM: RANKLOCK v2.3<br>STATUS: OPERATIONAL<br>DESIGNED FOR: AIR 1 ASPIRANTS<br>DESIGNED BY: OJAS KADAM</div>
+    <div style="padding: 0 10px; opacity: 0.4; font-size: 0.6rem; letter-spacing: 1px;">SYSTEM: RANKLOCK v2.3<br>STATUS: OPERATIONAL<br>DESIGNED FOR: AIR 1 ASPIRANTS<br>DESIGNED BY: Your Name</div>
   </aside>
 </div>
 
@@ -414,7 +414,7 @@ function updateUI() {
 
 function openLeaderboard() {
     const myS = (State.dailyData[State.today].P || 0) + (State.dailyData[State.today].C || 0) + (State.dailyData[State.today].M || 0);
-    const myName = localStorage.getItem('username') || "OJAS KADAM";
+    const myName = localStorage.getItem('username') || "Your Name";
     const liveRanking = [...Competitors.map(c => ({name: c.name, hours: c.totalSeconds/3600, isActive: c.isActive})), { name: myName, hours: myS/3600, isMe: true, isActive: State.running }].sort((a,b) => b.hours - a.hours);
     
     document.getElementById('ghostList').innerHTML = liveRanking.map((u, i) => `
@@ -472,7 +472,7 @@ function toggleHardFocus() {
 function checkDailyMilestones() {
     const totalS = State.dailyData[State.today].P + State.dailyData[State.today].C + State.dailyData[State.today].M;
     const totalH = Math.floor(totalS / 3600);
-    const user = localStorage.getItem('username') || "OJAS KADAM";
+    const user = localStorage.getItem('username') || "Your Name";
     if (totalH > 0 && !State.milestonesNotified[totalH]) {
         State.milestonesNotified[totalH] = true;
         const msg = `UPDATE: ${user} has studied for ${totalH} hours today!`;
@@ -532,7 +532,7 @@ function formatHMS(s, full = false) {
 function swapDisplays() { State.isSwapped = !State.isSwapped; }
 function closeModals() { document.querySelectorAll('.modal').forEach(m => { if(m.id !== 'onboardingModal') m.style.display = 'none'; }); }
 function saveData() { localStorage.setItem('studyLog_v2', JSON.stringify(State.dailyData)); }
-function updateUsername() { document.getElementById('username').textContent = localStorage.getItem('username') || "OJAS KADAM"; }
+function updateUsername() { document.getElementById('username').textContent = localStorage.getItem('username') || "Your Name"; }
 
 function confirmIdentity() {
     const name = document.getElementById('userInputName').value.trim().toUpperCase();
@@ -569,3 +569,4 @@ window.onload = () => {
 </script>
 </body>
 </html>
+
