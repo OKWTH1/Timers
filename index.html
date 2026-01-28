@@ -1,628 +1,306 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="RankLock is a hardcore study timer for JEE 2026 aspirants. Hard Focus mode, live competition, discipline-based study tracking. Built for serious students.">
-<meta name="keywords" content="JEE study timer, JEE 2026 timer, hard focus timer, study timer for IIT JEE, RankLock">
-<title>RankLock – Hardcore JEE 2026 Study Timer</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⌛</text></svg>">
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&display=swap');
-  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;500&display=swap');
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ranklock Mastery | The Discipline Standard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap');
+        
+        :root {
+            --bg: #050505;
+            --zinc-900: #111114;
+            --accent: #f97316;
+            --verified: #10b981;
+            --gold: #fbbf24;
+        }
 
-  :root {
-    --bg-color: #020202;
-    --accent-red: #ff3131;
-    --accent-green: #00ff88;
-    --accent-orange: #ff9d00;
-    --accent-blue: #00d4ff;
-    --text-main: #ffffff;
-    --glass: rgba(255, 255, 255, 0.05);
-    --glass-border: rgba(255, 255, 255, 0.15); 
-    --current-aura: #00ff88;
-    --panel-bg: rgba(12, 12, 12, 0.85); 
-  }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg);
+            color: #fafafa;
+            -webkit-font-smoothing: antialiased;
+        }
 
-  * { box-sizing: border-box; cursor: crosshair; user-select: none; }
+        .glass-card {
+            background: var(--zinc-900);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 1rem;
+            transition: all 0.3s ease;
+        }
 
-  body {
-    margin: 0; height: 100vh; width: 100vw; 
-    background-color: var(--bg-color); color: var(--text-main);
-    font-family: 'Space Grotesk', sans-serif; overflow: hidden; 
-    background-image: radial-gradient(circle at 50% 50%, #111 0%, #000 100%);
-    transition: filter 0.5s ease;
-  }
+        .verified-border {
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            background: linear-gradient(180deg, rgba(16, 185, 129, 0.05) 0%, transparent 100%);
+        }
 
-  body.hard-focus { filter: grayscale(1) contrast(1.2); }
-  body.hard-focus #bigDisplay { filter: grayscale(0); }
-  body.hard-focus .hf-hide { display: none !important; }
+        .nav-link {
+            transition: all 0.2s ease;
+            color: #71717a;
+            border-radius: 0.5rem;
+        }
 
-  #progressBar { 
-    position: fixed; top: 0; left: 0; height: 4px; 
-    background: var(--current-aura); z-index: 1000; 
-    transition: width 0.3s linear, background 0.5s ease;
-    box-shadow: 0 0 15px var(--current-aura);
-  }
+        .nav-link.active {
+            color: white;
+            background: #1c1c21;
+        }
 
-  #topUrgent {
-    position: absolute; top: 0; left: 0; width: calc(100% - 340px); 
-    height: 0; opacity: 0; pointer-events: none;
-    background: linear-gradient(180deg, rgba(255, 49, 49, 0.2) 0%, transparent 100%);
-    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-    display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
-    padding-top: 15px; z-index: 50; backdrop-filter: blur(4px);
-  }
-  #topUrgent.active { height: 140px; opacity: 1; pointer-events: auto; }
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 4px 20px rgba(249, 115, 22, 0.2);
+        }
 
-  .urgent-hms { font-family:'JetBrains Mono'; font-size: 3.5rem; font-weight: 700; color: var(--accent-red); letter-spacing: -2px; text-shadow: 0 0 30px var(--accent-red); line-height: 1; margin-bottom: 5px; }
-  .urgent-label { font-size: 0.7rem; letter-spacing: 6px; color: #fff; opacity: 0.9; text-transform: uppercase; font-weight: 700;}
+        .btn-ghost {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #a1a1aa;
+        }
 
-  .container { display: grid; grid-template-columns: 1fr 340px; height: 100vh; width: 100vw; }
-  main { position: relative; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 30px; height: 100vh; overflow: hidden; transition: padding-top 0.6s ease; }
-  main.shifted { padding-top: 150px; }
+        .btn-ghost:hover {
+            background: rgba(255,255,255,0.05);
+            color: white;
+        }
 
-  #leaderboardTicker { 
-    background: rgba(0, 255, 136, 0.08); border: 1px solid var(--current-aura);
-    padding: 10px 30px; border-radius: 40px; font-size: 0.75rem; 
-    color: var(--current-aura); letter-spacing: 2px; text-transform: uppercase;
-    text-align: center; width: fit-content; margin-bottom: 20px;
-    box-shadow: 0 0 15px rgba(0,255,136,0.1); white-space: nowrap; z-index: 40;
-  }
+        .hidden { display: none !important; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 10px; }
 
-  .timer-box { display: flex; flex-direction: column; justify-content: center; align-items: center; flex-grow: 1; width: 100%; }
-  #bigDisplay { font-size: clamp(5rem, 16vw, 13rem); font-weight: 700; color: var(--current-aura); letter-spacing: -6px; transition: color 0.5s ease; font-variant-numeric: tabular-nums; text-shadow: 0 0 80px rgba(0,255,136,0.15); line-height: 1; cursor: pointer; margin: 20px 0; }
+        .badge-pulse {
+            animation: pulse-green 2s infinite;
+        }
 
-  .subject-tags { display: flex; gap: 15px; }
-  .tag-btn { background: transparent; border: 1px solid var(--glass-border); color: #888; padding: 12px 24px; font-size: 0.8rem; font-weight: 700; letter-spacing: 1px; border-radius: 6px; cursor: pointer; text-transform: uppercase; transition: 0.2s; font-family: 'Space Grotesk'; }
-  .tag-btn:hover { background: var(--glass); color: #fff; }
-  .tag-btn.active.P { border-color: var(--accent-blue); color: var(--accent-blue); background: rgba(0,212,255,0.05);}
-  .tag-btn.active.C { border-color: var(--accent-red); color: var(--accent-red); background: rgba(255,49,49,0.05);}
-  .tag-btn.active.M { border-color: var(--accent-green); color: var(--accent-green); background: rgba(0,255,136,0.05);}
-
-  footer { width: 100%; display: flex; flex-direction: column; gap: 20px; align-items: center; padding-bottom: 10px; z-index: 10; }
-  .controls { display: flex; gap: 12px; align-items: center; background: var(--glass); padding: 12px; border-radius: 12px; border: 1px solid var(--glass-border); backdrop-filter: blur(10px); }
-  input { background: rgba(0,0,0,0.5); border: 1px solid var(--glass-border); color: white; padding: 12px 0; width: 65px; font-family: 'Space Grotesk'; font-weight: 700; font-size: 1.2rem; text-align: center; border-radius: 6px; }
-
-  .play-btn { background: var(--current-aura); color: black; border: none; padding: 12px 40px; font-weight: 700; letter-spacing: 1px; border-radius: 6px; min-width: 130px; transition: transform 0.1s; cursor: pointer; }
-  .status-line { display: flex; justify-content: space-between; width: 100%; font-size: 0.75rem; letter-spacing: 2px; color: #bbb; border-top: 1px solid var(--glass-border); padding-top: 20px; font-weight: 500; }
-  .clickable-stat { cursor: pointer; transition: color 0.3s; }
-  .clickable-stat:hover { color: var(--current-aura); }
-
-  #sidebar { background: var(--panel-bg); backdrop-filter: blur(35px); border-left: 1px solid var(--glass-border); display: flex; flex-direction: column; padding: 35px 25px; gap: 25px; overflow-y: auto; scrollbar-width: none; height: 100vh; }
-  .sidebar-header { font-size: 0.7rem; font-weight: 700; color: #ddd; letter-spacing: 3px; text-transform: uppercase; border-bottom: 1px solid var(--glass-border); padding-bottom: 8px; margin-top: 5px; }
-  .fuel-container { background: linear-gradient(145deg, rgba(255,255,255,0.08) 0%, rgba(0,0,0,0.6) 100%); border: 1px solid var(--glass-border); border-left: 3px solid var(--current-aura); padding: 18px; border-radius: 6px; }
-  
-  .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.92); display: none; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(8px); }
-  .modal-box { background: #090909; border: 1px solid var(--glass-border); padding: 40px; width: 500px; border-radius: 12px; box-shadow: 0 0 60px rgba(0,0,0,0.8); }
-  
-  .rank-row { display: flex; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.08); font-family: 'JetBrains Mono'; font-size: 0.95rem; color: #888; align-items: center; }
-  .rank-row.me { color: var(--current-aura); text-shadow: 0 0 15px rgba(0,255,136,0.3); font-weight: 700; border-color: rgba(0,255,136,0.2); }
-  .status-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 8px; }
-
-  .chart-container { height: 80px; display: flex; align-items: flex-end; gap: 4px; margin-top: 20px; border-bottom: 1px solid var(--glass-border); }
-  .chart-bar { flex: 1; background: var(--current-aura); opacity: 0.3; border-radius: 2px 2px 0 0; transition: height 0.5s ease; }
-
-  .help-btn { position: fixed; bottom: 80px; left: 30px; width: 40px; height: 40px; border-radius: 50%; background: var(--glass); border: 1px solid var(--glass-border); color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center; z-index: 100; transition: 0.3s; }
-  .help-btn:hover { background: var(--accent-blue); color: black; border-color: var(--accent-blue); }
-
-  .exam-card { 
-    background: rgba(255,255,255,0.05); padding: 15px 18px; border-radius: 6px; 
-    border: 1px solid var(--glass-border); margin-bottom: 8px;
-    display: flex; justify-content: space-between; align-items: center;
-  }
-  .exam-card .days { font-size: 1.4rem; font-weight: 700; color: #fff; }
-  .exam-card .label { font-size: 0.65rem; color: #ccc; text-transform: uppercase; font-weight: 600; }
-  .exam-card .date-label { font-size: 0.55rem; color: #666; font-family: 'JetBrains Mono'; }
-
-  @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
-</style>
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+    </style>
 </head>
-<body id="mainBody">
+<body class="h-screen overflow-hidden flex">
 
-<div id="progressBar"></div>
+    <!-- Sidebar -->
+    <aside class="w-80 border-r border-white/5 flex flex-col bg-[#0a0a0c] z-20">
+        <div class="p-10">
+            <div class="flex items-center gap-3 mb-10">
+                <div class="w-9 h-9 bg-white text-black rounded-xl flex items-center justify-center shadow-lg">
+                    <i data-lucide="award" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-extrabold tracking-tight">Ranklock</h1>
+                    <p class="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Mastery Platform</p>
+                </div>
+            </div>
 
-<div id="helpModal" class="modal" onclick="closeModals()">
-    <div class="modal-box" onclick="event.stopPropagation()">
-        <div class="sidebar-header">Protocol Documentation</div>
-        <div style="font-size: 0.85rem; line-height: 1.6; color: #ccc;">
-            <p><b style="color:var(--accent-green)">FOCUS SCORE:</b> Discipline indicator. Caps at 100. Tab switching reduces it. High scores unlock leaderboard ranks.</p>
-            <p><b style="color:var(--accent-red)">HARD FOCUS:</b> Unbreakable study contract. Minimal 45 min. Exit penalty: -40 FS. All UI except timer is locked.</p>
-            <p><b style="color:var(--accent-orange)">LIVE NODES:</b> Global competition. Users studying right now are pinned to the top. Graph shows real-time intensity.</p>
-            <p><b style="color:var(--accent-blue)">SHORTCUTS:</b> [Space] Toggle, [R] Reset, [L] Leaderboard, [H] Hard Focus, [M/P/C] Switch subjects.</p>
+            <!-- Profile Overview -->
+            <div class="glass-card p-6 verified-border space-y-4">
+                <div class="flex justify-between items-start">
+                    <div class="w-12 h-12 rounded-full bg-zinc-800 border border-white/10 flex items-center justify-center font-bold text-sm">OK</div>
+                    <div class="px-2 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded text-[8px] font-bold text-emerald-500 uppercase">Verified</div>
+                </div>
+                <div>
+                    <p class="text-xs font-bold text-white uppercase tracking-wider">Ojas Kadam</p>
+                    <p class="text-[10px] text-zinc-500 font-mono">ID: #4f9a-8821</p>
+                </div>
+                <div class="flex gap-2">
+                    <div class="h-1 flex-1 bg-emerald-500 rounded-full"></div>
+                    <div class="h-1 flex-1 bg-emerald-500 rounded-full"></div>
+                    <div class="h-1 flex-1 bg-zinc-800 rounded-full"></div>
+                </div>
+            </div>
         </div>
-        <button class="play-btn" style="width:100%; margin-top:20px;" onclick="closeModals()">ACKNOWLEDGED</button>
-    </div>
-</div>
 
-<div id="onboardingModal" class="modal">
-    <div class="modal-box" id="step-name" style="border-color: var(--accent-blue);">
-        <div class="sidebar-header" style="color: var(--accent-blue);">System Initialization</div>
-        <h2 style="font-size: 2rem; margin: 10px 0;">ESTABLISH CALLSIGN</h2>
-        <input type="text" id="userInputName" placeholder="ENTER NAME..." style="width:100%; margin:20px 0; text-transform:uppercase;" maxlength="15">
-        <button class="play-btn" onclick="goToTutorial()" style="width: 100%; background: var(--accent-blue);">INITIALIZE</button>
-    </div>
-    <div class="modal-box" id="step-tutorial" style="display:none; border-color: var(--accent-green); width:600px;">
-        <div class="sidebar-header" style="color: var(--accent-green);">Protocol Loaded</div>
-        <h2 style="font-size: 1.5rem; margin: 10px 0;">RANKLOCK OPERATIONAL</h2>
-        <ul style="color: #ccc; font-size: 0.85rem; line-height: 1.8; text-align: left;">
-            <li><b style="color:var(--accent-green)">LIVE NODES:</b> The leaderboard only ranks you if you are focused.</li>
-            <li><b style="color:var(--accent-red)">HARD FOCUS:</b> Once started, you cannot stop. Honor the contract.</li>
-            <li><b style="color:var(--accent-orange)">FOCUS SCORE:</b> Your visibility in the community depends on consistency.</li>
-        </ul>
-        <button class="play-btn" onclick="finishOnboarding()" style="width: 100%; background: var(--accent-green);">ENTER DASHBOARD</button>
-    </div>
-</div>
+        <nav class="flex-1 px-6 space-y-1">
+            <button onclick="switchTab('mastery')" class="nav-link w-full flex items-center gap-4 px-6 py-4 text-[13px] font-bold active" data-tab="mastery">
+                <i data-lucide="layers" class="w-4 h-4"></i> Mastery Tree
+            </button>
+            <button onclick="switchTab('squad')" class="nav-link w-full flex items-center gap-4 px-6 py-4 text-[13px] font-bold" data-tab="squad">
+                <i data-lucide="users" class="w-4 h-4"></i> Squad Sync
+            </button>
+            <button onclick="switchTab('history')" class="nav-link w-full flex items-center gap-4 px-6 py-4 text-[13px] font-bold" data-tab="history">
+                <i data-lucide="calendar" class="w-4 h-4"></i> Progression
+            </button>
+        </nav>
 
-<div id="hfPreflight" class="modal">
-    <div class="modal-box" style="border-color: var(--accent-red);">
-        <div class="sidebar-header" style="color: var(--accent-red);">Hard Focus 2.0 Contract</div>
-        <h3 style="margin: 15px 0;">SESSION INTENT</h3>
-        <select id="hfSubject" class="tag-btn" style="width:100%; margin-bottom:10px; background:#111; color:white;"><option value="M">MATHS</option><option value="P">PHYSICS</option><option value="C">CHEMISTRY</option></select>
-        <input type="text" id="hfChapter" placeholder="CHAPTER (e.g. Thermodynamics)..." style="width:100%; margin-bottom:10px;">
-        <select id="hfIntent" class="tag-btn" style="width:100%; margin-bottom:20px; background:#111; color:white;"><option value="P">PRACTICE</option><option value="R">REVISE</option><option value="T">TEST</option></select>
-        <button id="hfStartBtn" class="play-btn" onclick="startHardFocus()" style="width: 100%; background: var(--accent-red);">INITIATE LOCKDOWN</button>
-    </div>
-</div>
-
-<div id="levelModal" class="modal" onclick="closeModals()">
-    <div class="modal-box" onclick="event.stopPropagation()">
-        <div class="sidebar-header">Aspirant Rank Status</div>
-        <h2 id="levelTitle" style="font-size: 3rem; margin: 15px 0; color: var(--accent-green); line-height:1;">NOVICE</h2>
-        <p id="levelDesc" style="color: #ccc; margin-bottom: 25px; font-size: 0.9rem;"></p>
-        <div style="background:#1a1a1a; height:6px; width:100%; margin-bottom:15px; border-radius:3px; overflow:hidden;">
-            <div id="levelBar" style="background:var(--accent-green); height:100%; width:0%; transition:1s;"></div>
+        <div class="p-8 border-t border-white/5 space-y-4 bg-[#0c0c0e]">
+            <button onclick="shareProfile()" class="w-full py-3 btn-ghost rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2">
+                <i data-lucide="share-2" class="w-3 h-3"></i> Share Intel
+            </button>
+            <button onclick="openSessionModal()" class="w-full py-4 btn-primary rounded-xl text-xs font-bold uppercase tracking-widest">
+                Start Grind
+            </button>
         </div>
-        <div id="levelStats" style="font-weight:700; font-size: 0.8rem; color:#888;"></div>
-    </div>
-</div>
+    </aside>
 
-<div id="leaderboardModal" class="modal" onclick="closeModals()">
-    <div class="modal-box" style="width: 550px;" onclick="event.stopPropagation()">
-        <div class="sidebar-header" style="display:flex; justify-content:space-between; align-items:center;">
-            <span>Global Live Nodes</span>
-            <span style="color:var(--accent-red); font-size:0.6rem; animation: blink 1s infinite;">● ACTIVE: <span id="nodeCount">0</span></span>
-        </div>
-        <div class="chart-container" id="globalChart"></div>
-        <div id="ghostList" style="margin-top: 20px; max-height: 350px; overflow-y: auto; scrollbar-width: none;"></div>
-    </div>
-</div>
-
-<div id="topUrgent">
-    <div class="urgent-hms" id="urgentHMS">00:00:00</div>
-    <div class="urgent-label" id="urgentExamName">PROTOCOL: ACTIVE</div>
-</div>
-
-<button class="help-btn" onclick="openHelp()">?</button>
-
-<div class="container">
-  <main id="mainFrame">
-    <div id="leaderboardTicker">SAT-LINK: SECURED</div>
-    <div class="timer-box">
-      <div class="subject-tags hf-hide">
-        <button class="tag-btn P" id="btn-P" onclick="setSubject('P')">Physics</button>
-        <button class="tag-btn C" id="btn-C" onclick="setSubject('C')">Chemistry</button>
-        <button class="tag-btn M active" id="btn-M" onclick="setSubject('M')">Maths</button>
-      </div>
-      <div id="bigDisplay" onclick="swapDisplays()">00:00:00</div>
-    </div>
-
-    <footer>
-      <div class="controls hf-hide">
-          <input type="number" id="hh" placeholder="HH">
-          <span style="opacity:0.3; color:white;">:</span>
-          <input type="number" id="mm" placeholder="MM">
-          <button id="playPauseBtn" class="play-btn" onclick="toggleTimer()">START</button>
-          <button class="tag-btn" onclick="resetTimer()">Reset</button>
-          <button id="hardBtn" class="tag-btn" onclick="openHFPreflight()" style="border-color: var(--accent-red);">Hard Focus</button>
-      </div>
-      <button id="hfEmergency" class="tag-btn" onclick="emergencyExit()" style="display:none; color:var(--accent-red); border-color:var(--accent-red); margin-bottom:10px;">EMERGENCY EXIT (-40 FS)</button>
-
-      <div class="status-line">
-        <div class="clickable-stat" onclick="openLevelModal()">RANK: <span id="rankBadge">NOVICE</span></div>
-        <div id="fsDisplay" style="color:var(--accent-orange)">FOCUS: 100/100</div>
-        <div id="dailyTotal">LOG: 0h 0m</div>
-        <div id="smallDisplay" onclick="swapDisplays()" style="cursor:pointer; opacity: 0.7;">00:00:00</div>
-        <div class="clickable-stat" id="username" onclick="changeUsername()">Your name</div>
-        <div class="clickable-stat" onclick="openLeaderboard()">LEADERBOARD</div>
-      </div>
-    </footer>
-  </main>
-
-  <aside id="sidebar">
-    <div class="sidebar-header">Deployment Timelines</div>
-    <div id="jeeTracker"></div>
-    <div class="sidebar-header">Mental Fuel</div>
-    <div class="fuel-container"><div id="motivationBox">"Initializing neurotransmitter optimization..."</div></div>
-    <div class="sidebar-header">System Log</div>
-    <div id="sessionHistory" style="font-family:'JetBrains Mono'; font-size:0.7rem; color:#aaa; display: flex; flex-direction: column; gap: 8px;">No session data.</div>
-    <div style="padding: 0 10px; opacity: 0.4; font-size: 0.6rem; letter-spacing: 1px;">SYSTEM: RANKLOCK v2.6<br>DESIGNED BY: OK_WTH</div>
-  </aside>
-</div>
-
-<script>
-const State = {
-    totalSeconds: 0, initialSeconds: 0, running: false, isSwapped: false, isHardFocus: false,
-    lastTimestamp: performance.now(), currentSubject: 'M',
-    focusScore: parseInt(localStorage.getItem('fs_score')) || 100,
-    dailyData: JSON.parse(localStorage.getItem('studyLog_v2')) || {},
-    today: new Date().toISOString().split('T')[0],
-    midPointChecked: false, urgentTarget: null,
-    intensityData: Array.from({length: 24}, () => 0)
-};
-
-const Config = {
-    examDates: {
-        "JEE Mains Jan": new Date("2026-01-24T14:00:00"),
-        "HSC Boards": new Date("2026-02-11T09:00:00"),
-        "JEE Mains April": new Date("2026-04-01T09:00:00"),
-        "MHT-CET 2026": new Date("2026-04-15T09:00:00"),
-        "JEE Advanced": new Date("2026-06-07T09:00:00")
-    },
-    quotes: ["IIT Bombay isn't built in a day.", "Your competition is studying right now.", "JEE Advanced is a test of character.", "Every MCQ you skip is someone else's rank improving.", "Discipline shows up even when motivation ghosts you.",
-"No one remembers comfort, everyone remembers results.",
-"Today’s effort is tomorrow’s confidence.",
-"You don’t need a perfect day, just an honest one.",
-"Boring work builds extraordinary outcomes.",
-"Consistency is talent that doesn’t quit.",
-"Every focused hour compounds silently.",
-"You’re not behind, you’re building.",
-"Excuses feel good now, ranks feel good later.",
-"The grind you avoid today comes back tomorrow.",
-"Confidence is earned, not imagined.",
-"Do the work even when it feels pointless.",
-"Hard days are part of the syllabus.",
-"You’re training your mind, not just learning facts.",
-"The rank doesn’t care how you felt.",
-"Discipline is remembering what you want.",
-"You don’t rise to motivation, you fall to habits.",
-"The quiet sessions matter most.",
-"Pressure is proof you’re in the game.",
-"Small wins stack into big results.",
-"No one sees this effort, and that’s fine.",
-"Comfort delays progress.",
-"Focus is a competitive advantage.",
-"You don’t need more time, you need fewer excuses.",
-"The work you skip becomes your weakness.",
-"This phase decides the next decade.",
-"You’re allowed to be tired, not to quit.",
-"Serious goals demand serious days.",
-"Your future self is watching.",
-"Effort beats luck every single time.",
-"The grind is temporary, regret lasts longer.",
-"You’re building proof, not hope.",
-"Stay boring, stay consistent.",
-"Talent fades, discipline stays.",
-"Every session counts.",
-"This is where separation happens.",
-"Hard work makes pressure manageable.",
-"Results respect preparation.",
-"Do it right, even when it’s slow.",
-"You don’t need validation, you need progress.",
-"One more focused hour changes things.",
-"The work is the shortcut.",
-"Discipline creates freedom.",
-"Your ceiling rises with effort.",
-"Don’t negotiate with weakness.",
-"Momentum starts with action.",
-"Show up before confidence arrives.",
-"Today’s pain buys tomorrow’s calm.",
-"You’re closer than you think.",
-"No effort is wasted.",
-"Build stamina, not excuses.",
-"The process rewards loyalty.",
-"You’re earning resilience.",
-"This is training for life, not just an exam.",
-"Serious days create serious results.",
-"Stay present, stay disciplined.",
-"You don’t need intensity forever, just consistency.",
-"Growth hides in repetition.",
-"Trust the grind.",
-"Do it tired.",
-"Progress loves patience.",
-"Every honest session matters.",
-"You’re becoming harder to beat.",
-"Stay focused, stay dangerous.",
-"This work compounds quietly.",
-"Discipline never embarrasses you.",
-"Your habits are your rank.",
-"No shortcuts, just standards.",
-"Effort is always respected.",
-"Keep going.",
-"Stay locked in.",
-"Finish strong.",
-"Again tomorrow."
-
-],
-    ghosts: [
-        "User_82 just completed HC Verma's Circular Motion.", "A student in Kota hostel just finished MS Chouhan Hydrocarbons.",
-        "Someone just solved 2021 PYQs for Physics.", "User_110 just reached 8 hours today.", "Competitor_X is currently on Hard Focus.",
-        "A ranker just rejected a party invitation.", "Someone in Pune just mastered Salt Analysis.", "User_88 solved Irodov Problem 1.1.",
-        "A dropper in Jaipur just finished revision of GOC.", "User_51 is solving mock tests for 3 hours straight.",
-        "Kota_Grinder just upgraded to Titan Rank.", "Someone just finished N. Awasthi Stoichiometry Level 2.",
-        "User_99 is drinking tea while solving Calculus.", "A silent competitor just finished NCERT Biology line by line.",
-        "User_17 reached Focus Score 100.", "Someone in Hyderabad is solving Coordinate Geometry.",
-        "User_101 just failed Hard Focus - Penalty applied.", "Kota_Reaper is on a 15-day study streak.",
-        "A student in Bihar just finished P-Block revision.", "User_22 just solved 50 Math questions in 1 hour.",
-        "Someone is studying right now while you read this ticker.", "User_41 just unlocked Immortal Rank.",
-        "A competitor is analyzing their mock test mistakes.", "User_03 just finished JD Lee Inorganic Chem.",
-        "Someone is memorizing the Periodic Table at 3 AM.", "User_12 just completed Organic Reaction Mechanism.",
-        "Kota_Aspirant is solving Resonance sheet.", "User_77 just finished Krotov Physics.",
-        "A student in Delhi is solving PYQs for JEE Advanced.", "User_91 reached 12 hours of total study time.",
-        "Someone just finished Solomons Organic Chemistry.", "User_56 is currently in Hard Focus lockdown.",
-        "A dropper just completed 100% of the syllabus.", "User_33 just finished the last question of Cengage.",
-        "Someone is taking a 5-minute break after 4 hours.", "User_64 just updated their callsing to 'IITian'.",
-        "A student in Indore is solving Chemistry mocks.", "User_19 just finished Capacitor revision.",
-        "Someone just mastered the Euler Form of Complex Numbers.", "User_84 reached Focus Score 95.",
-        "Kota_Survivor just finished a marathon session.", "User_44 solved Black Book Level 3.",
-        "A student in Mumbai is solving Waves and Sound.", "User_07 just finished Redox Reactions.",
-        "Someone is solving JEE Advanced 2016 paper.", "User_13 just finished Himanshu Pandey Organic.",
-        "Kota_Warrior is currently studying Maths.", "User_27 just reached 500 total hours in RankLock.",
-        "Someone just finished revising P-Block.", "User_92 is solving Error Analysis.",
-        "A dropper in Kota just finished Physics mock.", "User_15 reached Titan rank today.",
-        "Someone is mastering Integration by Parts.", "User_71 just finished Ionic Equilibrium.",
-        "A student in Kerala is solving HC Verma Part 2.", "User_49 just finished a 4-hour mock.",
-        "Someone is solving Kinematics 2D.", "User_62 reached Focus Score 98.",
-        "Kota_Legend just finished Irodov Electrodynamics.", "User_21 just finished Chem Bonding.",
-        "A student in Gujarat is solving MCQ level 2.", "User_55 reached 600 hours.",
-        "Someone is mastering Fluid Mechanics.", "User_11 reached Novice Rank.",
-        "Kota_Dreamer just finished Thermodynamics.", "User_83 is solving mock papers.",
-        "Someone is mastering Matrix and Determinants.", "User_09 reached Focus Score 100.",
-        "A student in Punjab is solving Physics PYQs.", "User_37 just finished GOC 2.",
-        "Someone is mastering Vectors and 3D Geometry.", "User_66 just finished Hydrocarbons.",
-        "Kota_Master just finished Rotation revision.", "User_14 reached 700 hours.",
-        "Someone is mastering Sequence and Series.", "User_48 reached Focus Score 90.",
-        "A dropper just finished Alcohol, Phenol and Ethers.", "User_29 just finished Electrostatics.",
-        "Someone is mastering Circular Motion.", "User_73 just finished Capacitor.",
-        "Kota_Aspirant is solving Physics mock.", "User_52 reached Focus Score 92.",
-        "Someone is mastering Probability.", "User_31 just finished Permutations and Combinations.",
-        "A student in Tamil Nadu is solving Chemistry PYQs.", "User_68 just finished Metallurgy.",
-        "Someone is mastering Surface Chemistry.", "User_10 reached 800 hours.",
-        "Kota_Hero just finished Polymers.", "User_78 just finished Biomolecules.",
-        "Someone is mastering Chemistry in Everyday Life.", "User_45 just finished Environmental Chem.",
-        "A student in Bengal is solving Maths mocks.", "User_20 reached 900 hours.",
-        "Someone is mastering Trigonometry.", "User_86 reached Focus Score 100.",
-        "Kota_King just finished S-Block.", "User_18 just finished Qualitative Analysis.",
-        "Someone is mastering Atomic Structure.", "User_59 just finished Mole Concept.",
-        "A student in Assam is solving Physics PYQs.", "User_32 reached 1000 hours.",
-        "Someone is mastering Periodic Table.", "User_95 reached Focus Score 100."
-    ]
-};
-
-const Competitors = [];
-const cNames = ["Kota_Reaper", "Irodov_Slayer", "System_X", "Aspirant_007", "Physics_God", "Mains_Killer", "Silent_Topper", "Cengage_Boy", "Allen_Survivor", "JEE_Warrior", "IITB_Dreamer", "Study_Machine"];
-
-function initCompetitors() {
-    cNames.forEach(n => Competitors.push({ name: n, totalSeconds: Math.random() * 20000, isActive: Math.random() > 0.4, statusTimer: Math.random() * 600 }));
-}
-initCompetitors();
-
-if (!State.dailyData[State.today]) State.dailyData[State.today] = { P: 0, C: 0, M: 0, sessions: [] };
-
-// ENGINE
-function engine(timestamp) {
-    const delta = (timestamp - State.lastTimestamp) / 1000;
-    State.lastTimestamp = timestamp;
-
-    if (State.running && State.totalSeconds > 0) {
-        State.totalSeconds -= delta;
-        State.dailyData[State.today][State.currentSubject] += delta;
-        if (State.totalSeconds <= 0) handleTimerComplete();
-    }
-
-    let activeNodes = 0;
-    Competitors.forEach(c => {
-        c.statusTimer -= delta;
-        if(c.statusTimer <= 0) {
-            c.isActive = !c.isActive;
-            c.statusTimer = c.isActive ? (Math.random() * 3000) : (Math.random() * 1000);
-        }
-        if(c.isActive) { c.totalSeconds += delta; activeNodes++; }
-    });
-
-    // Realistic Graph Data (Rolling updates)
-    if(Math.random() > 0.99) {
-        State.intensityData.shift();
-        State.intensityData.push(Math.floor((activeNodes / Competitors.length) * 100));
-    }
-
-    if(State.urgentTarget) {
-        const diff = State.urgentTarget - new Date();
-        if(diff > 0) document.getElementById('urgentHMS').textContent = formatHMS(Math.floor(diff/1000));
-    }
-
-    updateUI();
-    requestAnimationFrame(engine);
-}
-
-function updateUI() {
-    const timerStr = formatHMS(Math.max(0, State.totalSeconds));
-    document.getElementById(State.isSwapped ? "smallDisplay" : "bigDisplay").textContent = timerStr;
-    document.getElementById(State.isSwapped ? "bigDisplay" : "smallDisplay").textContent = new Date().toLocaleTimeString('en-IN', { hour12: false });
-    
-    const d = State.dailyData[State.today];
-    const totalS = (d.P || 0) + (d.C || 0) + (d.M || 0);
-    document.getElementById('dailyTotal').textContent = `LOG: ${Math.floor(totalS/3600)}h ${Math.floor((totalS%3600)/60)}m`;
-    document.getElementById('fsDisplay').textContent = `FOCUS: ${State.focusScore}/100`;
-    
-    // Auto Level Update
-    const titles = ["Novice", "Aspirant", "Grinder", "Titan", "Omega", "Immortal"];
-    const rankIdx = Math.min(5, Math.floor((totalS/3600) / 2.5));
-    document.getElementById('rankBadge').textContent = titles[rankIdx].toUpperCase();
-}
-
-// ONBOARDING
-function goToTutorial() {
-    const name = document.getElementById('userInputName').value.trim();
-    if(name.length < 2) return alert("ENTER CALLSIGN");
-    localStorage.setItem('username', name.toUpperCase());
-    document.getElementById('step-name').style.display = 'none';
-    document.getElementById('step-tutorial').style.display = 'block';
-}
-
-function finishOnboarding() {
-    localStorage.setItem('onboarding_v2.6', 'true');
-    document.getElementById('onboardingModal').style.display = 'none';
-    updateUsername();
-}
-
-function openHelp() { document.getElementById('helpModal').style.display = 'flex'; }
-
-// LEADERBOARD
-function openLeaderboard() {
-    const myS = (State.dailyData[State.today].P || 0) + (State.dailyData[State.today].C || 0) + (State.dailyData[State.today].M || 0);
-    const all = [...Competitors.map(c => ({...c, isMe: false})), { name: localStorage.getItem('username') || "YOU", totalSeconds: myS, isActive: State.running, isMe: true }];
-    
-    const sorted = all.sort((a,b) => {
-        if (a.isActive && !b.isActive) return -1;
-        if (!a.isActive && b.isActive) return 1;
-        return b.totalSeconds - a.totalSeconds;
-    });
-
-    document.getElementById('ghostList').innerHTML = sorted.map(u => `
-        <div class="rank-row ${u.isMe ? 'me' : ''}">
-            <span><span class="status-dot" style="background:${u.isActive ? 'var(--accent-green)' : '#444'}"></span>${u.name}</span>
-            <span style="font-size:0.6rem;">${u.isActive ? 'STUDYING' : 'ON BREAK'}</span>
-            <span>${(u.totalSeconds/3600).toFixed(2)}h</span>
-        </div>`).join('');
-    
-    document.getElementById('nodeCount').textContent = all.filter(u => u.isActive).length;
-    document.getElementById('globalChart').innerHTML = State.intensityData.map(v => `<div class="chart-bar" style="height:${v}%"></div>`).join('');
-    document.getElementById('leaderboardModal').style.display = 'flex';
-}
-
-// TRACKER RESTORATION
-function updateTracker() {
-    const now = new Date(); let html = ""; let nearest = null;
-    Object.entries(Config.examDates).sort((a,b) => a[1]-b[1]).forEach(([name, date]) => {
-        const diff = date - now;
-        const days = Math.ceil(diff / 86400000);
-        if(days > 0) {
-            if(!nearest) nearest = {name, date};
-            const color = days < 7 ? "var(--accent-red)" : (days < 30 ? "var(--accent-orange)" : "var(--accent-green)");
-            html += `
-                <div class="exam-card" style="border-left: 3px solid ${color}">
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto bg-black relative">
+        <div class="max-w-6xl mx-auto p-20">
+            
+            <!-- Mastery View -->
+            <section id="view-mastery" class="space-y-12">
+                <div class="flex justify-between items-end">
                     <div>
-                        <div class="label">${name}</div>
-                        <div class="date-label">${date.toLocaleDateString('en-IN', {month:'short', day:'numeric'})}</div>
+                        <h2 class="text-5xl font-extrabold tracking-tight mb-4">Mastery Tree</h2>
+                        <p class="text-zinc-500 text-lg">Your long-term behavioral and academic standard.</p>
                     </div>
-                    <div class="days" style="color:${color}">${days}d</div>
-                </div>`;
+                    <div class="text-right">
+                        <p class="text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-1">Total Focus</p>
+                        <p class="text-3xl font-mono font-bold">1,242<span class="text-zinc-700 text-xl">h</span></p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="glass-card p-10 space-y-8">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-sm font-bold uppercase tracking-widest text-zinc-400">Behavioral DNA</h3>
+                            <i data-lucide="fingerprint" class="w-5 h-5 text-orange-500"></i>
+                        </div>
+                        <div class="space-y-6">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-medium text-zinc-500">Execution Consistency</span>
+                                <span class="text-xs font-bold text-emerald-500">94%</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-medium text-zinc-500">Pressure Tolerance</span>
+                                <span class="text-xs font-bold text-white">High</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-medium text-zinc-500">Mistake Recovery</span>
+                                <span class="text-xs font-bold text-white">2.4m avg</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-card p-10 space-y-8">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-sm font-bold uppercase tracking-widest text-zinc-400">Global Standing</h3>
+                            <i data-lucide="globe" class="w-5 h-5 text-blue-500"></i>
+                        </div>
+                        <div class="flex items-center gap-8">
+                            <div class="text-5xl font-black italic">TOP 2%</div>
+                            <p class="text-[10px] text-zinc-500 leading-relaxed font-bold uppercase">Ranklock Certified: Ojas Kadam maintains a top-tier grind-to-rest ratio among 14k tracked candidates.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Squad View -->
+            <section id="view-squad" class="hidden space-y-12">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-4xl font-extrabold tracking-tight">Squad Sync</h2>
+                    <button class="px-6 py-2 bg-zinc-800 text-[10px] font-bold uppercase tracking-widest rounded-lg">Join Squad</button>
+                </div>
+                <div class="grid grid-cols-1 gap-4">
+                    <div class="glass-card p-8 flex items-center justify-between">
+                        <div class="flex items-center gap-6">
+                            <div class="w-10 h-10 bg-emerald-500/10 rounded-full flex items-center justify-center">
+                                <div class="w-2 h-2 bg-emerald-500 rounded-full badge-pulse"></div>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold uppercase tracking-widest">Aryan S.</p>
+                                <p class="text-[10px] text-zinc-500">Focusing: Organic Chemistry</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-xs font-mono font-bold">42:15</p>
+                            <p class="text-[9px] text-zinc-600 font-bold uppercase">Current Session</p>
+                        </div>
+                    </div>
+                    <div class="glass-card p-8 opacity-50 grayscale flex items-center justify-between">
+                        <div class="flex items-center gap-6">
+                            <div class="w-10 h-10 bg-zinc-800 rounded-full flex items-center justify-center text-xs font-bold">NP</div>
+                            <div>
+                                <p class="text-sm font-bold uppercase tracking-widest">Naman P.</p>
+                                <p class="text-[10px] text-zinc-500">Last Active: 2h ago</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-xs font-mono font-bold">--:--</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- History View -->
+            <section id="view-history" class="hidden space-y-12">
+                <h2 class="text-4xl font-extrabold tracking-tight">Progression Matrix</h2>
+                <div class="glass-card p-10">
+                    <div class="flex gap-2 h-48 items-end">
+                        <!-- Mock chart bars -->
+                        <div class="flex-1 bg-zinc-800 rounded-t-lg" style="height: 40%"></div>
+                        <div class="flex-1 bg-zinc-800 rounded-t-lg" style="height: 60%"></div>
+                        <div class="flex-1 bg-zinc-800 rounded-t-lg" style="height: 30%"></div>
+                        <div class="flex-1 bg-orange-600 rounded-t-lg" style="height: 90%"></div>
+                        <div class="flex-1 bg-zinc-800 rounded-t-lg" style="height: 70%"></div>
+                        <div class="flex-1 bg-zinc-800 rounded-t-lg" style="height: 50%"></div>
+                        <div class="flex-1 bg-zinc-800 rounded-t-lg" style="height: 80%"></div>
+                    </div>
+                    <div class="flex justify-between mt-6 text-[10px] font-bold text-zinc-600 uppercase tracking-widest">
+                        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- UI Interaction Layers (Modals) -->
+    <div id="init-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 hidden">
+        <div class="glass-card p-12 w-[480px] space-y-8">
+            <h3 class="text-2xl font-bold tracking-tight">Initiate Flow</h3>
+            <div class="space-y-4">
+                <select id="session-subject" class="w-full bg-zinc-900 p-5 rounded-xl text-xs font-bold uppercase tracking-widest border border-white/5 outline-none">
+                    <option>Physics</option><option>Chemistry</option><option>Math</option>
+                </select>
+                <div class="p-6 bg-zinc-900 rounded-xl border border-white/5">
+                    <p class="text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-4">Mastery Check</p>
+                    <p class="text-sm font-medium leading-relaxed italic text-zinc-400">"This session will be logged to your Public Mastery Report. Authenticity is mandatory."</p>
+                </div>
+            </div>
+            <button onclick="startSession()" class="w-full py-5 btn-primary rounded-xl font-bold uppercase tracking-widest text-xs">Authorize Session</button>
+            <button onclick="closeSessionModal()" class="w-full text-zinc-600 text-[10px] font-bold uppercase tracking-widest">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabId) {
+            ['mastery', 'squad', 'history'].forEach(t => {
+                document.getElementById(`view-${t}`).classList.toggle('hidden', t !== tabId);
+                const btn = document.querySelector(`[data-tab="${t}"]`);
+                if(btn) btn.classList.toggle('active', t === tabId);
+            });
+            if(window.lucide) lucide.createIcons();
         }
-    });
-    document.getElementById("jeeTracker").innerHTML = html;
-    if(nearest) {
-        State.urgentTarget = nearest.date;
-        document.getElementById('topUrgent').classList.add('active');
-        document.getElementById('urgentExamName').textContent = nearest.name.toUpperCase();
-        document.getElementById('mainFrame').classList.add('shifted');
-    }
-}
 
-function openLevelModal() {
-    const d = State.dailyData[State.today];
-    const totalH = ((d.P || 0) + (d.C || 0) + (d.M || 0)) / 3600;
-    const titles = ["Novice", "Aspirant", "Grinder", "Titan", "Omega", "Immortal"];
-    const rankIdx = Math.min(5, Math.floor(totalH / 2.5));
-    const nextGoal = (rankIdx + 1) * 2.5;
-    const progress = Math.min(100, (totalH / nextGoal) * 100);
-    
-    document.getElementById('levelTitle').textContent = titles[rankIdx].toUpperCase();
-    document.getElementById('levelBar').style.width = progress + "%";
-    document.getElementById('levelStats').textContent = `${(nextGoal - totalH).toFixed(1)}H TO NEXT RANK`;
-    document.getElementById('levelModal').style.display = 'flex';
-}
+        function openSessionModal() { document.getElementById('init-modal').classList.remove('hidden'); }
+        function closeSessionModal() { document.getElementById('init-modal').classList.add('hidden'); }
 
-// CORE
-function toggleTimer() {
-    if(State.isHardFocus && State.running) return;
-    const btn = document.getElementById("playPauseBtn");
-    if (!State.running) {
-        if (State.totalSeconds <= 0) {
-            const h = parseInt(document.getElementById("hh").value) || 0;
-            const m = parseInt(document.getElementById("mm").value) || 0;
-            State.totalSeconds = (h * 3600) + (m * 60); State.initialSeconds = State.totalSeconds;
-            if(State.totalSeconds > 0) saveSession();
+        function startSession() {
+            closeSessionModal();
+            // Simplified for V7 preview - normally would trigger session overlay
+            alert("Session Authorized. Logging to Global Mastery Intel.");
         }
-        if (State.totalSeconds > 0) { State.running = true; btn.textContent = "PAUSE"; }
-    } else { State.running = false; btn.textContent = "RESUME"; adjustFS(-2); }
-}
 
-function adjustFS(pts) {
-    State.focusScore = Math.max(0, Math.min(100, State.focusScore + pts));
-    localStorage.setItem('fs_score', State.focusScore);
-}
+        function shareProfile() {
+            const profileLink = `ranklock.io/p/${Math.random().toString(36).substring(7)}`;
+            // Using execCommand for widest clipboard support as per instructions
+            const el = document.createElement('textarea');
+            el.value = `View Ojas Kadam's Verified Mastery Report: ${profileLink}`;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            
+            const btn = event.currentTarget;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i data-lucide="check" class="w-3 h-3"></i> Intel Copied';
+            lucide.createIcons();
+            setTimeout(() => { btn.innerHTML = originalText; lucide.createIcons(); }, 2000);
+        }
 
-function startHardFocus() {
-    const hh = parseInt(document.getElementById("hh").value) || 0;
-    const mm = parseInt(document.getElementById("mm").value) || 0;
-    const total = (hh * 3600) + (mm * 60);
-    if(total < 2700) return alert("MINIMUM 45 MINS");
-    State.totalSeconds = total; State.initialSeconds = total;
-    State.isHardFocus = true;
-    document.getElementById('hfPreflight').style.display = 'none';
-    document.body.classList.add('hard-focus');
-    document.getElementById('hfEmergency').style.display = 'block';
-    State.running = true;
-    document.getElementById('playPauseBtn').textContent = "LOCKED";
-}
-
-function emergencyExit() {
-    if(confirm("EXITING = -40 FOCUS SCORE. PROCEED?")) {
-        adjustFS(-40); State.running = false; State.totalSeconds = 0;
-        State.isHardFocus = false; document.body.classList.remove('hard-focus');
-        document.getElementById('hfEmergency').style.display = 'none';
-        document.getElementById('playPauseBtn').textContent = "START";
-    }
-}
-
-function formatHMS(s) {
-    const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = Math.floor(s%60);
-    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
-}
-function swapDisplays() { State.isSwapped = !State.isSwapped; }
-function closeModals() { document.querySelectorAll('.modal').forEach(m => { if(m.id !== 'onboardingModal') m.style.display = 'none'; }); }
-function setSubject(sub) { if(!State.isHardFocus) { State.currentSubject = sub; document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active')); document.getElementById('btn-'+sub).classList.add('active'); const colors = {'P':'#00d4ff','C':'#ff3131','M':'#00ff88'}; document.documentElement.style.setProperty('--current-aura', colors[sub]); } }
-function updateUsername() { document.getElementById('username').textContent = localStorage.getItem('username') || "OJAS KADAM"; }
-function changeUsername() { const n = prompt("NEW CALLSIGN:"); if(n) { localStorage.setItem('username', n.toUpperCase()); updateUsername(); } }
-function handleTimerComplete() { State.running = false; if(State.isHardFocus){ adjustFS(15); State.isHardFocus=false; document.body.classList.remove('hard-focus'); document.getElementById('hfEmergency').style.display='none'; } alert("SESSION HONOURED"); State.totalSeconds = 0; }
-function resetTimer() { if(!State.isHardFocus) { State.running = false; State.totalSeconds = 0; document.getElementById('playPauseBtn').textContent="START"; } }
-function saveSession() { State.dailyData[State.today].sessions.push({ sub: State.currentSubject, time: new Date().toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'}) }); renderLog(); }
-function renderLog() { document.getElementById('sessionHistory').innerHTML = State.dailyData[State.today].sessions.slice().reverse().map(s => `<div><span style="color:var(--current-aura)">[${s.time}]</span> ${s.sub} INIT</div>`).join(''); }
-
-document.addEventListener('keydown', (e) => {
-    if (e.target.tagName === 'INPUT') return;
-    const k = e.key.toLowerCase();
-    if (k === ' ' || e.code === 'Space') { e.preventDefault(); toggleTimer(); }
-    if (k === 'r') resetTimer();
-    if (k === 'h') toggleHardFocus();
-    if (k === 'f') { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(err => {}); else document.exitFullscreen(); }
-    if (k === 'm' || k === '3') setSubject('M');
-    if (k === 'p' || k === '1') setSubject('P');
-    if (k === 'c' || k === '2') setSubject('C');
-    if (k === 'l') openLeaderboard();
-});
-
-// TAB PAUSE
-document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-        document.title = "⚠️ RETURN TO PROTOCOL";
-        if(State.running) { State.running = false; document.getElementById('playPauseBtn').textContent="RESUME"; adjustFS(-5); }
-    } else { document.title = "JEE 2026 | RANKLOCK"; }
-});
-
-setInterval(() => {
-    document.getElementById('leaderboardTicker').textContent = Config.ghosts[Math.floor(Math.random() * Config.ghosts.length)];
-    document.getElementById('motivationBox').textContent = `"${Config.quotes[Math.floor(Math.random() * Config.quotes.length)]}"`;
-    updateTracker(); localStorage.setItem('studyLog_v2', JSON.stringify(State.dailyData));
-}, 15000);
-
-window.onload = () => {
-    if (!localStorage.getItem('onboarding_v2.6')) document.getElementById('onboardingModal').style.display = 'flex';
-    updateTracker(); updateUsername(); renderLog(); requestAnimationFrame(engine);
-};
-</script>
+        window.onload = () => { if(window.lucide) lucide.createIcons(); };
+    </script>
 </body>
 </html>
-
-
