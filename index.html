@@ -1,309 +1,960 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="description" content="RankLock is a hardcore study timer for JEE 2026 aspirants. Hard Focus mode, live competition, discipline-based study tracking. Built for serious students.">
-<meta name="keywords" content="JEE study timer, JEE 2026 timer, hard focus timer, study timer for IIT JEE, RankLock">
-    <title>Ranklock Mastery | The Discipline Standard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <meta name="keywords" content="JEE study timer, JEE 2026 timer, hard focus timer, study timer for IIT JEE, RankLock">
+    <title>AETHER DISCIPLINE v5.5 | JEE ARCHITECT</title>
+    <!-- 
+        AETHER DISCIPLINE SYSTEM v5.5
+        Architect: Senior Systems Designer
+        Focus: JEE Mains/Advanced Conditioning
+        Fix: Corrected DOM references for stat-daily-quality and improved robustness.
+    -->
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap');
-        
+        /* --- CSS ARCHITECTURE: AETHER DESIGN LANGUAGE (ADL) --- */
         :root {
-            --bg: #050505;
-            --zinc-900: #111114;
-            --accent: #f97316;
-            --verified: #10b981;
-            --gold: #fbbf24;
+            --bg-deep: #050508;
+            --bg-surface: #0f0f16;
+            --bg-elevated: #1a1a24;
+            
+            --text-primary: #f0f0f5;
+            --text-secondary: #a0a0b0;
+            --text-muted: #555565;
+            
+            --accent-primary: #3b82f6;
+            --accent-warn: #f59e0b;
+            --accent-crit: #ef4444;
+            --accent-succ: #10b981;
+            --accent-void: #6366f1;
+            
+            --border-ui: #2a2a35;
+            
+            --font-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+            
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
         }
 
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: var(--bg);
-            color: #fafafa;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        .glass-card {
-            background: var(--zinc-900);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        .verified-border {
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            background: linear-gradient(180deg, rgba(16, 185, 129, 0.05) 0%, transparent 100%);
-        }
-
-        .nav-link {
-            transition: all 0.2s ease;
-            color: #71717a;
-            border-radius: 0.5rem;
-        }
-
-        .nav-link.active {
-            color: white;
-            background: #1c1c21;
-        }
-
-        .btn-primary {
-            background: var(--accent);
-            color: white;
-            box-shadow: 0 4px 20px rgba(249, 115, 22, 0.2);
-        }
-
-        .btn-ghost {
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #a1a1aa;
-        }
-
-        .btn-ghost:hover {
-            background: rgba(255,255,255,0.05);
-            color: white;
-        }
-
-        .hidden { display: none !important; }
+        /* --- Global Resets --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-deep); color: var(--text-primary); font-family: var(--font-main); overflow: hidden; height: 100vh; width: 100vw; }
         
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 10px; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-deep); }
+        ::-webkit-scrollbar-thumb { background: var(--border-ui); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
-        .badge-pulse {
-            animation: pulse-green 2s infinite;
+        h1, h2, h3 { font-weight: 700; letter-spacing: -0.02em; }
+        .mono { font-family: var(--font-mono); }
+        .tabular { font-variant-numeric: tabular-nums; }
+        .hidden { display: none !important; }
+
+        /* --- Layout --- */
+        #app-container { display: flex; flex-direction: column; height: 100%; width: 100%; max-width: 1600px; margin: 0 auto; position: relative; }
+
+        /* --- Header --- */
+        nav { height: 60px; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-ui); background: var(--bg-deep); z-index: 100; }
+        .nav-logo { font-size: 1.1rem; font-weight: 800; display: flex; align-items: center; gap: 12px; }
+        .nav-logo span { font-size: 0.6rem; background: var(--accent-void); padding: 2px 6px; border-radius: var(--radius-sm); color: white; }
+        .nav-right { display: flex; gap: 16px; align-items: center; }
+        
+        .stat-item { text-align: right; display: flex; flex-direction: column; justify-content: center; }
+        .stat-label { font-size: 0.6rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
+        .stat-value { font-size: 0.9rem; font-weight: 600; }
+        
+        /* New Metric Colors */
+        .stat-value.streak-fire { color: var(--accent-warn); text-shadow: 0 0 10px rgba(245, 158, 11, 0.3); }
+        .stat-value.integrity-ok { color: var(--accent-succ); }
+        .stat-value.integrity-crit { color: var(--accent-crit); }
+
+        .icon-btn { background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 8px; border-radius: var(--radius-sm); transition: 0.2s; }
+        .icon-btn:hover { background: var(--bg-elevated); color: var(--text-primary); }
+
+        /* --- Main Content --- */
+        main { flex: 1; padding: 16px; display: grid; grid-template-columns: 320px 1fr; gap: 16px; overflow: hidden; }
+
+        /* --- Sidebar --- */
+        .sidebar { display: flex; flex-direction: column; gap: 16px; overflow-y: auto; padding-right: 4px; transition: opacity 0.3s; }
+
+        .card { background: var(--bg-surface); border: 1px solid var(--border-ui); border-radius: var(--radius-md); padding: 16px; display: flex; flex-direction: column; position: relative; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-ui); padding-bottom: 8px; }
+        .card-title { font-size: 0.75rem; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
+
+        .rank-box { text-align: center; padding: 10px 0; }
+        .rank-value { font-size: 3rem; font-weight: 900; font-family: var(--font-mono); color: var(--accent-primary); line-height: 1; }
+        .rank-label { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.1em; margin-top: 4px; }
+        .rank-progress { height: 4px; background: var(--bg-elevated); margin-top: 12px; border-radius: 2px; overflow: hidden; }
+        .rank-bar { height: 100%; background: var(--accent-primary); width: 0%; transition: width 0.5s ease; }
+
+        /* --- Central Stage --- */
+        .stage { display: flex; flex-direction: column; height: 100%; position: relative; }
+        .focus-container { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--bg-surface); border: 1px solid var(--border-ui); border-radius: var(--radius-lg); position: relative; overflow: hidden; transition: border-color 0.5s; }
+
+        #timer-display { font-size: 9rem; font-weight: 800; font-family: var(--font-mono); z-index: 2; line-height: 1; }
+        .focus-bg-pulse { position: absolute; width: 600px; height: 600px; background: radial-gradient(circle, var(--accent-primary) 0%, transparent 70%); opacity: 0; border-radius: 50%; pointer-events: none; }
+
+        /* Visual Overlays */
+        #integrity-visual-overlay { position: absolute; inset:0; pointer-events:none; border: 0px solid var(--accent-crit); transition: 0.1s; z-index: 10; box-shadow: inset 0 0 0px var(--accent-crit); }
+        
+        #countdown-overlay { position: absolute; inset:0; background: var(--bg-deep); z-index: 20; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        .countdown-val { font-size: 8rem; font-weight: 900; color: var(--text-primary); animation: pulse 1s infinite; }
+        .countdown-label { font-size: 1rem; color: var(--accent-primary); letter-spacing: 0.2em; text-transform: uppercase; margin-top: 10px; }
+
+        .session-context { text-align: center; z-index: 2; margin-top: 20px; }
+        .context-subject { font-size: 1.2rem; font-weight: 700; color: var(--accent-primary); }
+        .context-chapter { font-size: 0.9rem; color: var(--text-secondary); }
+        .context-goal { font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; font-style: italic; border-top: 1px solid var(--border-ui); padding-top: 8px; display: inline-block; }
+
+        .controls { display: flex; gap: 16px; margin-top: 40px; z-index: 2; }
+        
+        .btn { padding: 14px 32px; font-weight: 700; text-transform: uppercase; font-size: 0.85rem; border-radius: var(--radius-md); cursor: pointer; border: none; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-primary { background: var(--accent-primary); color: white; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+        .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .btn-outline { background: transparent; border: 1px solid var(--border-ui); color: var(--text-secondary); }
+        .btn-outline:hover { background: var(--bg-elevated); color: var(--text-primary); border-color: var(--text-muted); }
+        .btn-crit { background: rgba(239, 68, 68, 0.1); color: var(--accent-crit); border: 1px solid var(--accent-crit); }
+        .btn-crit:hover { background: var(--accent-crit); color: white; }
+        .btn-block { width: 100%; }
+
+        /* --- Modals --- */
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); backdrop-filter: blur(8px); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .modal { background: var(--bg-surface); border: 1px solid var(--border-ui); border-radius: var(--radius-lg); width: 100%; max-width: 600px; padding: 32px; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.5); animation: modalIn 0.3s ease; display: flex; flex-direction: column; max-height: 90vh; }
+        .modal.modal-xl { max-width: 900px; height: 85vh; padding: 0; overflow: hidden; }
+        @keyframes modalIn { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes pulse { 0% { opacity: 0.5; transform: scale(0.95); } 50% { opacity: 1; transform: scale(1.05); } 100% { opacity: 0.5; transform: scale(0.95); } }
+
+        .modal-header { margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-start; }
+        .modal-title { font-size: 1.5rem; font-weight: 800; color: var(--text-primary); }
+        .modal-desc { color: var(--text-secondary); font-size: 0.9rem; }
+        .close-btn { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; padding: 0 8px; line-height: 1; }
+
+        /* Wizard */
+        .wizard-step { display: none; }
+        .wizard-step.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+        .choice-btn { background: var(--bg-elevated); border: 1px solid var(--border-ui); padding: 16px; border-radius: var(--radius-md); cursor: pointer; text-align: center; transition: 0.2s; position: relative; }
+        .choice-btn:hover { background: #252530; border-color: var(--text-muted); }
+        .choice-btn.selected { border-color: var(--accent-primary); background: rgba(59, 130, 246, 0.1); color: var(--accent-primary); }
+        
+        /* Debt Indication in Wizard */
+        .choice-btn.has-debt-warn { border-color: var(--accent-warn); color: var(--accent-warn); }
+        .choice-btn.has-debt-warn::after { content: "⚠️ DEBT"; position: absolute; top: 4px; right: 4px; font-size: 0.6rem; font-weight: 700; }
+
+        /* Map Styles */
+        .map-layout { display: flex; height: 100%; }
+        .map-sidebar { width: 250px; background: var(--bg-deep); border-right: 1px solid var(--border-ui); padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+        .map-content { flex: 1; padding: 20px; overflow-y: auto; background: var(--bg-surface); }
+        .subject-group { border: 1px solid var(--border-ui); border-radius: var(--radius-sm); margin-bottom: 8px; background: var(--bg-elevated); }
+        .subject-header { padding: 12px; font-weight: 700; font-size: 0.9rem; display: flex; justify-content: space-between; cursor: pointer; }
+        .subject-chapters { display: none; border-top: 1px solid var(--border-ui); }
+        .subject-group.expanded .subject-chapters { display: block; }
+        .chapter-item { padding: 10px 16px; border-bottom: 1px solid var(--border-ui); display: flex; justify-content: space-between; cursor: pointer; }
+        .chapter-item.has-debt { border-left: 3px solid var(--accent-crit); background: rgba(239,68,68,0.05); }
+
+        .log-list { display: flex; flex-direction: column; gap: 8px; font-size: 0.8rem; }
+        .log-item { background: var(--bg-elevated); padding: 10px; border-radius: var(--radius-sm); border-left: 2px solid var(--border-ui); }
+
+        /* Tutorial */
+        .tut-slide { display: none; }
+        .tut-slide.active { display: block; animation: fadeIn 0.3s; }
+        .tut-img { width: 100%; height: 150px; background: var(--bg-elevated); border-radius: var(--radius-md); margin-bottom: 20px; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: var(--accent-primary); border: 1px dashed var(--border-ui); }
+
+        #integrity-toast { position: fixed; bottom: 32px; right: 32px; background: var(--accent-crit); color: white; padding: 16px 24px; border-radius: var(--radius-md); font-weight: 800; font-size: 0.85rem; display: none; z-index: 10000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* Hard Focus Mode */
+        body.mode-hard-focus .focus-container { border-color: var(--accent-crit); background: #080505; }
+        body.mode-hard-focus #timer-display { color: var(--accent-crit); text-shadow: 0 0 30px rgba(239, 68, 68, 0.3); }
+        body.mode-hard-focus .sidebar, body.mode-hard-focus nav { opacity: 0; pointer-events: none; transition: opacity 0.5s; }
+        body.mode-hard-focus main { grid-template-columns: 1fr; }
+        body.mode-hard-focus .sidebar { display: none; }
+
+        @media (max-width: 1024px) {
+            main { grid-template-columns: 1fr; }
+            .sidebar { display: none; }
+            .map-layout { flex-direction: column; }
+            .map-sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border-ui); }
+            #timer-display { font-size: 5rem; }
         }
 
-        @keyframes pulse-green {
-            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-        }
+        input, select, textarea { width: 100%; background: var(--bg-deep); border: 1px solid var(--border-ui); color: var(--text-primary); padding: 10px; border-radius: var(--radius-sm); margin-bottom: 10px; font-family: inherit; }
     </style>
 </head>
-<body class="h-screen overflow-hidden flex">
+<body>
 
-    <!-- Sidebar -->
-    <aside class="w-80 border-r border-white/5 flex flex-col bg-[#0a0a0c] z-20">
-        <div class="p-10">
-            <div class="flex items-center gap-3 mb-10">
-                <div class="w-9 h-9 bg-white text-black rounded-xl flex items-center justify-center shadow-lg">
-                    <i data-lucide="award" class="w-5 h-5"></i>
-                </div>
-                <div>
-                    <h1 class="text-lg font-extrabold tracking-tight">Ranklock</h1>
-                    <p class="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">Mastery Platform</p>
-                </div>
+    <div id="app-container">
+        <!-- HEADER -->
+        <nav>
+            <div class="nav-left">
+                <div class="nav-logo">AETHER DISCIPLINE <span>v5.5</span></div>
             </div>
-
-            <!-- Profile Overview -->
-            <div class="glass-card p-6 verified-border space-y-4">
-                <div class="flex justify-between items-start">
-                    <div class="w-12 h-12 rounded-full bg-zinc-800 border border-white/10 flex items-center justify-center font-bold text-sm">OK</div>
-                    <div class="px-2 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded text-[8px] font-bold text-emerald-500 uppercase">Verified</div>
+            <div class="nav-right">
+                <div class="stat-item">
+                    <div class="stat-label">Streak</div>
+                    <div class="stat-value tabular streak-fire" id="stat-streak">0 DAYS</div>
                 </div>
-                <div>
-                    <p class="text-xs font-bold text-white uppercase tracking-wider">Ojas Kadam</p>
-                    <p class="text-[10px] text-zinc-500 font-mono">ID: #4f9a-8821</p>
+                <div class="stat-item">
+                    <div class="stat-label">Integrity</div>
+                    <div class="stat-value tabular integrity-ok" id="stat-integrity">100%</div>
                 </div>
-                <div class="flex gap-2">
-                    <div class="h-1 flex-1 bg-emerald-500 rounded-full"></div>
-                    <div class="h-1 flex-1 bg-emerald-500 rounded-full"></div>
-                    <div class="h-1 flex-1 bg-zinc-800 rounded-full"></div>
-                </div>
+                <button class="icon-btn" onclick="UI.openSettings()">⚙</button>
             </div>
-        </div>
-
-        <nav class="flex-1 px-6 space-y-1">
-            <button onclick="switchTab('mastery')" class="nav-link w-full flex items-center gap-4 px-6 py-4 text-[13px] font-bold active" data-tab="mastery">
-                <i data-lucide="layers" class="w-4 h-4"></i> Mastery Tree
-            </button>
-            <button onclick="switchTab('squad')" class="nav-link w-full flex items-center gap-4 px-6 py-4 text-[13px] font-bold" data-tab="squad">
-                <i data-lucide="users" class="w-4 h-4"></i> Squad Sync
-            </button>
-            <button onclick="switchTab('history')" class="nav-link w-full flex items-center gap-4 px-6 py-4 text-[13px] font-bold" data-tab="history">
-                <i data-lucide="calendar" class="w-4 h-4"></i> Progression
-            </button>
         </nav>
 
-        <div class="p-8 border-t border-white/5 space-y-4 bg-[#0c0c0e]">
-            <button onclick="shareProfile()" class="w-full py-3 btn-ghost rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2">
-                <i data-lucide="share-2" class="w-3 h-3"></i> Share Intel
-            </button>
-            <button onclick="openSessionModal()" class="w-full py-4 btn-primary rounded-xl text-xs font-bold uppercase tracking-widest">
-                Start Grind
-            </button>
-        </div>
-    </aside>
-
-    <!-- Main Content -->
-    <main class="flex-1 overflow-y-auto bg-black relative">
-        <div class="max-w-6xl mx-auto p-20">
-            
-            <!-- Mastery View -->
-            <section id="view-mastery" class="space-y-12">
-                <div class="flex justify-between items-end">
-                    <div>
-                        <h2 class="text-5xl font-extrabold tracking-tight mb-4">Mastery Tree</h2>
-                        <p class="text-zinc-500 text-lg">Your long-term behavioral and academic standard.</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-1">Total Focus</p>
-                        <p class="text-3xl font-mono font-bold">1,242<span class="text-zinc-700 text-xl">h</span></p>
+        <main>
+            <!-- SIDEBAR -->
+            <aside class="sidebar" id="sidebar">
+                <div class="card">
+                    <div class="card-header"><span class="card-title">System Rank</span></div>
+                    <div class="rank-box">
+                        <div class="rank-value tabular" id="display-rank">0</div>
+                        <div class="rank-label" id="display-rank-title">UNINITIATED</div>
+                        <div class="rank-progress"><div class="rank-bar" id="rank-bar-fill"></div></div>
+                        <div style="font-size: 0.65rem; color: var(--text-muted); margin-top: 4px; text-align: right;" id="rank-next-val">NEXT: 100 XP</div>
                     </div>
                 </div>
+                <div class="card">
+                    <div class="card-header"><span class="card-title">Syllabus Map</span></div>
+                    <div style="text-align: center; padding: 10px 0;">
+                        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px;" id="map-summary-text">System Idle</div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 15px;" id="stat-daily-quality">0h 0m Focus</div>
+                        <button class="btn btn-outline btn-block" onclick="UI.openMap()">OPEN COMMAND CENTER</button>
+                    </div>
+                </div>
+                <div class="card" style="flex:1; max-height: 300px;">
+                    <div class="card-header">
+                        <span class="card-title">Active Debts</span>
+                        <span id="debt-count" style="color: var(--accent-crit); font-weight: 700;">0</span>
+                    </div>
+                    <div class="log-list" id="debt-list" style="overflow-y: auto;"></div>
+                </div>
+                <div class="card">
+                    <div class="card-header"><span class="card-title">Recent Logs</span></div>
+                    <div class="log-list" id="recent-logs-container"></div>
+                </div>
+            </aside>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="glass-card p-10 space-y-8">
-                        <div class="flex justify-between items-center">
-                            <h3 class="text-sm font-bold uppercase tracking-widest text-zinc-400">Behavioral DNA</h3>
-                            <i data-lucide="fingerprint" class="w-5 h-5 text-orange-500"></i>
-                        </div>
-                        <div class="space-y-6">
-                            <div class="flex justify-between items-center">
-                                <span class="text-xs font-medium text-zinc-500">Execution Consistency</span>
-                                <span class="text-xs font-bold text-emerald-500">94%</span>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-xs font-medium text-zinc-500">Pressure Tolerance</span>
-                                <span class="text-xs font-bold text-white">High</span>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-xs font-medium text-zinc-500">Mistake Recovery</span>
-                                <span class="text-xs font-bold text-white">2.4m avg</span>
-                            </div>
-                        </div>
+            <!-- STAGE -->
+            <section class="stage">
+                <div class="focus-container">
+                    <div class="focus-bg-pulse"></div>
+                    
+                    <!-- Overlays -->
+                    <div id="integrity-visual-overlay"></div>
+                    <div id="countdown-overlay">
+                        <div class="countdown-val" id="countdown-val">3</div>
+                        <div class="countdown-label">Visualize</div>
                     </div>
                     
-                    <div class="glass-card p-10 space-y-8">
-                        <div class="flex justify-between items-center">
-                            <h3 class="text-sm font-bold uppercase tracking-widest text-zinc-400">Global Standing</h3>
-                            <i data-lucide="globe" class="w-5 h-5 text-blue-500"></i>
-                        </div>
-                        <div class="flex items-center gap-8">
-                            <div class="text-5xl font-black italic">TOP 2%</div>
-                            <p class="text-[10px] text-zinc-500 leading-relaxed font-bold uppercase">Ranklock Certified: Ojas Kadam maintains a top-tier grind-to-rest ratio among 14k tracked candidates.</p>
-                        </div>
+                    <div class="session-context" id="active-session-meta">
+                        <div class="context-subject">SYSTEM IDLE</div>
+                        <div class="context-chapter">Ready for initialization</div>
+                    </div>
+
+                    <div id="timer-display" class="tabular">00:00</div>
+
+                    <div class="controls" id="session-controls">
+                        <button class="btn btn-primary" id="btn-init-session">INITIALIZE</button>
+                        <button class="btn btn-outline hidden" id="btn-pause-session">PAUSE</button>
+                        <button class="btn btn-crit hidden" id="btn-emergency-exit">ABORT</button>
                     </div>
                 </div>
             </section>
+        </main>
+    </div>
 
-            <!-- Squad View -->
-            <section id="view-squad" class="hidden space-y-12">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-4xl font-extrabold tracking-tight">Squad Sync</h2>
-                    <button class="px-6 py-2 bg-zinc-800 text-[10px] font-bold uppercase tracking-widest rounded-lg">Join Squad</button>
+    <!-- OVERLAY: WIZARD -->
+    <div id="overlay-setup" class="overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <div><h2 class="modal-title">Protocol Configuration</h2><p class="modal-desc">Define session parameters.</p></div>
+                <button class="close-btn" onclick="UI.closeOverlays()">×</button>
+            </div>
+            <!-- STEP 1: SUBJECT -->
+            <div class="wizard-step active" id="step-subject">
+                <div class="form-label" style="margin-bottom:10px; font-weight:700; color:var(--text-secondary);">SELECT DOMAIN</div>
+                <div class="choice-grid" id="setup-subject-grid"></div>
+            </div>
+            <!-- STEP 2: CHAPTER -->
+            <div class="wizard-step" id="step-chapter">
+                <div class="form-label" style="margin-bottom:10px; font-weight:700; color:var(--text-secondary);">SELECT CHAPTER</div>
+                <div class="choice-grid" id="setup-chapter-grid" style="max-height: 300px; overflow-y: auto;"></div>
+                <button class="btn btn-outline btn-sm" onclick="UI.wizardBack()" style="margin-top:10px; width:100%;">BACK</button>
+            </div>
+            <!-- STEP 3: INTENSITY -->
+            <div class="wizard-step" id="step-mode">
+                <div style="background: var(--bg-elevated); padding: 12px; border-radius: 8px; margin-bottom: 20px; border-left: 3px solid var(--accent-primary);">
+                    <div style="font-size:0.7rem; color:var(--text-muted); uppercase;">TARGET LOCK</div>
+                    <div style="font-size:1rem; font-weight:700; color:var(--text-primary);" id="wizard-target-display">Physics - Mechanics</div>
                 </div>
-                <div class="grid grid-cols-1 gap-4">
-                    <div class="glass-card p-8 flex items-center justify-between">
-                        <div class="flex items-center gap-6">
-                            <div class="w-10 h-10 bg-emerald-500/10 rounded-full flex items-center justify-center">
-                                <div class="w-2 h-2 bg-emerald-500 rounded-full badge-pulse"></div>
-                            </div>
-                            <div>
-                                <p class="text-sm font-bold uppercase tracking-widest">Aryan S.</p>
-                                <p class="text-[10px] text-zinc-500">Focusing: Organic Chemistry</p>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-xs font-mono font-bold">42:15</p>
-                            <p class="text-[9px] text-zinc-600 font-bold uppercase">Current Session</p>
-                        </div>
-                    </div>
-                    <div class="glass-card p-8 opacity-50 grayscale flex items-center justify-between">
-                        <div class="flex items-center gap-6">
-                            <div class="w-10 h-10 bg-zinc-800 rounded-full flex items-center justify-center text-xs font-bold">NP</div>
-                            <div>
-                                <p class="text-sm font-bold uppercase tracking-widest">Naman P.</p>
-                                <p class="text-[10px] text-zinc-500">Last Active: 2h ago</p>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-xs font-mono font-bold">--:--</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
+                
+                <div class="form-label" style="margin-bottom:10px; font-weight:700; color:var(--text-secondary);">SESSION GOAL (MANDATORY)</div>
+                <input type="text" id="session-goal-input" placeholder="e.g. Solve 20 questions, Read pages 40-50" style="margin-bottom: 20px;">
 
-            <!-- History View -->
-            <section id="view-history" class="hidden space-y-12">
-                <h2 class="text-4xl font-extrabold tracking-tight">Progression Matrix</h2>
-                <div class="glass-card p-10">
-                    <div class="flex gap-2 h-48 items-end">
-                        <!-- Mock chart bars -->
-                        <div class="flex-1 bg-zinc-800 rounded-t-lg" style="height: 40%"></div>
-                        <div class="flex-1 bg-zinc-800 rounded-t-lg" style="height: 60%"></div>
-                        <div class="flex-1 bg-zinc-800 rounded-t-lg" style="height: 30%"></div>
-                        <div class="flex-1 bg-orange-600 rounded-t-lg" style="height: 90%"></div>
-                        <div class="flex-1 bg-zinc-800 rounded-t-lg" style="height: 70%"></div>
-                        <div class="flex-1 bg-zinc-800 rounded-t-lg" style="height: 50%"></div>
-                        <div class="flex-1 bg-zinc-800 rounded-t-lg" style="height: 80%"></div>
+                <div class="form-label" style="margin-bottom:10px; font-weight:700; color:var(--text-secondary);">INTENSITY</div>
+                <div class="choice-grid">
+                    <div class="choice-btn selected" data-mode="normal" onclick="Logic.UI.selectMode('normal')">
+                        <span class="choice-title">NORMAL</span><span class="choice-meta">Pause allowed.</span>
                     </div>
-                    <div class="flex justify-between mt-6 text-[10px] font-bold text-zinc-600 uppercase tracking-widest">
-                        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+                    <div class="choice-btn" data-mode="hard" onclick="Logic.UI.selectMode('hard')">
+                        <span class="choice-title" style="color:var(--accent-crit)">HARD FOCUS</span><span class="choice-meta">No pause. Sidebar hidden.</span>
                     </div>
                 </div>
-            </section>
-        </div>
-    </main>
 
-    <!-- UI Interaction Layers (Modals) -->
-    <div id="init-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 hidden">
-        <div class="glass-card p-12 w-[480px] space-y-8">
-            <h3 class="text-2xl font-bold tracking-tight">Initiate Flow</h3>
-            <div class="space-y-4">
-                <select id="session-subject" class="w-full bg-zinc-900 p-5 rounded-xl text-xs font-bold uppercase tracking-widest border border-white/5 outline-none">
-                    <option>Physics</option><option>Chemistry</option><option>Math</option>
-                </select>
-                <div class="p-6 bg-zinc-900 rounded-xl border border-white/5">
-                    <p class="text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-4">Mastery Check</p>
-                    <p class="text-sm font-medium leading-relaxed italic text-zinc-400">"This session will be logged to your Public Mastery Report. Authenticity is mandatory."</p>
+                <div class="form-label" style="margin-bottom:10px; font-weight:700; color:var(--text-secondary);">DURATION</div>
+                <div class="choice-grid" style="grid-template-columns: repeat(4, 1fr);">
+                    <div class="choice-btn" data-dur="25" onclick="Logic.UI.selectDuration(25)">25m</div>
+                    <div class="choice-btn" data-dur="50" onclick="Logic.UI.selectDuration(50)">50m</div>
+                    <div class="choice-btn" data-dur="90" onclick="Logic.UI.selectDuration(90)">90m</div>
+                    <div class="choice-btn" data-dur="180" onclick="Logic.UI.selectDuration(180)">3h</div>
+                </div>
+
+                <div class="flex" style="display: flex; justify-content: space-between; gap: 10px; margin-top: 2rem;">
+                    <button class="btn btn-outline" style="flex:1" onclick="UI.wizardBack()">BACK</button>
+                    <button class="btn btn-primary" style="flex:2" id="btn-setup-launch">INITIATE</button>
                 </div>
             </div>
-            <button onclick="startSession()" class="w-full py-5 btn-primary rounded-xl font-bold uppercase tracking-widest text-xs">Authorize Session</button>
-            <button onclick="closeSessionModal()" class="w-full text-zinc-600 text-[10px] font-bold uppercase tracking-widest">Cancel</button>
         </div>
     </div>
 
+    <!-- OVERLAY: MAP -->
+    <div id="overlay-map" class="overlay">
+        <div class="modal modal-xl">
+            <div class="map-layout">
+                <div class="map-sidebar">
+                    <div><h2 style="font-size: 1.2rem; color: var(--text-primary);">Command Center</h2><p style="font-size: 0.8rem; color: var(--text-muted);">Manage syllabus & debts.</p></div>
+                    <div style="flex: 1;"></div>
+                    <div>
+                        <div style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted); margin-bottom: 8px;">ADD TO DATABASE</div>
+                        <input type="text" id="new-subject-input" placeholder="New Subject Name">
+                        <button class="btn btn-outline btn-block" onclick="Logic.UI.addSubject()" style="margin-bottom: 12px; font-size: 0.75rem;">+ ADD SUBJECT</button>
+                        <div style="border-top: 1px solid var(--border-ui); margin: 12px 0;"></div>
+                        <select id="manager-subject-select"></select>
+                        <input type="text" id="new-chapter-input" placeholder="New Chapter Name">
+                        <button class="btn btn-outline btn-block" onclick="Logic.UI.addChapter()" style="font-size: 0.75rem;">+ ADD CHAPTER</button>
+                    </div>
+                    <button class="btn btn-outline" onclick="UI.closeOverlays()">CLOSE MAP (ESC)</button>
+                </div>
+                <div class="map-content"><div id="map-accordion-container"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- OVERLAY: AUTOPSY -->
+    <div id="overlay-autopsy" class="overlay">
+        <div class="modal">
+            <div class="modal-header"><h2 class="modal-title">Session Autopsy</h2></div>
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label class="form-label" style="display:block; font-size:0.75rem; color:var(--text-secondary); margin-bottom:8px;">KNOWLEDGE CRYSTALLIZATION</label>
+                <textarea id="autopsy-summary" rows="3" placeholder="What concept was mastered? Be specific."></textarea>
+            </div>
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label class="form-label" style="display:block; font-size:0.75rem; color:var(--text-secondary); margin-bottom:8px;">MISTAKE ANALYSIS</label>
+                <div style="display: flex; gap: 10px;">
+                    <button class="choice-btn selected" id="autopsy-mistake-no" onclick="UI.toggleMistake(false)" style="flex: 1">CLEAN RUN</button>
+                    <button class="choice-btn" id="autopsy-mistake-yes" onclick="UI.toggleMistake(true)" style="flex: 1; border-color: var(--accent-crit); color: var(--accent-crit);">MISTAKES FOUND</button>
+                </div>
+            </div>
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label class="form-label" style="display:block; font-size:0.75rem; color:var(--text-secondary); margin-bottom:8px;">FOCUS QUALITY</label>
+                <div class="choice-grid" style="grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 0;">
+                    <button class="choice-btn" data-qual="1">LOW</button>
+                    <button class="choice-btn selected" data-qual="2">AVG</button>
+                    <button class="choice-btn" data-qual="3">HIGH</button>
+                </div>
+            </div>
+            <button class="btn btn-primary" style="width: 100%;" id="btn-autopsy-submit">COMMIT LOG</button>
+        </div>
+    </div>
+
+    <!-- OVERLAY: TUTORIAL -->
+    <div id="overlay-tutorial" class="overlay" style="z-index: 2000;">
+        <div class="modal" style="max-width: 500px; text-align: center;">
+            <div class="tut-slide active" id="tut-step-1">
+                <div class="tut-img">🚀</div><h2 class="modal-title">Welcome to Aether</h2><p class="modal-desc">A deterministic discipline engine.</p>
+                <button class="btn btn-primary btn-block" style="margin-top: 30px;" onclick="Logic.Tutorial.next(2)">INITIATE</button>
+            </div>
+            <div class="tut-slide" id="tut-step-2">
+                <div class="tut-img" style="color: var(--accent-crit); border-color: var(--accent-crit);">👁️</div>
+                <h2 class="modal-title">Integrity Protocol</h2><p class="modal-desc">Tab switching is a BREACH. Low integrity = 0 XP.</p>
+                <button class="btn btn-primary btn-block" style="margin-top: 30px;" onclick="Logic.Tutorial.next(3)">ACKNOWLEDGE</button>
+            </div>
+            <div class="tut-slide" id="tut-step-3">
+                <div class="tut-img" style="color: var(--accent-warn);">🔥</div>
+                <h2 class="modal-title">Entropy & Streak</h2><p class="modal-desc">Consistency is the core metric. Missing a day resets your Streak and decays your Rank.</p>
+                <button class="btn btn-primary btn-block" style="margin-top: 30px;" onclick="Logic.Tutorial.finish()">BOOT SYSTEM</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div id="overlay-settings" class="overlay">
+        <div class="modal" style="max-width: 400px; text-align: center;">
+            <div class="modal-header" style="justify-content: center;"><h2 class="modal-title">System Settings</h2></div>
+            <button class="btn btn-outline" id="btn-audio-toggle" onclick="AudioEngine.toggle()" style="width: 100%; margin-bottom: 20px;">AUDIO: ON</button>
+            <button class="btn btn-outline" id="btn-drone-toggle" onclick="AudioEngine.toggleDrone()" style="width: 100%; margin-bottom: 20px;">FOCUS DRONE: OFF</button>
+            <button class="btn btn-crit" onclick="Logic.System.factoryReset()" style="width: 100%">SYSTEM PURGE (RESET)</button>
+            <button class="btn btn-outline" onclick="UI.closeOverlays()" style="width: 100%; margin-top: 20px;">CLOSE</button>
+        </div>
+    </div>
+
+    <div id="integrity-toast">INTEGRITY BREACH DETECTED</div>
+
     <script>
-        function switchTab(tabId) {
-            ['mastery', 'squad', 'history'].forEach(t => {
-                document.getElementById(`view-${t}`).classList.toggle('hidden', t !== tabId);
-                const btn = document.querySelector(`[data-tab="${t}"]`);
-                if(btn) btn.classList.toggle('active', t === tabId);
-            });
-            if(window.lucide) lucide.createIcons();
-        }
+        const CONSTANTS = {
+            VERSION: 5.5,
+            APP_ID: "AETHER_JEE_1.5",
+            RANKS: [{t:0,title:"UNINITIATED"},{t:100,title:"ASPIRANT"},{t:500,title:"DISCIPLINE I"},{t:1500,title:"DISCIPLINE II"},{t:4000,title:"SCHOLAR"},{t:10000,title:"ELITE"},{t:25000,title:"TOP RANKER"},{t:50000,title:"IITIAN"}],
+            DEFAULT_SUBJECTS: [
+                { id: 'phys', name: 'PHYSICS', chapters: ['Units & Dimensions', 'Kinematics', 'Laws of Motion', 'Work Energy Power', 'Rotational Motion', 'Gravitation', 'Solids & Fluids', 'Thermodynamics', 'Electrostatics', 'Current Electricity', 'Magnetism', 'EMI & AC', 'Optics', 'Modern Physics'] },
+                { id: 'chem', name: 'CHEMISTRY', chapters: ['Mole Concept', 'Atomic Structure', 'Periodic Table', 'Bonding', 'States of Matter', 'Thermodynamics', 'Equilibrium', 'Kinetics', 'Electrochemistry', 'Solutions', 'Metallurgy', 'Block Chemistry', 'Coordination Compounds', 'GOC', 'Hydrocarbons', 'Haloalkanes', 'Oxygen Compounds', 'Nitrogen Compounds', 'Biomolecules'] },
+                { id: 'math', name: 'MATHEMATICS', chapters: ['Sets & Relations', 'Trigonometry', 'Quadratic Eq', 'Complex Numbers', 'P&C', 'Binomial', 'Sequences', 'Straight Lines', 'Circles', 'Conics', 'Limits & Continuity', 'Derivatives', 'Indefinite Integral', 'Definite Integral', 'Diff Equations', 'Vectors & 3D', 'Probability'] }
+            ]
+        };
 
-        function openSessionModal() { document.getElementById('init-modal').classList.remove('hidden'); }
-        function closeSessionModal() { document.getElementById('init-modal').classList.add('hidden'); }
+        const AudioEngine = {
+            enabled: true, droneEnabled: false, ctx: null, droneNode: null,
+            init() { if (!this.ctx) { const AC = window.AudioContext || window.webkitAudioContext; this.ctx = new AC(); } },
+            toggle() { this.enabled = !this.enabled; document.getElementById('btn-audio-toggle').textContent = `AUDIO: ${this.enabled ? 'ON' : 'OFF'}`; if(this.enabled) this.playTone(440,'sine',0.1); },
+            toggleDrone() {
+                this.droneEnabled = !this.droneEnabled;
+                document.getElementById('btn-drone-toggle').textContent = `FOCUS DRONE: ${this.droneEnabled ? 'ON' : 'OFF'}`;
+                if(this.droneEnabled && State.session.active && !State.session.paused) this.playDrone();
+                else this.stopDrone();
+            },
+            playTone(freq, type, dur) {
+                if (!this.enabled) return; this.init();
+                const o = this.ctx.createOscillator(); const g = this.ctx.createGain();
+                o.type = type; o.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                g.gain.setValueAtTime(0.05, this.ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
+                o.connect(g); g.connect(this.ctx.destination); o.start(); o.stop(this.ctx.currentTime + dur);
+            },
+            playDrone() {
+                if(!this.enabled || !this.droneEnabled || this.droneNode) return;
+                this.init();
+                const bufferSize = 4096;
+                const brownNoise = (function() {
+                    var lastOut = 0;
+                    var node = this.ctx.createScriptProcessor(bufferSize, 1, 1);
+                    node.onaudioprocess = function(e) {
+                        var output = e.outputBuffer.getChannelData(0);
+                        for (var i = 0; i < bufferSize; i++) {
+                            var white = Math.random() * 2 - 1;
+                            output[i] = (lastOut + (0.02 * white)) / 1.02;
+                            lastOut = output[i];
+                            output[i] *= 3.5; 
+                        }
+                    };
+                    return node;
+                }).call(this);
+                const gain = this.ctx.createGain();
+                gain.gain.value = 0.05;
+                brownNoise.connect(gain);
+                gain.connect(this.ctx.destination);
+                this.droneNode = { source: brownNoise, gain: gain };
+            },
+            stopDrone() {
+                if(this.droneNode) {
+                    this.droneNode.source.disconnect();
+                    this.droneNode.gain.disconnect();
+                    this.droneNode = null;
+                }
+            },
+            playStart() { this.playTone(440,'sine',0.1); setTimeout(()=>this.playTone(880,'sine',0.4),100); },
+            playAlarm() { for(let i=0;i<3;i++) setTimeout(()=>this.playTone(600,'square',0.2),i*300); },
+            playError() { this.playTone(150,'sawtooth',0.3); },
+            playLevelUp() { [440,554,659,880].forEach((f,i)=>setTimeout(()=>this.playTone(f,'triangle',0.2),i*100)); }
+        };
 
-        function startSession() {
-            closeSessionModal();
-            // Simplified for V7 preview - normally would trigger session overlay
-            alert("Session Authorized. Logging to Global Mastery Intel.");
-        }
+        let State = {
+            rank: 0, dailySeconds: 0, chapterStats: {}, subjects: [...CONSTANTS.DEFAULT_SUBJECTS], logs: [], tutorialComplete: false,
+            streak: 0, lastLoginDate: null,
+            session: { active: false, paused: false, mode: 'normal', remaining: 0, total: 0, integrity: 100, goal: '' }
+        };
 
-        function shareProfile() {
-            const profileLink = `ranklock.io/p/${Math.random().toString(36).substring(7)}`;
-            // Using execCommand for widest clipboard support as per instructions
-            const el = document.createElement('textarea');
-            el.value = `View Ojas Kadam's Verified Mastery Report: ${profileLink}`;
-            document.body.appendChild(el);
-            el.select();
-            document.execCommand('copy');
-            document.body.removeChild(el);
+        const Storage = {
+            save: () => localStorage.setItem(CONSTANTS.APP_ID, JSON.stringify(State)),
+            load: () => {
+                const raw = localStorage.getItem(CONSTANTS.APP_ID);
+                if (raw) { State = { ...State, ...JSON.parse(raw) }; return true; }
+                return false;
+            },
+            reset: () => { localStorage.removeItem(CONSTANTS.APP_ID); location.reload(); }
+        };
+
+        const Logic = {
+            System: {
+                init() {
+                    Storage.load();
+                    this.checkIntegrityOnLoad();
+                    UI.init();
+                    UI.renderAll();
+                    setInterval(() => Logic.Session.tick(), 1000);
+                    
+                    if(!State.tutorialComplete) Logic.Tutorial.start();
+
+                    document.addEventListener('keydown', (e) => {
+                        if (e.code === 'Space' && State.session.active && State.session.mode === 'normal') { e.preventDefault(); Logic.Session.togglePause(); }
+                        if (e.code === 'Escape') {
+                            if (State.session.active) { if(confirm("ABORT SESSION?")) Logic.Session.abort(); }
+                            else UI.closeOverlays();
+                        }
+                    });
+
+                    document.addEventListener('visibilitychange', () => {
+                        if (document.hidden && State.session.active && !State.session.paused) Logic.Session.breach("TAB SWITCH");
+                    });
+                },
+                checkIntegrityOnLoad() {
+                    if(State.session.active) {
+                        State.session.active = false;
+                        State.streak = 0; 
+                        State.rank = Math.max(0, State.rank - 200); 
+                        State.logs.unshift({ date: Date.now(), chapter: "SYSTEM", duration: 0, quality: 0, integrity: 0, note: "CRITICAL FAILURE: GHOST EXIT DETECTED" });
+                        alert("CRITICAL FAILURE DETECTED.\nSession terminated abnormally.\nPenalty: -200 XP\nStreak: RESET");
+                    }
+
+                    const today = new Date().toDateString();
+                    if (State.lastLoginDate && State.lastLoginDate !== today) {
+                        const d1 = new Date(State.lastLoginDate);
+                        const d2 = new Date();
+                        const diffTime = Math.abs(d2 - d1);
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+                        
+                        if(diffDays > 1) {
+                            State.streak = 0; 
+                            UI.showToast("STREAK LOST: INCONSISTENCY DETECTED");
+                        }
+                        
+                        const entropy = 50;
+                        State.rank = Math.max(0, State.rank - entropy);
+                        UI.showToast(`ENTROPY DECAY: -${entropy} XP`);
+                    }
+                    State.lastLoginDate = today;
+                    Storage.save();
+                },
+                factoryReset() { if(confirm("System Purge?")) Storage.reset(); }
+            },
+            Tutorial: {
+                start() { document.getElementById('overlay-tutorial').style.display = 'flex'; },
+                next(step) {
+                    document.querySelectorAll('.tut-slide').forEach(s => s.classList.remove('active'));
+                    document.getElementById('tut-step-'+step).classList.add('active');
+                },
+                finish() {
+                    State.tutorialComplete = true;
+                    Storage.save();
+                    document.getElementById('overlay-tutorial').style.display = 'none';
+                    AudioEngine.playLevelUp();
+                }
+            },
+            Session: {
+                preFlight(subId, ch, mode, durMins, goal) {
+                    if(!goal) { alert("ERROR: GOAL UNDEFINED. DISCIPLINE REQUIRES INTENT."); return; }
+                    UI.closeOverlays();
+                    const overlay = document.getElementById('countdown-overlay');
+                    const valEl = document.getElementById('countdown-val');
+                    overlay.style.display = 'flex';
+                    
+                    let count = 3;
+                    valEl.textContent = count;
+                    AudioEngine.playTone(440, 'triangle', 0.1);
+
+                    const int = setInterval(() => {
+                        count--;
+                        if(count > 0) {
+                            valEl.textContent = count;
+                            AudioEngine.playTone(440, 'triangle', 0.1);
+                        } else {
+                            clearInterval(int);
+                            overlay.style.display = 'none';
+                            this.start(subId, ch, mode, durMins, goal);
+                        }
+                    }, 1000);
+                },
+                start(subId, ch, mode, durMins, goal) {
+                    State.session = { active: true, paused: false, mode: mode, subjectId: subId, chapter: ch, total: durMins*60, remaining: durMins*60, integrity: 100, startTime: Date.now(), goal: goal };
+                    if (mode === 'hard') document.body.classList.add('mode-hard-focus');
+                    AudioEngine.playStart();
+                    if(AudioEngine.droneEnabled) AudioEngine.playDrone();
+                    UI.updateSessionView(); Storage.save();
+                },
+                tick() {
+                    if (!State.session.active || State.session.paused) return;
+                    State.session.remaining--;
+                    if (State.session.remaining <= 0) this.finish();
+                    UI.updateTimer();
+                },
+                breach(reason) {
+                    if(!State.session.active) return;
+                    State.session.integrity = Math.max(0, State.session.integrity - 10);
+                    UI.flashRed(); UI.showToast(`BREACH: ${reason} (-10%)`);
+                    UI.updateStats(); AudioEngine.playError();
+                },
+                togglePause() { 
+                    State.session.paused = !State.session.paused; 
+                    if(State.session.paused) AudioEngine.stopDrone();
+                    else if(AudioEngine.droneEnabled) AudioEngine.playDrone();
+                    UI.updateSessionView(); 
+                },
+                abort() { 
+                    State.session.active = false; 
+                    document.body.classList.remove('mode-hard-focus'); 
+                    AudioEngine.stopDrone();
+                    AudioEngine.playError(); 
+                    State.rank = Math.max(0, State.rank - 50); 
+                    UI.renderAll(); Storage.save(); 
+                },
+                finish() { 
+                    State.session.active = false; 
+                    document.body.classList.remove('mode-hard-focus'); 
+                    AudioEngine.stopDrone();
+                    AudioEngine.playAlarm(); 
+                    UI.openAutopsy(); 
+                }
+            },
+            Rank: {
+                add(p) {
+                    const oldR = Logic.Rank.getRankIndex(State.rank);
+                    State.rank += p;
+                    if (Logic.Rank.getRankIndex(State.rank) > oldR) AudioEngine.playLevelUp();
+                    UI.renderAll(); Storage.save();
+                },
+                getRankIndex(p) { for(let i=CONSTANTS.RANKS.length-1; i>=0; i--) if(p >= CONSTANTS.RANKS[i].t) return i; return 0; },
+                getTitle(p) { return CONSTANTS.RANKS[this.getRankIndex(p)].title; }
+            },
+            Chapter: {
+                get(s,c) { const k=`${s}|${c}`; if(!State.chapterStats[k]) State.chapterStats[k]={xp:0,debt:0}; return State.chapterStats[k]; },
+                addXP(s,c,a) { this.get(s,c).xp += a; },
+                addDebt(s,c) { this.get(s,c).debt++; },
+                payDebt(s,c) { if(this.get(s,c).debt > 0) this.get(s,c).debt--; }
+            },
+            UI: {
+                addSubject: () => {
+                    const v = document.getElementById('new-subject-input').value.trim();
+                    if(v) { State.subjects.push({id: v.toLowerCase(), name: v, chapters:['Intro']}); UI.renderMap(); UI.populateManagerSelect(); Storage.save(); document.getElementById('new-subject-input').value=''; }
+                },
+                addChapter: () => {
+                    const sId = document.getElementById('manager-subject-select').value;
+                    const v = document.getElementById('new-chapter-input').value.trim();
+                    const s = State.subjects.find(x=>x.id===sId);
+                    if(s && v) { s.chapters.push(v); UI.renderMap(); Storage.save(); document.getElementById('new-chapter-input').value=''; }
+                },
+                selectMode: (m) => UI.setWizardMode(m),
+                selectDuration: (d) => UI.setWizardDur(d)
+            }
+        };
+
+        const UI = {
+            wizard: { subject: null, chapter: null, mode: 'normal', duration: 25 },
+            autopsy: { quality: 2, mistake: false },
+
+            init() {
+                const btnInit = document.getElementById('btn-init-session');
+                if(btnInit) btnInit.onclick = () => { this.resetWizard(); this.openOverlay('overlay-setup'); this.wizardStep('subject'); };
+                
+                const btnLaunch = document.getElementById('btn-setup-launch');
+                if(btnLaunch) btnLaunch.onclick = () => {
+                    const goalInput = document.getElementById('session-goal-input');
+                    const goal = goalInput ? goalInput.value.trim() : '';
+                    Logic.Session.preFlight(this.wizard.subject, this.wizard.chapter, this.wizard.mode, this.wizard.duration, goal);
+                };
+                
+                const btnPause = document.getElementById('btn-pause-session');
+                if(btnPause) btnPause.onclick = () => Logic.Session.togglePause();
+                
+                const btnAbort = document.getElementById('btn-emergency-exit');
+                if(btnAbort) btnAbort.onclick = () => { if(confirm("Abort?")) Logic.Session.abort(); };
+                
+                const btnAutopsySubmit = document.getElementById('btn-autopsy-submit');
+                if(btnAutopsySubmit) btnAutopsySubmit.onclick = this.submitAutopsy.bind(this);
+                
+                document.querySelectorAll('.overlay').forEach(ov => {
+                    ov.addEventListener('click', (e) => { 
+                        if(e.target === ov && ov.id !== 'overlay-tutorial' && !State.session.active) this.closeOverlays(); 
+                    });
+                });
+                
+                document.querySelectorAll('[data-qual]').forEach(b => {
+                    b.onclick = (e) => { this.autopsy.quality=parseInt(e.target.dataset.qual); document.querySelectorAll('[data-qual]').forEach(x=>x.classList.remove('selected')); e.target.classList.add('selected'); };
+                });
+            },
+
+            renderAll() { this.renderStats(); this.renderMap(); this.renderDebts(); this.renderLogs(); this.populateManagerSelect(); this.updateSessionView(); },
+
+            renderStats() {
+                const rt = Logic.Rank.getTitle(State.rank);
+                const displayRank = document.getElementById('display-rank');
+                const displayRankTitle = document.getElementById('display-rank-title');
+                if(displayRank) displayRank.textContent = State.rank;
+                if(displayRankTitle) displayRankTitle.textContent = rt;
+                
+                let prev=0, next=100;
+                for(let r of CONSTANTS.RANKS) { if(r.t<=State.rank) prev=r.t; if(r.t>State.rank){next=r.t; break;} }
+                const perc = ((State.rank-prev)/(next-prev))*100;
+                const rankBarFill = document.getElementById('rank-bar-fill');
+                const rankNextVal = document.getElementById('rank-next-val');
+                if(rankBarFill) rankBarFill.style.width = `${Math.min(100,perc)}%`;
+                if(rankNextVal) rankNextVal.textContent = `NEXT: ${next}`;
+                
+                const h = Math.floor(State.dailySeconds/3600), m = Math.floor((State.dailySeconds%3600)/60);
+                const dailyQualEl = document.getElementById('stat-daily-quality');
+                if(dailyQualEl) dailyQualEl.textContent = `${h}h ${m}m Focus`;
+                
+                const intEl = document.getElementById('stat-integrity');
+                const intVal = State.session.active ? State.session.integrity : 100;
+                if(intEl) {
+                    intEl.textContent = `${intVal}%`;
+                    intEl.className = `stat-value tabular ${intVal > 80 ? 'integrity-ok' : (intVal > 50 ? 'integrity-warn' : 'integrity-crit')}`;
+                }
+                
+                const streakEl = document.getElementById('stat-streak');
+                if(streakEl) streakEl.textContent = `${State.streak} DAYS`;
+                
+                const totalCh = State.subjects.reduce((a,b)=>a+b.chapters.length, 0);
+                const summaryText = document.getElementById('map-summary-text');
+                if(summaryText) summaryText.textContent = `${State.subjects.length} Subjects | ${totalCh} Chapters`;
+            },
+
+            renderMap() {
+                const c = document.getElementById('map-accordion-container');
+                if(!c) return;
+                c.innerHTML = '';
+                State.subjects.forEach(s => {
+                    const g = document.createElement('div'); g.className = 'subject-group';
+                    const h = document.createElement('div'); h.className = 'subject-header';
+                    h.innerHTML = `<span>${s.name}</span> <span style="font-size:0.7rem; color:var(--text-muted)">${s.chapters.length}</span>`;
+                    h.onclick = () => g.classList.toggle('expanded');
+                    
+                    const chList = document.createElement('div'); chList.className = 'subject-chapters';
+                    s.chapters.forEach(ch => {
+                        const stats = Logic.Chapter.get(s.id, ch);
+                        const row = document.createElement('div'); row.className = 'chapter-item';
+                        if(stats.debt>0) row.classList.add('has-debt');
+                        
+                        let badges = [];
+                        if(stats.debt>0) badges.push(`<span style="color:var(--accent-crit); font-weight:700;">DEBT:${stats.debt}</span>`);
+                        if(stats.xp>0) badges.push(`<span style="color:var(--accent-succ);">XP:${stats.xp}</span>`);
+                        
+                        row.innerHTML = `<span style="font-size:0.85rem; color:var(--text-secondary);">${ch}</span> <div style="font-size:0.7rem;">${badges.join(' ')}</div>`;
+                        row.onclick = () => this.quickStart(s.id, s.name, ch);
+                        chList.appendChild(row);
+                    });
+                    g.appendChild(h); g.appendChild(chList); c.appendChild(g);
+                });
+            },
+
+            renderDebts() {
+                const list = document.getElementById('debt-list'); 
+                if(!list) return;
+                list.innerHTML = '';
+                let total = 0;
+                Object.keys(State.chapterStats).forEach(k => {
+                    if(State.chapterStats[k].debt > 0) {
+                        const [sid, ch] = k.split('|');
+                        const sName = State.subjects.find(s=>s.id===sid)?.name.substr(0,3) || sid;
+                        total += State.chapterStats[k].debt;
+                        const d = document.createElement('div'); d.className = 'log-item';
+                        d.style.borderLeftColor = 'var(--accent-crit)';
+                        d.innerHTML = `<div style="display:flex; justify-content:space-between; font-weight:700;"><span>${ch}</span><span style="color:var(--accent-crit)">x${State.chapterStats[k].debt}</span></div><div style="font-size:0.65rem; color:var(--text-secondary);">${sName.toUpperCase()}</div>`;
+                        list.appendChild(d);
+                    }
+                });
+                const debtCountEl = document.getElementById('debt-count');
+                if(debtCountEl) debtCountEl.textContent = total;
+                if(total===0) list.innerHTML = '<div style="color:var(--text-muted); padding:10px; font-size:0.75rem;">System Clear. No Debts.</div>';
+            },
+
+            renderLogs() {
+                const c = document.getElementById('recent-logs-container'); 
+                if(!c) return;
+                c.innerHTML = '';
+                State.logs.slice(0, 10).forEach(l => {
+                    const d = document.createElement('div'); d.className = 'log-item';
+                    d.style.borderLeftColor = l.quality >= 80 ? 'var(--accent-succ)' : 'var(--accent-warn)';
+                    d.innerHTML = `<div style="display:flex; justify-content:space-between; font-weight:700;"><span>${l.chapter}</span><span>${Math.floor(l.duration/60)}m</span></div><div style="font-size:0.65rem; color:var(--text-muted);">${new Date(l.date).toLocaleDateString()} • I:${l.integrity}%</div>`;
+                    c.appendChild(d);
+                });
+            },
+
+            quickStart(subId, subName, chapter) {
+                this.wizard.subject = subId;
+                this.wizard.chapter = chapter;
+                const targetDisplay = document.getElementById('wizard-target-display');
+                if(targetDisplay) targetDisplay.textContent = `${subName} - ${chapter}`;
+                this.openOverlay('overlay-setup');
+                this.wizardStep('mode');
+            },
+
+            resetWizard() { 
+                this.wizard = { subject: null, chapter: null, mode: 'normal', duration: 25 }; 
+                const goalInput = document.getElementById('session-goal-input');
+                if(goalInput) goalInput.value = ''; 
+                this.renderWizardSubjects(); 
+            },
             
-            const btn = event.currentTarget;
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i data-lucide="check" class="w-3 h-3"></i> Intel Copied';
-            lucide.createIcons();
-            setTimeout(() => { btn.innerHTML = originalText; lucide.createIcons(); }, 2000);
-        }
+            openOverlay(id) { 
+                document.querySelectorAll('.overlay').forEach(o => o.style.display='none'); 
+                const ov = document.getElementById(id);
+                if(ov) ov.style.display = 'flex'; 
+            },
+            closeOverlays() { document.querySelectorAll('.overlay').forEach(o => o.style.display='none'); },
+            openMap() { this.renderMap(); this.openOverlay('overlay-map'); },
+            openSettings() { this.openOverlay('overlay-settings'); },
+            openAutopsy() { this.openOverlay('overlay-autopsy'); },
+            
+            wizardStep(id) { 
+                document.querySelectorAll('.wizard-step').forEach(e => e.classList.remove('active')); 
+                const step = document.getElementById('step-'+id);
+                if(step) step.classList.add('active'); 
+            },
+            wizardBack() {
+                const active = document.querySelector('.wizard-step.active');
+                if(!active) return;
+                const stepId = active.id;
+                if(stepId === 'step-chapter') this.wizardStep('subject');
+                if(stepId === 'step-mode') this.wizardStep('chapter'); 
+            },
 
-        window.onload = () => { if(window.lucide) lucide.createIcons(); };
+            renderWizardSubjects() {
+                const g = document.getElementById('setup-subject-grid'); 
+                if(!g) return;
+                g.innerHTML = '';
+                State.subjects.forEach(s => {
+                    const d = document.createElement('div'); d.className = 'choice-btn';
+                    d.innerHTML = `<span class="choice-title">${s.name}</span><span class="choice-meta">${s.chapters.length} Ch</span>`;
+                    d.onclick = () => { this.wizard.subject = s.id; this.renderWizardChapters(s); this.wizardStep('chapter'); };
+                    g.appendChild(d);
+                });
+            },
+
+            renderWizardChapters(sub) {
+                const g = document.getElementById('setup-chapter-grid'); 
+                if(!g) return;
+                g.innerHTML = '';
+                sub.chapters.forEach(c => {
+                    const stats = Logic.Chapter.get(sub.id, c);
+                    const d = document.createElement('div'); d.className = 'choice-btn';
+                    if(stats.debt > 0) d.classList.add('has-debt-warn');
+                    d.textContent = c;
+                    d.onclick = () => { 
+                        this.wizard.chapter = c; 
+                        const targetDisplay = document.getElementById('wizard-target-display');
+                        if(targetDisplay) targetDisplay.textContent = `${sub.name} - ${c}`; 
+                        this.wizardStep('mode'); 
+                    };
+                    g.appendChild(d);
+                });
+            },
+
+            setWizardMode(m) { this.wizard.mode = m; document.querySelectorAll('[data-mode]').forEach(b => b.classList.toggle('selected', b.dataset.mode === m)); },
+            setWizardDur(d) { this.wizard.duration = d; document.querySelectorAll('[data-dur]').forEach(b => b.classList.toggle('selected', parseInt(b.dataset.dur) === d)); },
+            
+            populateManagerSelect() {
+                const s = document.getElementById('manager-subject-select'); 
+                if(!s) return;
+                s.innerHTML = '';
+                State.subjects.forEach(sub => { const opt = document.createElement('option'); opt.value = sub.id; opt.textContent = sub.name; s.appendChild(opt); });
+            },
+
+            updateSessionView() {
+                const metaEl = document.getElementById('active-session-meta');
+                const btnInit = document.getElementById('btn-init-session');
+                const btnAbort = document.getElementById('btn-emergency-exit');
+                const btnPause = document.getElementById('btn-pause-session');
+                
+                if(State.session.active) {
+                    const sn = State.subjects.find(s=>s.id===State.session.subjectId)?.name || 'Unknown';
+                    const goalHtml = State.session.goal ? `<div class="context-goal">GOAL: ${State.session.goal}</div>` : '';
+                    if(metaEl) metaEl.innerHTML = `<div class="context-subject">${sn}</div><div class="context-chapter">${State.session.chapter}</div>${goalHtml}`;
+                    if(btnInit) btnInit.classList.add('hidden');
+                    if(btnAbort) btnAbort.classList.remove('hidden');
+                    if(btnPause) {
+                        if(State.session.mode==='normal') { btnPause.classList.remove('hidden'); btnPause.textContent = State.session.paused ? "RESUME" : "PAUSE"; }
+                        else btnPause.classList.add('hidden');
+                    }
+                    this.updateStats(); 
+                } else {
+                    if(metaEl) metaEl.innerHTML = `<div class="context-subject">SYSTEM IDLE</div><div class="context-chapter">Ready for initialization</div>`;
+                    if(btnInit) btnInit.classList.remove('hidden');
+                    if(btnAbort) btnAbort.classList.add('hidden');
+                    if(btnPause) btnPause.classList.add('hidden');
+                    const timerDisp = document.getElementById('timer-display');
+                    if(timerDisp) {
+                        timerDisp.textContent = "00:00";
+                        timerDisp.style.opacity = 1;
+                    }
+                    const intStatEl = document.getElementById('stat-integrity');
+                    if(intStatEl) {
+                        intStatEl.textContent = "100%";
+                        intStatEl.className = "stat-value tabular integrity-ok";
+                    }
+                }
+            },
+            
+            updateTimer() {
+                if(!State.session.active) return;
+                const r = State.session.remaining;
+                const timerDisp = document.getElementById('timer-display');
+                if(timerDisp) {
+                    timerDisp.textContent = `${Math.floor(r/60).toString().padStart(2,'0')}:${(r%60).toString().padStart(2,'0')}`;
+                    timerDisp.style.opacity = State.session.paused ? 0.3 : 1;
+                }
+            },
+
+            showToast(msg) {
+                const t = document.getElementById('integrity-toast');
+                if(!t) return;
+                t.textContent = msg; t.style.display = 'block';
+                setTimeout(()=>t.style.display='none', 3000);
+            },
+
+            flashRed() {
+                const o = document.getElementById('integrity-visual-overlay');
+                if(!o) return;
+                o.style.borderWidth = '10px'; o.style.boxShadow = 'inset 0 0 50px var(--accent-crit)';
+                setTimeout(() => { o.style.borderWidth = '0px'; o.style.boxShadow = 'none'; }, 300);
+            },
+
+            toggleMistake(v) { 
+                this.autopsy.mistake=v; 
+                const btnNo = document.getElementById('autopsy-mistake-no');
+                const btnYes = document.getElementById('autopsy-mistake-yes');
+                if(btnNo) btnNo.classList.toggle('selected',!v); 
+                if(btnYes) btnYes.classList.toggle('selected',v); 
+            },
+
+            submitAutopsy() {
+                const autopsySum = document.getElementById('autopsy-summary');
+                const note = autopsySum ? autopsySum.value : '';
+                const dur = State.session.total - State.session.remaining;
+                const qMod = this.autopsy.quality===3 ? 1.2 : (this.autopsy.quality===1 ? 0.8 : 1);
+                const mMod = State.session.mode==='hard' ? 1.5 : 1;
+                const iMod = State.session.integrity / 100; 
+                
+                const pts = Math.floor((dur/60)*10*qMod*mMod*iMod);
+                
+                State.dailySeconds += dur;
+                Logic.Rank.add(pts);
+                Logic.Chapter.addXP(State.session.subjectId, State.session.chapter, pts);
+                if(this.autopsy.mistake) Logic.Chapter.addDebt(State.session.subjectId, State.session.chapter);
+                else Logic.Chapter.payDebt(State.session.subjectId, State.session.chapter);
+
+                State.logs.unshift({ date: Date.now(), chapter: State.session.chapter, duration: dur, quality: (this.autopsy.quality/3)*100, integrity: State.session.integrity, note: note });
+                
+                if(autopsySum) autopsySum.value='';
+                this.closeOverlays(); UI.renderAll(); Storage.save();
+            }
+        };
+
+        window.addEventListener('DOMContentLoaded', () => { Logic.System.init(); });
     </script>
 </body>
 </html>
-
