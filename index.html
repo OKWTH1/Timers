@@ -1,20 +1,24 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>RANKLOCK DISCIPLINE v8.2 | SYSTEM READY</title>
+    <meta name="author" content="Ojas Kadam">
     <meta name="description" content="RankLock is a hardcore study timer for JEE 2026 aspirants. Hard Focus mode, live competition, discipline-based study tracking. Built for serious students.">
     <meta name="keywords" content="JEE study timer, JEE 2026 timer, hard focus timer, study timer for IIT JEE, RankLock">
-    <title>RANKLOCK DISCIPLINE v5.5 | JEE ARCHITECT</title>
+    
     <!-- 
-        RANKLOCK DISCIPLINE SYSTEM v5.5
-        Architect: Senior Systems Designer
-        Focus: JEE Mains/Advanced Conditioning
-        Fix: Corrected DOM references for stat-daily-quality and improved robustness.
+        RANKLOCK DISCIPLINE SYSTEM v8.2
+        Architect: Ojas Kadam
+        Updates:
+        1. Protocol Layout Fix (Scrollable Wizard)
+        2. Active Debt Logic (XP Penalty + Clearance Criteria)
+        3. Comprehensive Tutorial (5 Steps)
+        4. Manual Help Button
     -->
     <style>
-        /* --- CSS ARCHITECTURE: RANKLOCK DESIGN LANGUAGE (ADL) --- */
+        /* --- CSS ARCHITECTURE: RANKLOCK DESIGN LANGUAGE (RDL) --- */
         :root {
             --bg-deep: #050508;
             --bg-surface: #0f0f16;
@@ -29,6 +33,8 @@
             --accent-crit: #ef4444;
             --accent-succ: #10b981;
             --accent-void: #6366f1;
+            --accent-gold: #ffd700;
+            --accent-lock: #06b6d4; 
             
             --border-ui: #2a2a35;
             
@@ -59,76 +65,122 @@
 
         /* --- Header --- */
         nav { height: 60px; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-ui); background: var(--bg-deep); z-index: 100; }
-        .nav-logo { font-size: 1.1rem; font-weight: 800; display: flex; align-items: center; gap: 12px; }
-        .nav-logo span { font-size: 0.6rem; background: var(--accent-void); padding: 2px 6px; border-radius: var(--radius-sm); color: white; }
+        .nav-left { display: flex; align-items: center; gap: 16px; }
+        .nav-logo { font-size: 1.1rem; font-weight: 800; display: flex; align-items: center; gap: 12px; letter-spacing: 0.05em; }
+        .nav-logo span { font-size: 0.6rem; background: var(--accent-lock); padding: 2px 6px; border-radius: var(--radius-sm); color: var(--bg-deep); font-weight: 900; }
         .nav-right { display: flex; gap: 16px; align-items: center; }
         
         .stat-item { text-align: right; display: flex; flex-direction: column; justify-content: center; }
         .stat-label { font-size: 0.6rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
         .stat-value { font-size: 0.9rem; font-weight: 600; }
         
-        /* New Metric Colors */
         .stat-value.streak-fire { color: var(--accent-warn); text-shadow: 0 0 10px rgba(245, 158, 11, 0.3); }
         .stat-value.integrity-ok { color: var(--accent-succ); }
-        .stat-value.integrity-crit { color: var(--accent-crit); }
+        .stat-value.integrity-warn { color: var(--accent-warn); }
+        .stat-value.integrity-crit { color: var(--accent-crit); animation: glitchText 0.5s infinite; }
 
         .icon-btn { background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 8px; border-radius: var(--radius-sm); transition: 0.2s; }
         .icon-btn:hover { background: var(--bg-elevated); color: var(--text-primary); }
+        
+        /* Sidebar Toggle Button */
+        .sidebar-toggle { border: 1px solid var(--border-ui); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-sm); cursor: pointer; }
+        .sidebar-toggle:hover { background: var(--bg-elevated); }
 
-        /* --- Main Content --- */
-        main { flex: 1; padding: 16px; display: grid; grid-template-columns: 320px 1fr; gap: 16px; overflow: hidden; }
+        /* --- Main Content (Desktop Grid) --- */
+        main { flex: 1; padding: 16px; display: grid; grid-template-columns: 320px 1fr; gap: 16px; overflow: hidden; transition: all 0.3s ease; }
+        main.sidebar-collapsed { grid-template-columns: 0px 1fr; gap: 0; }
+        main.sidebar-collapsed .sidebar { opacity: 0; pointer-events: none; }
 
         /* --- Sidebar --- */
-        .sidebar { display: flex; flex-direction: column; gap: 16px; overflow-y: auto; padding-right: 4px; transition: opacity 0.3s; }
+        .sidebar { display: flex; flex-direction: column; gap: 16px; overflow-y: auto; padding-right: 4px; transition: opacity 0.2s; min-width: 320px; }
 
         .card { background: var(--bg-surface); border: 1px solid var(--border-ui); border-radius: var(--radius-md); padding: 16px; display: flex; flex-direction: column; position: relative; }
         .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-ui); padding-bottom: 8px; }
         .card-title { font-size: 0.75rem; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
 
         .rank-box { text-align: center; padding: 10px 0; }
-        .rank-value { font-size: 3rem; font-weight: 900; font-family: var(--font-mono); color: var(--accent-primary); line-height: 1; }
+        .rank-value { font-size: 3rem; font-weight: 900; font-family: var(--font-mono); color: var(--accent-lock); line-height: 1; }
         .rank-label { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.1em; margin-top: 4px; }
         .rank-progress { height: 4px; background: var(--bg-elevated); margin-top: 12px; border-radius: 2px; overflow: hidden; }
-        .rank-bar { height: 100%; background: var(--accent-primary); width: 0%; transition: width 0.5s ease; }
+        .rank-bar { height: 100%; background: var(--accent-lock); width: 0%; transition: width 0.5s ease; }
+        
+        .rank-perk-badge { font-size: 0.65rem; background: rgba(6, 182, 212, 0.1); color: var(--accent-lock); padding: 4px 8px; border-radius: 10px; display: inline-block; margin-top: 8px; border: 1px solid rgba(6, 182, 212, 0.3); }
+
+        .architect-tag { text-align: center; font-size: 0.65rem; color: var(--text-muted); padding: 10px; opacity: 0.6; }
 
         /* --- Central Stage --- */
         .stage { display: flex; flex-direction: column; height: 100%; position: relative; }
         .focus-container { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--bg-surface); border: 1px solid var(--border-ui); border-radius: var(--radius-lg); position: relative; overflow: hidden; transition: border-color 0.5s; }
 
         #timer-display { font-size: 9rem; font-weight: 800; font-family: var(--font-mono); z-index: 2; line-height: 1; }
-        .focus-bg-pulse { position: absolute; width: 600px; height: 600px; background: radial-gradient(circle, var(--accent-primary) 0%, transparent 70%); opacity: 0; border-radius: 50%; pointer-events: none; }
+        .focus-bg-pulse { position: absolute; width: 600px; height: 600px; background: radial-gradient(circle, var(--accent-lock) 0%, transparent 70%); opacity: 0; border-radius: 50%; pointer-events: none; }
 
         /* Visual Overlays */
-        #integrity-visual-overlay { position: absolute; inset:0; pointer-events:none; border: 0px solid var(--accent-crit); transition: 0.1s; z-index: 10; box-shadow: inset 0 0 0px var(--accent-crit); }
+        #integrity-visual-overlay { position: absolute; inset:0; pointer-events:none; border: 0px solid var(--accent-crit); transition: 0.1s; z-index: 10; box-shadow: inset 0 0 0px var(--accent-crit); opacity: 0; }
         
         #countdown-overlay { position: absolute; inset:0; background: var(--bg-deep); z-index: 20; display: none; flex-direction: column; align-items: center; justify-content: center; }
         .countdown-val { font-size: 8rem; font-weight: 900; color: var(--text-primary); animation: pulse 1s infinite; }
-        .countdown-label { font-size: 1rem; color: var(--accent-primary); letter-spacing: 0.2em; text-transform: uppercase; margin-top: 10px; }
+        .countdown-label { font-size: 1rem; color: var(--accent-lock); letter-spacing: 0.2em; text-transform: uppercase; margin-top: 10px; }
 
         .session-context { text-align: center; z-index: 2; margin-top: 20px; }
-        .context-subject { font-size: 1.2rem; font-weight: 700; color: var(--accent-primary); }
+        .context-subject { font-size: 1.2rem; font-weight: 700; color: var(--accent-lock); }
         .context-chapter { font-size: 0.9rem; color: var(--text-secondary); }
         .context-goal { font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; font-style: italic; border-top: 1px solid var(--border-ui); padding-top: 8px; display: inline-block; }
+
+        .session-integrity-badge { position: absolute; top: 20px; right: 20px; background: var(--bg-elevated); padding: 8px 16px; border-radius: var(--radius-lg); font-weight: 700; border: 1px solid var(--border-ui); display: none; }
+        .session-integrity-badge.active { display: block; animation: fadeIn 0.5s; }
 
         .controls { display: flex; gap: 16px; margin-top: 40px; z-index: 2; }
         
         .btn { padding: 14px 32px; font-weight: 700; text-transform: uppercase; font-size: 0.85rem; border-radius: var(--radius-md); cursor: pointer; border: none; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .btn-primary { background: var(--accent-primary); color: white; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+        .btn-primary { background: var(--accent-lock); color: var(--bg-deep); box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3); }
         .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; filter: none; }
+        
         .btn-outline { background: transparent; border: 1px solid var(--border-ui); color: var(--text-secondary); }
         .btn-outline:hover { background: var(--bg-elevated); color: var(--text-primary); border-color: var(--text-muted); }
         .btn-crit { background: rgba(239, 68, 68, 0.1); color: var(--accent-crit); border: 1px solid var(--accent-crit); }
         .btn-crit:hover { background: var(--accent-crit); color: white; }
         .btn-block { width: 100%; }
+        
+        .file-input { display: none; }
+        
+        /* Custom Input */
+        .custom-time-input { background: var(--bg-deep); border: 1px solid var(--border-ui); color: var(--text-primary); border-radius: var(--radius-md); text-align: center; font-family: var(--font-mono); font-weight: 700; width: 100%; height: 100%; min-height: 52px; font-size: 1rem; transition: border-color 0.2s; }
+        .custom-time-input:focus { border-color: var(--accent-lock); outline: none; }
+        .custom-time-input.active { border-color: var(--accent-lock); background: rgba(6, 182, 212, 0.05); }
 
         /* --- Modals --- */
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); backdrop-filter: blur(8px); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px; }
-        .modal { background: var(--bg-surface); border: 1px solid var(--border-ui); border-radius: var(--radius-lg); width: 100%; max-width: 600px; padding: 32px; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.5); animation: modalIn 0.3s ease; display: flex; flex-direction: column; max-height: 90vh; }
+        
+        /* Scrollable Modal Fix */
+        .modal { 
+            background: var(--bg-surface); 
+            border: 1px solid var(--border-ui); 
+            border-radius: var(--radius-lg); 
+            width: 100%; 
+            max-width: 600px; 
+            padding: 32px; 
+            position: relative; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5); 
+            animation: modalIn 0.3s ease; 
+            display: flex; 
+            flex-direction: column; 
+            max-height: 90vh; /* Allow max height */
+        }
+        
+        .modal-body-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 4px; /* Space for scrollbar */
+        }
+
         .modal.modal-xl { max-width: 900px; height: 85vh; padding: 0; overflow: hidden; }
         @keyframes modalIn { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
         @keyframes pulse { 0% { opacity: 0.5; transform: scale(0.95); } 50% { opacity: 1; transform: scale(1.05); } 100% { opacity: 0.5; transform: scale(0.95); } }
+        @keyframes glitchText { 0% { transform: translate(0); } 20% { transform: translate(-2px, 2px); } 40% { transform: translate(-2px, -2px); } 60% { transform: translate(2px, 2px); } 80% { transform: translate(2px, -2px); } 100% { transform: translate(0); } }
 
-        .modal-header { margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-start; }
+        .modal-header { margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-start; flex-shrink: 0; }
         .modal-title { font-size: 1.5rem; font-weight: 800; color: var(--text-primary); }
         .modal-desc { color: var(--text-secondary); font-size: 0.9rem; }
         .close-btn { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; padding: 0 8px; line-height: 1; }
@@ -139,13 +191,23 @@
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         .choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
-        .choice-btn { background: var(--bg-elevated); border: 1px solid var(--border-ui); padding: 16px; border-radius: var(--radius-md); cursor: pointer; text-align: center; transition: 0.2s; position: relative; }
+        .choice-btn { background: var(--bg-elevated); border: 1px solid var(--border-ui); padding: 16px; border-radius: var(--radius-md); cursor: pointer; text-align: center; transition: 0.2s; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .choice-btn:hover { background: #252530; border-color: var(--text-muted); }
-        .choice-btn.selected { border-color: var(--accent-primary); background: rgba(59, 130, 246, 0.1); color: var(--accent-primary); }
+        .choice-btn.selected { border-color: var(--accent-lock); background: rgba(6, 182, 212, 0.1); color: var(--accent-lock); }
         
-        /* Debt Indication in Wizard */
-        .choice-btn.has-debt-warn { border-color: var(--accent-warn); color: var(--accent-warn); }
-        .choice-btn.has-debt-warn::after { content: "⚠️ DEBT"; position: absolute; top: 4px; right: 4px; font-size: 0.6rem; font-weight: 700; }
+        .choice-btn.locked { opacity: 0.5; cursor: not-allowed; border-style: dashed; }
+        .choice-btn.locked:hover { background: var(--bg-elevated); border-color: var(--border-ui); }
+        
+        .choice-btn.has-debt-warn { border-color: var(--accent-warn); color: var(--accent-warn); background: rgba(245, 158, 11, 0.05); }
+        .choice-btn.has-debt-warn::after { content: "⚠️ ACTIVE DEBT"; position: absolute; top: 4px; right: 4px; font-size: 0.6rem; font-weight: 700; color: var(--accent-warn); }
+
+        /* Goal Selection Chips */
+        .goal-chip-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+        .goal-chip { background: var(--bg-deep); border: 1px solid var(--border-ui); padding: 10px; font-size: 0.7rem; font-weight: 700; color: var(--text-secondary); cursor: pointer; text-align: center; border-radius: var(--radius-sm); transition: 0.2s; }
+        .goal-chip:hover { border-color: var(--text-muted); }
+        .goal-chip.selected { background: var(--accent-lock); color: var(--bg-deep); border-color: var(--accent-lock); }
+        
+        .generated-goal-display { background: var(--bg-deep); padding: 12px; border: 1px dashed var(--border-ui); color: var(--accent-lock); font-family: var(--font-mono); font-size: 0.85rem; margin-bottom: 20px; border-radius: var(--radius-sm); text-align: center; }
 
         /* Map Styles */
         .map-layout { display: flex; height: 100%; }
@@ -159,12 +221,21 @@
         .chapter-item.has-debt { border-left: 3px solid var(--accent-crit); background: rgba(239,68,68,0.05); }
 
         .log-list { display: flex; flex-direction: column; gap: 8px; font-size: 0.8rem; }
-        .log-item { background: var(--bg-elevated); padding: 10px; border-radius: var(--radius-sm); border-left: 2px solid var(--border-ui); }
+        .log-item { background: var(--bg-elevated); padding: 10px; border-radius: var(--radius-sm); border-left: 2px solid var(--border-ui); cursor: pointer; transition: 0.2s; }
+        .log-item:hover { background: #252530; transform: translateX(2px); }
+
+        /* Report Card Grades */
+        .grade-badge { font-family: var(--font-mono); font-weight: 900; font-size: 2rem; color: var(--text-primary); }
+        .grade-S { color: var(--accent-gold); text-shadow: 0 0 10px rgba(255, 215, 0, 0.4); }
+        .grade-A { color: var(--accent-succ); }
+        .grade-B { color: var(--accent-lock); }
+        .grade-C { color: var(--accent-warn); }
+        .grade-F { color: var(--accent-crit); }
 
         /* Tutorial */
         .tut-slide { display: none; }
         .tut-slide.active { display: block; animation: fadeIn 0.3s; }
-        .tut-img { width: 100%; height: 150px; background: var(--bg-elevated); border-radius: var(--radius-md); margin-bottom: 20px; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: var(--accent-primary); border: 1px dashed var(--border-ui); }
+        .tut-img { width: 100%; height: 150px; background: var(--bg-elevated); border-radius: var(--radius-md); margin-bottom: 20px; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: var(--accent-lock); border: 1px dashed var(--border-ui); }
 
         #integrity-toast { position: fixed; bottom: 32px; right: 32px; background: var(--accent-crit); color: white; padding: 16px 24px; border-radius: var(--radius-md); font-weight: 800; font-size: 0.85rem; display: none; z-index: 10000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
         @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -176,15 +247,68 @@
         body.mode-hard-focus main { grid-template-columns: 1fr; }
         body.mode-hard-focus .sidebar { display: none; }
 
-        @media (max-width: 1024px) {
-            main { grid-template-columns: 1fr; }
-            .sidebar { display: none; }
-            .map-layout { flex-direction: column; }
-            .map-sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border-ui); }
-            #timer-display { font-size: 5rem; }
-        }
-
         input, select, textarea { width: 100%; background: var(--bg-deep); border: 1px solid var(--border-ui); color: var(--text-primary); padding: 10px; border-radius: var(--radius-sm); margin-bottom: 10px; font-family: inherit; }
+        textarea:focus, input:focus { outline: 1px solid var(--accent-lock); border-color: transparent; }
+
+        .user-highlight { color: var(--accent-lock); text-transform: uppercase; font-weight: 700; }
+
+        /* --- MOBILE FIELD OPERATOR DISPLAY --- */
+        @media (max-width: 1024px) {
+            /* Transform Layout */
+            main { grid-template-columns: 1fr; height: calc(100vh - 60px); }
+            
+            /* Sidebar becomes a drawer/overlay on mobile */
+            .sidebar { 
+                position: fixed; 
+                top: 60px; 
+                left: 0; 
+                width: 100%; 
+                height: calc(100% - 60px); 
+                background: var(--bg-deep); 
+                z-index: 90; 
+                padding: 16px;
+                transform: translateX(-100%);
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                border-right: none;
+            }
+            main:not(.sidebar-collapsed) .sidebar {
+                transform: translateX(0);
+                opacity: 1;
+                pointer-events: auto;
+            }
+            
+            /* Hide Sidebar content when collapsed to prevent interaction */
+            main.sidebar-collapsed .sidebar { opacity: 0; pointer-events: none; }
+            
+            /* Map Layout adjustment */
+            .map-layout { flex-direction: column; }
+            .map-sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border-ui); height: auto; max-height: 40%; overflow-y: auto;}
+            .map-content { flex: 1; }
+
+            /* Timer sizing */
+            #timer-display { font-size: 20vw; }
+            
+            /* Control Dock */
+            .controls {
+                position: absolute;
+                bottom: 32px;
+                left: 16px;
+                right: 16px;
+                flex-direction: row;
+                margin-top: 0;
+            }
+            .controls .btn {
+                flex: 1;
+                height: 56px;
+                font-size: 1rem;
+            }
+
+            /* Adjust Modal sizing */
+            .modal { padding: 20px; max-height: 95vh; }
+            .goal-chip-grid { grid-template-columns: repeat(2, 1fr); }
+            .choice-grid { grid-template-columns: 1fr; }
+            .custom-time-input { grid-column: span 1; }
+        }
     </style>
 </head>
 <body>
@@ -193,31 +317,37 @@
         <!-- HEADER -->
         <nav>
             <div class="nav-left">
-                <div class="nav-logo">RANKLOCK DISCIPLINE <span>v5.5</span></div>
+                <button class="sidebar-toggle" onclick="UI.toggleSidebar()">☰</button>
+                <div class="nav-logo">RANKLOCK <span>v8.2</span></div>
             </div>
             <div class="nav-right">
                 <div class="stat-item">
                     <div class="stat-label">Streak</div>
                     <div class="stat-value tabular streak-fire" id="stat-streak">0 DAYS</div>
                 </div>
+                <!-- GLOBAL SYSTEM INTEGRITY -->
                 <div class="stat-item">
-                    <div class="stat-label">Integrity</div>
-                    <div class="stat-value tabular integrity-ok" id="stat-integrity">100%</div>
+                    <div class="stat-label">Sys. Integrity</div>
+                    <div class="stat-value tabular integrity-ok" id="stat-global-integrity">100%</div>
                 </div>
                 <button class="icon-btn" onclick="UI.openSettings()">⚙</button>
             </div>
         </nav>
 
-        <main>
+        <main id="main-layout" class="sidebar-collapsed"> <!-- Default collapsed on mobile logic -->
             <!-- SIDEBAR -->
             <aside class="sidebar" id="sidebar">
                 <div class="card">
-                    <div class="card-header"><span class="card-title">System Rank</span></div>
+                    <div class="card-header">
+                        <span class="card-title">System Rank</span>
+                        <span style="font-size:0.6rem; color:var(--accent-lock)" class="user-name-target">RECRUIT</span>
+                    </div>
                     <div class="rank-box">
                         <div class="rank-value tabular" id="display-rank">0</div>
                         <div class="rank-label" id="display-rank-title">UNINITIATED</div>
+                        <div class="rank-perk-badge" id="rank-perk-badge">NEXT: HARD FOCUS</div>
                         <div class="rank-progress"><div class="rank-bar" id="rank-bar-fill"></div></div>
-                        <div style="font-size: 0.65rem; color: var(--text-muted); margin-top: 4px; text-align: right;" id="rank-next-val">NEXT: 100 XP</div>
+                        <div style="font-size: 0.65rem; color: var(--text-muted); margin-top: 4px; text-align: right;" id="rank-next-val">NEXT: 500 XP</div>
                     </div>
                 </div>
                 <div class="card">
@@ -239,6 +369,7 @@
                     <div class="card-header"><span class="card-title">Recent Logs</span></div>
                     <div class="log-list" id="recent-logs-container"></div>
                 </div>
+                <div class="architect-tag">DESIGNED BY OJAS KADAM</div>
             </aside>
 
             <!-- STAGE -->
@@ -253,6 +384,12 @@
                         <div class="countdown-label">Visualize</div>
                     </div>
                     
+                    <!-- SESSION INTEGRITY BADGE -->
+                    <div class="session-integrity-badge" id="session-integrity-badge">
+                        <span style="font-size:0.7rem; color:var(--text-muted);">SESSION LOCK</span><br>
+                        <span id="session-integrity-val" style="font-size:1.2rem; color:var(--accent-succ);">100%</span>
+                    </div>
+
                     <div class="session-context" id="active-session-meta">
                         <div class="context-subject">SYSTEM IDLE</div>
                         <div class="context-chapter">Ready for initialization</div>
@@ -277,49 +414,78 @@
                 <div><h2 class="modal-title">Protocol Configuration</h2><p class="modal-desc">Define session parameters.</p></div>
                 <button class="close-btn" onclick="UI.closeOverlays()">×</button>
             </div>
-            <!-- STEP 1: SUBJECT -->
-            <div class="wizard-step active" id="step-subject">
-                <div class="form-label" style="margin-bottom:10px; font-weight:700; color:var(--text-secondary);">SELECT DOMAIN</div>
-                <div class="choice-grid" id="setup-subject-grid"></div>
-            </div>
-            <!-- STEP 2: CHAPTER -->
-            <div class="wizard-step" id="step-chapter">
-                <div class="form-label" style="margin-bottom:10px; font-weight:700; color:var(--text-secondary);">SELECT CHAPTER</div>
-                <div class="choice-grid" id="setup-chapter-grid" style="max-height: 300px; overflow-y: auto;"></div>
-                <button class="btn btn-outline btn-sm" onclick="UI.wizardBack()" style="margin-top:10px; width:100%;">BACK</button>
-            </div>
-            <!-- STEP 3: INTENSITY -->
-            <div class="wizard-step" id="step-mode">
-                <div style="background: var(--bg-elevated); padding: 12px; border-radius: 8px; margin-bottom: 20px; border-left: 3px solid var(--accent-primary);">
-                    <div style="font-size:0.7rem; color:var(--text-muted); uppercase;">TARGET LOCK</div>
-                    <div style="font-size:1rem; font-weight:700; color:var(--text-primary);" id="wizard-target-display">Physics - Mechanics</div>
+            
+            <!-- Scrollable Content -->
+            <div class="modal-body-scroll">
+                
+                <!-- STEP 1: SUBJECT -->
+                <div class="wizard-step active" id="step-subject">
+                    <div class="form-label" style="margin-bottom:10px; font-weight:700; color:var(--text-secondary);">SELECT DOMAIN</div>
+                    <div class="choice-grid" id="setup-subject-grid"></div>
                 </div>
                 
-                <div class="form-label" style="margin-bottom:10px; font-weight:700; color:var(--text-secondary);">SESSION GOAL (MANDATORY)</div>
-                <input type="text" id="session-goal-input" placeholder="e.g. Solve 20 questions, Read pages 40-50" style="margin-bottom: 20px;">
-
-                <div class="form-label" style="margin-bottom:10px; font-weight:700; color:var(--text-secondary);">INTENSITY</div>
-                <div class="choice-grid">
-                    <div class="choice-btn selected" data-mode="normal" onclick="Logic.UI.selectMode('normal')">
-                        <span class="choice-title">NORMAL</span><span class="choice-meta">Pause allowed.</span>
+                <!-- STEP 2: CHAPTER -->
+                <div class="wizard-step" id="step-chapter">
+                    <div class="form-label" style="margin-bottom:10px; font-weight:700; color:var(--text-secondary);">SELECT CHAPTER</div>
+                    <div class="choice-grid" id="setup-chapter-grid"></div>
+                    <button class="btn btn-outline btn-sm" onclick="UI.wizardBack()" style="margin-top:10px; width:100%;">BACK</button>
+                </div>
+                
+                <!-- STEP 3: INTENSITY & MISSION -->
+                <div class="wizard-step" id="step-mode">
+                    <div style="background: var(--bg-elevated); padding: 12px; border-radius: 8px; margin-bottom: 20px; border-left: 3px solid var(--accent-lock);">
+                        <div style="font-size:0.7rem; color:var(--text-muted); uppercase;">TARGET LOCK</div>
+                        <div style="font-size:1rem; font-weight:700; color:var(--text-primary);" id="wizard-target-display">Physics - Mechanics</div>
                     </div>
-                    <div class="choice-btn" data-mode="hard" onclick="Logic.UI.selectMode('hard')">
-                        <span class="choice-title" style="color:var(--accent-crit)">HARD FOCUS</span><span class="choice-meta">No pause. Sidebar hidden.</span>
+                    
+                    <div class="form-label" style="margin-bottom:10px; font-weight:700; color:var(--text-secondary);">MISSION PROTOCOL</div>
+                    <div class="goal-chip-grid" id="goal-type-grid">
+                        <div class="goal-chip" onclick="Logic.UI.setGoalType(this, 'LEARN')">LEARN</div>
+                        <div class="goal-chip" onclick="Logic.UI.setGoalType(this, 'PRACTICE')">PRACTICE</div>
+                        <div class="goal-chip" onclick="Logic.UI.setGoalType(this, 'REVISE')">REVISE</div>
+                        <div class="goal-chip" onclick="Logic.UI.setGoalType(this, 'TEST')">TEST</div>
+                    </div>
+                    
+                    <div class="form-label" style="margin-bottom:10px; font-weight:700; color:var(--text-secondary);">RESOURCE</div>
+                    <div class="goal-chip-grid" id="goal-resource-grid">
+                        <div class="goal-chip" onclick="Logic.UI.setGoalRes(this, 'NOTES')">NOTES</div>
+                        <div class="goal-chip" onclick="Logic.UI.setGoalRes(this, 'NCERT')">NCERT</div>
+                        <div class="goal-chip" onclick="Logic.UI.setGoalRes(this, 'PYQS')">PYQS</div>
+                        <div class="goal-chip" onclick="Logic.UI.setGoalRes(this, 'MODULE')">MODULE</div>
+                        <div class="goal-chip" onclick="Logic.UI.setGoalRes(this, 'LECTURE')">LECTURE</div>
+                        <div class="goal-chip" onclick="Logic.UI.setGoalRes(this, 'BOOK')">BOOK</div>
+                    </div>
+
+                    <div class="form-label" style="margin-bottom:10px; font-weight:700; color:var(--text-secondary);">SCOPE (OPTIONAL)</div>
+                    <input type="text" id="goal-scope-input" placeholder="e.g. Q1-Q30 or Pg 50-60" oninput="Logic.UI.updateGoalDisplay()" maxlength="30" style="margin-bottom: 10px;">
+
+                    <div class="generated-goal-display" id="generated-goal-text">SELECT PROTOCOL</div>
+
+                    <div class="form-label" style="margin-bottom:10px; font-weight:700; color:var(--text-secondary);">INTENSITY</div>
+                    <div class="choice-grid">
+                        <div class="choice-btn selected" data-mode="normal" onclick="Logic.UI.selectMode('normal')">
+                            <span class="choice-title">NORMAL</span><span class="choice-meta">Pause allowed.</span>
+                        </div>
+                        <div class="choice-btn" id="btn-mode-hard" data-mode="hard" onclick="Logic.UI.selectMode('hard')">
+                            <span class="choice-title" style="color:var(--accent-crit)">HARD FOCUS</span>
+                            <span class="choice-meta" id="hard-mode-meta">No pause. Sidebar hidden.</span>
+                        </div>
+                    </div>
+
+                    <div class="form-label" style="margin-bottom:10px; font-weight:700; color:var(--text-secondary);">DURATION</div>
+                    <div class="choice-grid" style="grid-template-columns: repeat(4, 1fr);">
+                        <div class="choice-btn" data-dur="25" onclick="Logic.UI.selectDuration(25)">25m</div>
+                        <div class="choice-btn" data-dur="50" onclick="Logic.UI.selectDuration(50)">50m</div>
+                        <div class="choice-btn" data-dur="90" onclick="Logic.UI.selectDuration(90)">90m</div>
+                        <input type="number" id="custom-time-input" class="custom-time-input" placeholder="Cust" min="5" max="300" oninput="Logic.UI.selectDuration('custom')" onfocus="Logic.UI.selectDuration('custom')">
+                    </div>
+
+                    <div class="flex" style="display: flex; justify-content: space-between; gap: 10px; margin-top: 2rem; padding-bottom: 10px;">
+                        <button class="btn btn-outline" style="flex:1" onclick="UI.wizardBack()">BACK</button>
+                        <button class="btn btn-primary" style="flex:2" id="btn-setup-launch">INITIATE</button>
                     </div>
                 </div>
 
-                <div class="form-label" style="margin-bottom:10px; font-weight:700; color:var(--text-secondary);">DURATION</div>
-                <div class="choice-grid" style="grid-template-columns: repeat(4, 1fr);">
-                    <div class="choice-btn" data-dur="25" onclick="Logic.UI.selectDuration(25)">25m</div>
-                    <div class="choice-btn" data-dur="50" onclick="Logic.UI.selectDuration(50)">50m</div>
-                    <div class="choice-btn" data-dur="90" onclick="Logic.UI.selectDuration(90)">90m</div>
-                    <div class="choice-btn" data-dur="180" onclick="Logic.UI.selectDuration(180)">3h</div>
-                </div>
-
-                <div class="flex" style="display: flex; justify-content: space-between; gap: 10px; margin-top: 2rem;">
-                    <button class="btn btn-outline" style="flex:1" onclick="UI.wizardBack()">BACK</button>
-                    <button class="btn btn-primary" style="flex:2" id="btn-setup-launch">INITIATE</button>
-                </div>
             </div>
         </div>
     </div>
@@ -350,10 +516,25 @@
     <!-- OVERLAY: AUTOPSY -->
     <div id="overlay-autopsy" class="overlay">
         <div class="modal">
-            <div class="modal-header"><h2 class="modal-title">Session Autopsy</h2></div>
+            <div class="modal-header">
+                <h2 class="modal-title">System Evaluation</h2>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                <div style="background: var(--bg-elevated); padding: 16px; border-radius: var(--radius-md); text-align: center;">
+                    <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700; margin-bottom: 8px;">SYSTEM GRADE</div>
+                    <div class="grade-badge" id="auto-grade-display">-</div>
+                </div>
+                <div style="background: var(--bg-elevated); padding: 16px; border-radius: var(--radius-md); font-size: 0.8rem; display: flex; flex-direction: column; justify-content: center; gap: 4px;">
+                    <div style="display: flex; justify-content: space-between;"><span>SESSION INTEGRITY:</span> <span id="auto-integrity-display" style="font-weight: 700;">-</span></div>
+                    <div style="display: flex; justify-content: space-between;"><span>PAUSES:</span> <span id="auto-pauses-display" style="font-weight: 700;">-</span></div>
+                    <div style="display: flex; justify-content: space-between;"><span>DURATION:</span> <span id="auto-duration-display" style="font-weight: 700;">-</span></div>
+                </div>
+            </div>
+
             <div class="form-group" style="margin-bottom: 20px;">
-                <label class="form-label" style="display:block; font-size:0.75rem; color:var(--text-secondary); margin-bottom:8px;">KNOWLEDGE CRYSTALLIZATION</label>
-                <textarea id="autopsy-summary" rows="3" placeholder="What concept was mastered? Be specific."></textarea>
+                <label class="form-label" style="display:block; font-size:0.75rem; color:var(--text-secondary); margin-bottom:8px;">KNOWLEDGE CRYSTALLIZATION (REQUIRED)</label>
+                <textarea id="autopsy-summary" rows="3" placeholder="What concept was mastered? Be specific. Input required to exit." oninput="UI.validateAutopsy()"></textarea>
             </div>
             <div class="form-group" style="margin-bottom: 20px;">
                 <label class="form-label" style="display:block; font-size:0.75rem; color:var(--text-secondary); margin-bottom:8px;">MISTAKE ANALYSIS</label>
@@ -362,15 +543,33 @@
                     <button class="choice-btn" id="autopsy-mistake-yes" onclick="UI.toggleMistake(true)" style="flex: 1; border-color: var(--accent-crit); color: var(--accent-crit);">MISTAKES FOUND</button>
                 </div>
             </div>
-            <div class="form-group" style="margin-bottom: 20px;">
-                <label class="form-label" style="display:block; font-size:0.75rem; color:var(--text-secondary); margin-bottom:8px;">FOCUS QUALITY</label>
-                <div class="choice-grid" style="grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 0;">
-                    <button class="choice-btn" data-qual="1">LOW</button>
-                    <button class="choice-btn selected" data-qual="2">AVG</button>
-                    <button class="choice-btn" data-qual="3">HIGH</button>
-                </div>
+            
+            <button class="btn btn-primary" style="width: 100%;" id="btn-autopsy-submit" disabled>COMMIT LOG</button>
+        </div>
+    </div>
+
+    <!-- OVERLAY: LOG DETAILS -->
+    <div id="overlay-log-details" class="overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Session Archive</h2>
+                <button class="close-btn" onclick="UI.closeOverlays()">×</button>
             </div>
-            <button class="btn btn-primary" style="width: 100%;" id="btn-autopsy-submit">COMMIT LOG</button>
+            <div id="log-details-content">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- OVERLAY: USERNAME SETUP (UNSKIPPABLE) -->
+    <div id="overlay-username" class="overlay" style="z-index: 2100; pointer-events: auto;">
+        <div class="modal" style="max-width: 450px; text-align: center;">
+            <div class="modal-header" style="justify-content: center;">
+                <h2 class="modal-title">Identity Registration</h2>
+            </div>
+            <p class="modal-desc" style="margin-bottom: 20px;">Enter your designation for the Ranklock System.</p>
+            <input type="text" id="input-username" placeholder="Enter Your Name" maxlength="20" style="text-align: center; font-size: 1.2rem; font-weight: 700; color: var(--accent-lock); margin-bottom: 20px;">
+            <button class="btn btn-primary btn-block" onclick="Logic.System.setUsername()">CONFIRM IDENTITY</button>
         </div>
     </div>
 
@@ -378,18 +577,47 @@
     <div id="overlay-tutorial" class="overlay" style="z-index: 2000;">
         <div class="modal" style="max-width: 500px; text-align: center;">
             <div class="tut-slide active" id="tut-step-1">
-                <div class="tut-img">🚀</div><h2 class="modal-title">Welcome to RANKLOCK</h2><p class="modal-desc">A deterministic discipline engine.</p>
-                <button class="btn btn-primary btn-block" style="margin-top: 30px;" onclick="Logic.Tutorial.next(2)">INITIATE</button>
+                <div class="tut-img">🚀</div>
+                <h2 class="modal-title">System Online</h2>
+                <p class="modal-desc">RankLock v8.2 Initialized. Welcome to the discipline protocol.</p>
+                <button class="btn btn-primary btn-block" style="margin-top: 30px;" onclick="Logic.Tutorial.next(2)">NEXT: INTEGRITY</button>
             </div>
             <div class="tut-slide" id="tut-step-2">
-                <div class="tut-img" style="color: var(--accent-crit); border-color: var(--accent-crit);">👁️</div>
-                <h2 class="modal-title">Integrity Protocol</h2><p class="modal-desc">Tab switching is a BREACH. Low integrity = 0 XP.</p>
-                <button class="btn btn-primary btn-block" style="margin-top: 30px;" onclick="Logic.Tutorial.next(3)">ACKNOWLEDGE</button>
+                <div class="tut-img" style="color: var(--accent-crit); border-color: var(--accent-crit);">🛡️</div>
+                <h2 class="modal-title">Dual Integrity</h2>
+                <p class="modal-desc">
+                    <strong>Global Integrity:</strong> Your Account Health. If it drops too low, you lose rank.<br><br>
+                    <strong>Session Integrity:</strong> Focus quality. Tab switching = -20%.
+                </p>
+                <button class="btn btn-primary btn-block" style="margin-top: 30px;" onclick="Logic.Tutorial.next(3)">NEXT: MISSIONS</button>
             </div>
             <div class="tut-slide" id="tut-step-3">
-                <div class="tut-img" style="color: var(--accent-warn);">🔥</div>
-                <h2 class="modal-title">Entropy & Streak</h2><p class="modal-desc">Consistency is the core metric. Missing a day resets your Streak and decays your Rank.</p>
-                <button class="btn btn-primary btn-block" style="margin-top: 30px;" onclick="Logic.Tutorial.finish()">BOOT SYSTEM</button>
+                <div class="tut-img" style="color: var(--accent-lock);">🎯</div>
+                <h2 class="modal-title">Strategic Protocols</h2>
+                <p class="modal-desc">
+                    Do not just "study". Select a <strong>Protocol</strong> (Learn, Practice) and a <strong>Resource</strong>.
+                    <br><br>Be specific. Vague goals are weakness.
+                </p>
+                <button class="btn btn-primary btn-block" style="margin-top: 30px;" onclick="Logic.Tutorial.next(4)">NEXT: DEBTS</button>
+            </div>
+            <div class="tut-slide" id="tut-step-4">
+                <div class="tut-img" style="color: var(--accent-warn); border-color: var(--accent-warn);">⚠️</div>
+                <h2 class="modal-title">Active Debts</h2>
+                <p class="modal-desc">
+                    Mistakes create Debt. <strong>Active Debt reduces XP gain by 50%</strong> for that chapter.<br><br>
+                    <strong>To Clear:</strong> Score Grade 'A' or 'S' with a "Clean Run" (No mistakes).
+                </p>
+                <button class="btn btn-primary btn-block" style="margin-top: 30px;" onclick="Logic.Tutorial.next(5)">NEXT: FOCUS</button>
+            </div>
+            <div class="tut-slide" id="tut-step-5">
+                <div class="tut-img" style="color: var(--accent-crit);">🔒</div>
+                <h2 class="modal-title">Hard Focus</h2>
+                <p class="modal-desc">
+                    Unlocked at Rank 500 (Aspirant). <br>
+                    No Pause. Sidebar Hidden. Maximum Points.<br>
+                    <br><strong>Begin your ascent.</strong>
+                </p>
+                <button class="btn btn-primary btn-block" style="margin-top: 30px;" onclick="Logic.Tutorial.finish()">INITIALIZE SYSTEM</button>
             </div>
         </div>
     </div>
@@ -398,8 +626,21 @@
     <div id="overlay-settings" class="overlay">
         <div class="modal" style="max-width: 400px; text-align: center;">
             <div class="modal-header" style="justify-content: center;"><h2 class="modal-title">System Settings</h2></div>
-            <button class="btn btn-outline" id="btn-audio-toggle" onclick="AudioEngine.toggle()" style="width: 100%; margin-bottom: 20px;">AUDIO: ON</button>
-            <button class="btn btn-outline" id="btn-drone-toggle" onclick="AudioEngine.toggleDrone()" style="width: 100%; margin-bottom: 20px;">FOCUS DRONE: OFF</button>
+            
+            <div style="border-top: 1px solid var(--border-ui); margin: 20px 0; padding-top: 20px;">
+                <div style="font-size:0.7rem; color:var(--text-muted); margin-bottom:10px; font-weight:700;">DATA PERSISTENCE</div>
+                <button class="btn btn-outline" onclick="Logic.System.exportData()" style="width: 100%; margin-bottom: 10px;">BACKUP DATA (JSON)</button>
+                <button class="btn btn-outline" onclick="document.getElementById('import-file').click()" style="width: 100%; margin-bottom: 10px;">RESTORE DATA</button>
+                <input type="file" id="import-file" class="file-input" accept=".json" onchange="Logic.System.importData(this)">
+            </div>
+            
+            <button class="btn btn-primary" onclick="Logic.Tutorial.restart()" style="width: 100%; margin-bottom: 10px;">SYSTEM MANUAL (TUTORIAL)</button>
+
+            <div style="margin: 20px 0;">
+                <div style="font-size:0.7rem; color:var(--text-muted); margin-bottom:5px;">ARCHITECT</div>
+                <div style="font-weight: 700; color: var(--text-secondary);">OJAS KADAM</div>
+            </div>
+
             <button class="btn btn-crit" onclick="Logic.System.factoryReset()" style="width: 100%">SYSTEM PURGE (RESET)</button>
             <button class="btn btn-outline" onclick="UI.closeOverlays()" style="width: 100%; margin-top: 20px;">CLOSE</button>
         </div>
@@ -409,9 +650,20 @@
 
     <script>
         const CONSTANTS = {
-            VERSION: 5.5,
-            APP_ID: "RANKLOCK_JEE_1.5",
-            RANKS: [{t:0,title:"UNINITIATED"},{t:100,title:"ASPIRANT"},{t:500,title:"DISCIPLINE I"},{t:1500,title:"DISCIPLINE II"},{t:4000,title:"SCHOLAR"},{t:10000,title:"ELITE"},{t:25000,title:"TOP RANKER"},{t:50000,title:"IITIAN"}],
+            VERSION: 8.2,
+            APP_ID: "RANKLOCK_JEE_V8",
+            RANKS: [
+                {t:0, title:"UNINITIATED", perk:"None"},
+                {t:500, title:"ASPIRANT", perk:"Hard Focus Unlocked"},
+                {t:1500, title:"DISCIPLINE I", perk:"Debt Buyout (500 XP)"},
+                {t:4000, title:"DISCIPLINE II", perk:"Entropy Shield I"},
+                {t:10000, title:"SCHOLAR", perk:"Entropy Shield II"},
+                {t:25000, title:"ELITE", perk:"Max Authority"},
+                {t:50000, title:"TOP RANKER", perk:"Legendary"},
+                {t:100000, title:"IITIAN", perk:"God Tier"}
+            ],
+            HARD_MODE_REQ: 500,
+            DEBT_BUYOUT_COST: 500,
             DEFAULT_SUBJECTS: [
                 { id: 'phys', name: 'PHYSICS', chapters: ['Units & Dimensions', 'Kinematics', 'Laws of Motion', 'Work Energy Power', 'Rotational Motion', 'Gravitation', 'Solids & Fluids', 'Thermodynamics', 'Electrostatics', 'Current Electricity', 'Magnetism', 'EMI & AC', 'Optics', 'Modern Physics'] },
                 { id: 'chem', name: 'CHEMISTRY', chapters: ['Mole Concept', 'Atomic Structure', 'Periodic Table', 'Bonding', 'States of Matter', 'Thermodynamics', 'Equilibrium', 'Kinetics', 'Electrochemistry', 'Solutions', 'Metallurgy', 'Block Chemistry', 'Coordination Compounds', 'GOC', 'Hydrocarbons', 'Haloalkanes', 'Oxygen Compounds', 'Nitrogen Compounds', 'Biomolecules'] },
@@ -419,65 +671,16 @@
             ]
         };
 
-        const AudioEngine = {
-            enabled: true, droneEnabled: false, ctx: null, droneNode: null,
-            init() { if (!this.ctx) { const AC = window.AudioContext || window.webkitAudioContext; this.ctx = new AC(); } },
-            toggle() { this.enabled = !this.enabled; document.getElementById('btn-audio-toggle').textContent = `AUDIO: ${this.enabled ? 'ON' : 'OFF'}`; if(this.enabled) this.playTone(440,'sine',0.1); },
-            toggleDrone() {
-                this.droneEnabled = !this.droneEnabled;
-                document.getElementById('btn-drone-toggle').textContent = `FOCUS DRONE: ${this.droneEnabled ? 'ON' : 'OFF'}`;
-                if(this.droneEnabled && State.session.active && !State.session.paused) this.playDrone();
-                else this.stopDrone();
-            },
-            playTone(freq, type, dur) {
-                if (!this.enabled) return; this.init();
-                const o = this.ctx.createOscillator(); const g = this.ctx.createGain();
-                o.type = type; o.frequency.setValueAtTime(freq, this.ctx.currentTime);
-                g.gain.setValueAtTime(0.05, this.ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
-                o.connect(g); g.connect(this.ctx.destination); o.start(); o.stop(this.ctx.currentTime + dur);
-            },
-            playDrone() {
-                if(!this.enabled || !this.droneEnabled || this.droneNode) return;
-                this.init();
-                const bufferSize = 4096;
-                const brownNoise = (function() {
-                    var lastOut = 0;
-                    var node = this.ctx.createScriptProcessor(bufferSize, 1, 1);
-                    node.onaudioprocess = function(e) {
-                        var output = e.outputBuffer.getChannelData(0);
-                        for (var i = 0; i < bufferSize; i++) {
-                            var white = Math.random() * 2 - 1;
-                            output[i] = (lastOut + (0.02 * white)) / 1.02;
-                            lastOut = output[i];
-                            output[i] *= 3.5; 
-                        }
-                    };
-                    return node;
-                }).call(this);
-                const gain = this.ctx.createGain();
-                gain.gain.value = 0.05;
-                brownNoise.connect(gain);
-                gain.connect(this.ctx.destination);
-                this.droneNode = { source: brownNoise, gain: gain };
-            },
-            stopDrone() {
-                if(this.droneNode) {
-                    this.droneNode.source.disconnect();
-                    this.droneNode.gain.disconnect();
-                    this.droneNode = null;
-                }
-            },
-            playStart() { this.playTone(440,'sine',0.1); setTimeout(()=>this.playTone(880,'sine',0.4),100); },
-            playAlarm() { for(let i=0;i<3;i++) setTimeout(()=>this.playTone(600,'square',0.2),i*300); },
-            playError() { this.playTone(150,'sawtooth',0.3); },
-            playLevelUp() { [440,554,659,880].forEach((f,i)=>setTimeout(()=>this.playTone(f,'triangle',0.2),i*100)); }
-        };
-
         let State = {
+            username: null,
             rank: 0, dailySeconds: 0, chapterStats: {}, subjects: [...CONSTANTS.DEFAULT_SUBJECTS], logs: [], tutorialComplete: false,
             streak: 0, lastLoginDate: null,
-            session: { active: false, paused: false, mode: 'normal', remaining: 0, total: 0, integrity: 100, goal: '' }
+            systemIntegrity: 100, // Global Integrity
+            session: { active: false, paused: false, mode: 'normal', remaining: 0, total: 0, integrity: 100, goal: '', pauses: 0, lastPauseTime: 0 }
         };
+
+        // Temporary Goal State (Not saved in DB, just for Wizard)
+        let goalState = { type: null, resource: null };
 
         const Storage = {
             save: () => localStorage.setItem(CONSTANTS.APP_ID, JSON.stringify(State)),
@@ -493,16 +696,33 @@
             System: {
                 init() {
                     Storage.load();
+                    if(State.systemIntegrity === undefined) State.systemIntegrity = 100;
+                    if(State.username) UI.updateUsername(State.username);
+                    else {
+                        const tempUser = document.querySelector('.user-name-target');
+                        if(tempUser) tempUser.textContent = "IDENTIFYING...";
+                    }
+
                     this.checkIntegrityOnLoad();
                     UI.init();
+                    
+                    // Handle responsive sidebar on load
+                    if(window.innerWidth > 1024) document.getElementById('main-layout').classList.remove('sidebar-collapsed');
+                    
                     UI.renderAll();
                     setInterval(() => Logic.Session.tick(), 1000);
                     
-                    if(!State.tutorialComplete) Logic.Tutorial.start();
+                    if(!State.tutorialComplete) {
+                        Logic.Tutorial.start();
+                    } else if (!State.username) {
+                        Logic.System.showNameModal();
+                    }
 
                     document.addEventListener('keydown', (e) => {
                         if (e.code === 'Space' && State.session.active && State.session.mode === 'normal') { e.preventDefault(); Logic.Session.togglePause(); }
                         if (e.code === 'Escape') {
+                            const unOverlay = document.getElementById('overlay-username');
+                            if (unOverlay.style.display === 'flex') return;
                             if (State.session.active) { if(confirm("ABORT SESSION?")) Logic.Session.abort(); }
                             else UI.closeOverlays();
                         }
@@ -512,13 +732,28 @@
                         if (document.hidden && State.session.active && !State.session.paused) Logic.Session.breach("TAB SWITCH");
                     });
                 },
+                showNameModal() {
+                    const ov = document.getElementById('overlay-username');
+                    ov.style.display = 'flex';
+                },
+                setUsername() {
+                    const input = document.getElementById('input-username');
+                    const val = input.value.trim();
+                    if(val.length < 2) { alert("Name too short."); return; }
+                    State.username = val;
+                    UI.updateUsername(val);
+                    Storage.save();
+                    document.getElementById('overlay-username').style.display = 'none';
+                    UI.showToast(`WELCOME, ${val.toUpperCase()}`);
+                },
                 checkIntegrityOnLoad() {
                     if(State.session.active) {
                         State.session.active = false;
                         State.streak = 0; 
                         State.rank = Math.max(0, State.rank - 200); 
-                        State.logs.unshift({ date: Date.now(), chapter: "SYSTEM", duration: 0, quality: 0, integrity: 0, note: "CRITICAL FAILURE: GHOST EXIT DETECTED" });
-                        alert("CRITICAL FAILURE DETECTED.\nSession terminated abnormally.\nPenalty: -200 XP\nStreak: RESET");
+                        State.systemIntegrity = Math.max(0, State.systemIntegrity - 15); // Global Hit
+                        State.logs.unshift({ date: Date.now(), chapter: "SYSTEM", duration: 0, quality: 0, integrity: 0, note: "CRITICAL FAILURE: GHOST EXIT DETECTED", grade: "F" });
+                        alert("CRITICAL FAILURE DETECTED.\nSession terminated abnormally.\nPenalty: -200 XP, Global Integrity Damaged\nStreak: RESET");
                     }
 
                     const today = new Date().toDateString();
@@ -533,17 +768,55 @@
                             UI.showToast("STREAK LOST: INCONSISTENCY DETECTED");
                         }
                         
-                        const entropy = 50;
-                        State.rank = Math.max(0, State.rank - entropy);
-                        UI.showToast(`ENTROPY DECAY: -${entropy} XP`);
+                        // Entropy Formula
+                        let baseEntropy = 50;
+                        if(State.rank > 4000) baseEntropy = 30;
+                        if(State.rank > 10000) baseEntropy = 10;
+
+                        State.rank = Math.max(0, State.rank - baseEntropy);
+                        UI.showToast(`ENTROPY DECAY: -${baseEntropy} XP`);
                     }
                     State.lastLoginDate = today;
                     Storage.save();
                 },
-                factoryReset() { if(confirm("System Purge?")) Storage.reset(); }
+                factoryReset() { if(confirm("System Purge?")) Storage.reset(); },
+                exportData() {
+                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(State));
+                    const dlAnchorElem = document.createElement('a');
+                    dlAnchorElem.setAttribute("href", dataStr);
+                    dlAnchorElem.setAttribute("download", `ranklock_backup_${new Date().toISOString().slice(0,10)}.json`);
+                    document.body.appendChild(dlAnchorElem);
+                    dlAnchorElem.click();
+                    dlAnchorElem.remove();
+                },
+                importData(input) {
+                    const file = input.files[0];
+                    if(!file) return;
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        try {
+                            const data = JSON.parse(e.target.result);
+                            if(data.rank !== undefined && data.subjects) {
+                                State = data;
+                                Storage.save();
+                                alert("System Restoration Successful.");
+                                location.reload();
+                            } else {
+                                alert("Corrupt Data Signature.");
+                            }
+                        } catch(err) { alert("Parse Error."); }
+                    };
+                    reader.readAsText(file);
+                }
             },
             Tutorial: {
                 start() { document.getElementById('overlay-tutorial').style.display = 'flex'; },
+                restart() { 
+                    UI.closeOverlays();
+                    document.querySelectorAll('.tut-slide').forEach(s => s.classList.remove('active'));
+                    document.getElementById('tut-step-1').classList.add('active');
+                    document.getElementById('overlay-tutorial').style.display = 'flex'; 
+                },
                 next(step) {
                     document.querySelectorAll('.tut-slide').forEach(s => s.classList.remove('active'));
                     document.getElementById('tut-step-'+step).classList.add('active');
@@ -552,12 +825,14 @@
                     State.tutorialComplete = true;
                     Storage.save();
                     document.getElementById('overlay-tutorial').style.display = 'none';
-                    AudioEngine.playLevelUp();
+                    if(!State.username) Logic.System.showNameModal(); 
                 }
             },
             Session: {
-                preFlight(subId, ch, mode, durMins, goal) {
-                    if(!goal) { alert("ERROR: GOAL UNDEFINED. DISCIPLINE REQUIRES INTENT."); return; }
+                preFlight(subId, ch, mode, durMins, goalText) {
+                    if(!goalState.type) { alert("PROTOCOL ERROR: Select Mission Type."); return; }
+                    if(!goalState.resource) { alert("PROTOCOL ERROR: Select Resource."); return; }
+                    
                     UI.closeOverlays();
                     const overlay = document.getElementById('countdown-overlay');
                     const valEl = document.getElementById('countdown-val');
@@ -565,76 +840,122 @@
                     
                     let count = 3;
                     valEl.textContent = count;
-                    AudioEngine.playTone(440, 'triangle', 0.1);
-
+                    
                     const int = setInterval(() => {
                         count--;
                         if(count > 0) {
                             valEl.textContent = count;
-                            AudioEngine.playTone(440, 'triangle', 0.1);
                         } else {
                             clearInterval(int);
                             overlay.style.display = 'none';
-                            this.start(subId, ch, mode, durMins, goal);
+                            this.start(subId, ch, mode, durMins, goalText);
                         }
                     }, 1000);
                 },
                 start(subId, ch, mode, durMins, goal) {
-                    State.session = { active: true, paused: false, mode: mode, subjectId: subId, chapter: ch, total: durMins*60, remaining: durMins*60, integrity: 100, startTime: Date.now(), goal: goal };
+                    State.session = { active: true, paused: false, mode: mode, subjectId: subId, chapter: ch, total: durMins*60, remaining: durMins*60, integrity: 100, startTime: Date.now(), goal: goal, pauses: 0, lastPauseTime: 0 };
                     if (mode === 'hard') document.body.classList.add('mode-hard-focus');
-                    AudioEngine.playStart();
-                    if(AudioEngine.droneEnabled) AudioEngine.playDrone();
                     UI.updateSessionView(); Storage.save();
                 },
                 tick() {
-                    if (!State.session.active || State.session.paused) return;
+                    if (!State.session.active) return;
+                    
+                    if (State.session.paused) {
+                        if(Date.now() - State.session.lastPauseTime > 120000) {
+                            if(State.session.remaining % 5 === 0) {
+                                State.session.integrity = Math.max(0, State.session.integrity - 1);
+                                UI.updateSessionView();
+                            }
+                        }
+                        return;
+                    }
+
                     State.session.remaining--;
                     if (State.session.remaining <= 0) this.finish();
                     UI.updateTimer();
                 },
                 breach(reason) {
                     if(!State.session.active) return;
-                    State.session.integrity = Math.max(0, State.session.integrity - 10);
-                    UI.flashRed(); UI.showToast(`BREACH: ${reason} (-10%)`);
-                    UI.updateStats(); AudioEngine.playError();
+                    State.session.integrity = Math.max(0, State.session.integrity - 20);
+                    
+                    UI.flashRed(State.session.integrity);
+                    UI.showToast(`BREACH: ${reason} (-20%)`);
+                    UI.updateStats(); 
+
+                    if(State.session.integrity < 30) {
+                        this.abort("CRITICAL SESSION FAILURE (<30%)");
+                    }
                 },
                 togglePause() { 
+                    if(State.session.mode === 'hard') return; 
                     State.session.paused = !State.session.paused; 
-                    if(State.session.paused) AudioEngine.stopDrone();
-                    else if(AudioEngine.droneEnabled) AudioEngine.playDrone();
+                    if(State.session.paused) {
+                        State.session.pauses++;
+                        State.session.lastPauseTime = Date.now();
+                    }
                     UI.updateSessionView(); 
                 },
-                abort() { 
+                abort(reason) { 
+                    const r = reason || "MANUAL ABORT";
                     State.session.active = false; 
                     document.body.classList.remove('mode-hard-focus'); 
-                    AudioEngine.stopDrone();
-                    AudioEngine.playError(); 
                     State.rank = Math.max(0, State.rank - 50); 
+                    
+                    // Damage Global Integrity
+                    State.systemIntegrity = Math.max(0, State.systemIntegrity - 5);
+                    
+                    // Log the failure
+                    State.logs.unshift({ date: Date.now(), chapter: "SYSTEM ABORT", duration: 0, quality: 0, integrity: 0, note: r, grade: "F", pauses: 0 });
+                    
+                    alert(`SESSION TERMINATED.\nReason: ${r}\nXP Gained: 0\nGlobal Integrity Damaged (-5%)`);
                     UI.renderAll(); Storage.save(); 
                 },
                 finish() { 
                     State.session.active = false; 
                     document.body.classList.remove('mode-hard-focus'); 
-                    AudioEngine.stopDrone();
-                    AudioEngine.playAlarm(); 
                     UI.openAutopsy(); 
+                },
+                calculateGrade() {
+                    const i = State.session.integrity;
+                    const p = State.session.pauses;
+                    let score = i;
+                    score -= (p * 5);
+                    if(State.session.mode === 'hard') score += 5;
+
+                    if(score >= 95) return 'S';
+                    if(score >= 85) return 'A';
+                    if(score >= 70) return 'B';
+                    if(score >= 50) return 'C';
+                    return 'F';
                 }
             },
             Rank: {
                 add(p) {
-                    const oldR = Logic.Rank.getRankIndex(State.rank);
                     State.rank += p;
-                    if (Logic.Rank.getRankIndex(State.rank) > oldR) AudioEngine.playLevelUp();
                     UI.renderAll(); Storage.save();
                 },
                 getRankIndex(p) { for(let i=CONSTANTS.RANKS.length-1; i>=0; i--) if(p >= CONSTANTS.RANKS[i].t) return i; return 0; },
-                getTitle(p) { return CONSTANTS.RANKS[this.getRankIndex(p)].title; }
+                getData(p) { return CONSTANTS.RANKS[this.getRankIndex(p)]; }
             },
             Chapter: {
                 get(s,c) { const k=`${s}|${c}`; if(!State.chapterStats[k]) State.chapterStats[k]={xp:0,debt:0}; return State.chapterStats[k]; },
                 addXP(s,c,a) { this.get(s,c).xp += a; },
                 addDebt(s,c) { this.get(s,c).debt++; },
-                payDebt(s,c) { if(this.get(s,c).debt > 0) this.get(s,c).debt--; }
+                payDebt(s,c) { if(this.get(s,c).debt > 0) this.get(s,c).debt--; },
+                buyoutDebt(s,c) {
+                    if(State.rank >= CONSTANTS.DEBT_BUYOUT_COST) {
+                        if(this.get(s,c).debt > 0) {
+                            if(confirm(`AUTHORITY PROTOCOL:\nSpend ${CONSTANTS.DEBT_BUYOUT_COST} XP to clear 1 Debt?`)) {
+                                State.rank -= CONSTANTS.DEBT_BUYOUT_COST;
+                                this.get(s,c).debt--;
+                                UI.showToast("DEBT CLEARED VIA AUTHORITY");
+                                UI.renderAll(); Storage.save();
+                            }
+                        }
+                    } else {
+                        alert(`INSUFFICIENT AUTHORITY.\nRequired: ${CONSTANTS.DEBT_BUYOUT_COST} XP`);
+                    }
+                }
             },
             UI: {
                 addSubject: () => {
@@ -647,14 +968,55 @@
                     const s = State.subjects.find(x=>x.id===sId);
                     if(s && v) { s.chapters.push(v); UI.renderMap(); Storage.save(); document.getElementById('new-chapter-input').value=''; }
                 },
-                selectMode: (m) => UI.setWizardMode(m),
-                selectDuration: (d) => UI.setWizardDur(d)
+                selectMode: (m) => {
+                    if(m === 'hard' && State.rank < CONSTANTS.HARD_MODE_REQ) return; // Locked
+                    UI.setWizardMode(m);
+                },
+                selectDuration: (d) => {
+                    if(d === 'custom') {
+                        // Just focus styling, logic handled in oninput
+                        document.querySelectorAll('[data-dur]').forEach(b => b.classList.remove('selected'));
+                        document.getElementById('custom-time-input').classList.add('active');
+                        // Validation logic inside check
+                        const val = document.getElementById('custom-time-input').value;
+                        if(val && val >= 5 && val <= 300) UI.setWizardDur(parseInt(val));
+                    } else {
+                         document.getElementById('custom-time-input').classList.remove('active');
+                         document.getElementById('custom-time-input').value = '';
+                         UI.setWizardDur(d);
+                    }
+                },
+                setGoalType(el, type) {
+                    document.getElementById('goal-type-grid').querySelectorAll('.goal-chip').forEach(c => c.classList.remove('selected'));
+                    el.classList.add('selected');
+                    goalState.type = type;
+                    Logic.UI.updateGoalDisplay();
+                },
+                setGoalRes(el, res) {
+                    document.getElementById('goal-resource-grid').querySelectorAll('.goal-chip').forEach(c => c.classList.remove('selected'));
+                    el.classList.add('selected');
+                    goalState.resource = res;
+                    Logic.UI.updateGoalDisplay();
+                },
+                updateGoalDisplay() {
+                    const disp = document.getElementById('generated-goal-text');
+                    const scope = document.getElementById('goal-scope-input').value.trim();
+                    
+                    if(!goalState.type || !goalState.resource) {
+                        disp.textContent = "SELECT PROTOCOL DATA";
+                        disp.style.color = "var(--text-muted)";
+                    } else {
+                        const final = `${goalState.type} : ${goalState.resource} ${scope ? ' : '+scope : ''}`;
+                        disp.textContent = final;
+                        disp.style.color = "var(--accent-lock)";
+                    }
+                }
             }
         };
 
         const UI = {
             wizard: { subject: null, chapter: null, mode: 'normal', duration: 25 },
-            autopsy: { quality: 2, mistake: false },
+            autopsy: { mistake: false, calculatedGrade: 'C' },
 
             init() {
                 const btnInit = document.getElementById('btn-init-session');
@@ -662,9 +1024,10 @@
                 
                 const btnLaunch = document.getElementById('btn-setup-launch');
                 if(btnLaunch) btnLaunch.onclick = () => {
-                    const goalInput = document.getElementById('session-goal-input');
-                    const goal = goalInput ? goalInput.value.trim() : '';
-                    Logic.Session.preFlight(this.wizard.subject, this.wizard.chapter, this.wizard.mode, this.wizard.duration, goal);
+                    const disp = document.getElementById('generated-goal-text').textContent;
+                    // Ensure valid goal
+                    if(disp.includes("SELECT PROTOCOL")) { alert("Protocol Incomplete."); return; }
+                    Logic.Session.preFlight(this.wizard.subject, this.wizard.chapter, this.wizard.mode, this.wizard.duration, disp);
                 };
                 
                 const btnPause = document.getElementById('btn-pause-session');
@@ -678,26 +1041,36 @@
                 
                 document.querySelectorAll('.overlay').forEach(ov => {
                     ov.addEventListener('click', (e) => { 
-                        if(e.target === ov && ov.id !== 'overlay-tutorial' && !State.session.active) this.closeOverlays(); 
+                        if(e.target === ov && ov.id !== 'overlay-tutorial' && ov.id !== 'overlay-username' && ov.id !== 'overlay-autopsy' && !State.session.active) this.closeOverlays(); 
                     });
                 });
-                
-                document.querySelectorAll('[data-qual]').forEach(b => {
-                    b.onclick = (e) => { this.autopsy.quality=parseInt(e.target.dataset.qual); document.querySelectorAll('[data-qual]').forEach(x=>x.classList.remove('selected')); e.target.classList.add('selected'); };
-                });
+            },
+
+            updateUsername(name) {
+                document.querySelectorAll('.user-name-target').forEach(el => el.textContent = name);
+                document.title = `RANKLOCK DISCIPLINE | ${name.toUpperCase()}`;
+            },
+
+            toggleSidebar() {
+                document.getElementById('main-layout').classList.toggle('sidebar-collapsed');
             },
 
             renderAll() { this.renderStats(); this.renderMap(); this.renderDebts(); this.renderLogs(); this.populateManagerSelect(); this.updateSessionView(); },
 
             renderStats() {
-                const rt = Logic.Rank.getTitle(State.rank);
+                const rankData = Logic.Rank.getData(State.rank);
                 const displayRank = document.getElementById('display-rank');
                 const displayRankTitle = document.getElementById('display-rank-title');
-                if(displayRank) displayRank.textContent = State.rank;
-                if(displayRankTitle) displayRankTitle.textContent = rt;
+                const perkBadge = document.getElementById('rank-perk-badge');
                 
-                let prev=0, next=100;
-                for(let r of CONSTANTS.RANKS) { if(r.t<=State.rank) prev=r.t; if(r.t>State.rank){next=r.t; break;} }
+                if(displayRank) displayRank.textContent = State.rank;
+                if(displayRankTitle) displayRankTitle.textContent = rankData.title;
+                
+                let next = 100;
+                for(let r of CONSTANTS.RANKS) { if(r.t > State.rank){ next = r.t; perkBadge.textContent = `NEXT: ${r.perk.toUpperCase()}`; break; } }
+                if(State.rank >= 100000) perkBadge.textContent = "AUTHORITY ABSOLUTE";
+
+                const prev = CONSTANTS.RANKS[Logic.Rank.getRankIndex(State.rank)].t;
                 const perc = ((State.rank-prev)/(next-prev))*100;
                 const rankBarFill = document.getElementById('rank-bar-fill');
                 const rankNextVal = document.getElementById('rank-next-val');
@@ -708,11 +1081,11 @@
                 const dailyQualEl = document.getElementById('stat-daily-quality');
                 if(dailyQualEl) dailyQualEl.textContent = `${h}h ${m}m Focus`;
                 
-                const intEl = document.getElementById('stat-integrity');
-                const intVal = State.session.active ? State.session.integrity : 100;
+                // GLOBAL INTEGRITY IN HEADER
+                const intEl = document.getElementById('stat-global-integrity');
                 if(intEl) {
-                    intEl.textContent = `${intVal}%`;
-                    intEl.className = `stat-value tabular ${intVal > 80 ? 'integrity-ok' : (intVal > 50 ? 'integrity-warn' : 'integrity-crit')}`;
+                    intEl.textContent = `${Math.floor(State.systemIntegrity)}%`;
+                    intEl.className = `stat-value tabular ${State.systemIntegrity > 80 ? 'integrity-ok' : (State.systemIntegrity > 50 ? 'integrity-warn' : 'integrity-crit')}`;
                 }
                 
                 const streakEl = document.getElementById('stat-streak');
@@ -744,7 +1117,14 @@
                         if(stats.xp>0) badges.push(`<span style="color:var(--accent-succ);">XP:${stats.xp}</span>`);
                         
                         row.innerHTML = `<span style="font-size:0.85rem; color:var(--text-secondary);">${ch}</span> <div style="font-size:0.7rem;">${badges.join(' ')}</div>`;
-                        row.onclick = () => this.quickStart(s.id, s.name, ch);
+                        
+                        row.onclick = () => {
+                            if(stats.debt > 0 && State.rank >= 1500) {
+                                Logic.Chapter.buyoutDebt(s.id, ch);
+                            } else {
+                                this.quickStart(s.id, s.name, ch);
+                            }
+                        };
                         chList.appendChild(row);
                     });
                     g.appendChild(h); g.appendChild(chList); c.appendChild(g);
@@ -776,12 +1156,47 @@
                 const c = document.getElementById('recent-logs-container'); 
                 if(!c) return;
                 c.innerHTML = '';
-                State.logs.slice(0, 10).forEach(l => {
+                State.logs.slice(0, 10).forEach((l, idx) => {
                     const d = document.createElement('div'); d.className = 'log-item';
-                    d.style.borderLeftColor = l.quality >= 80 ? 'var(--accent-succ)' : 'var(--accent-warn)';
-                    d.innerHTML = `<div style="display:flex; justify-content:space-between; font-weight:700;"><span>${l.chapter}</span><span>${Math.floor(l.duration/60)}m</span></div><div style="font-size:0.65rem; color:var(--text-muted);">${new Date(l.date).toLocaleDateString()} • I:${l.integrity}%</div>`;
+                    
+                    let color = 'var(--text-muted)';
+                    if(l.grade === 'S') color = 'var(--accent-gold)';
+                    if(l.grade === 'A') color = 'var(--accent-succ)';
+                    if(l.grade === 'F') color = 'var(--accent-crit)';
+                    
+                    d.style.borderLeftColor = color;
+                    d.innerHTML = `<div style="display:flex; justify-content:space-between; font-weight:700;"><span>${l.chapter}</span><span style="color:${color}">${l.grade || '-'}</span></div><div style="font-size:0.65rem; color:var(--text-muted);">${new Date(l.date).toLocaleDateString()} • I:${l.integrity}%</div>`;
+                    
+                    d.onclick = () => this.showLogDetails(idx);
                     c.appendChild(d);
                 });
+            },
+            
+            showLogDetails(idx) {
+                const log = State.logs[idx];
+                const content = document.getElementById('log-details-content');
+                if(!log || !content) return;
+                
+                let gradeClass = `grade-${log.grade}`;
+                
+                content.innerHTML = `
+                    <div style="text-align:center; padding: 20px 0; border-bottom: 1px solid var(--border-ui);">
+                        <div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom: 5px;">SYSTEM EVALUATION</div>
+                        <div class="grade-badge ${gradeClass}" style="font-size:4rem;">${log.grade || 'N/A'}</div>
+                        <div style="margin-top:10px; font-weight:700; color:var(--text-primary);">${log.chapter}</div>
+                    </div>
+                    <div style="padding: 20px 0; display:grid; grid-template-columns: 1fr 1fr; gap:10px; border-bottom: 1px solid var(--border-ui);">
+                        <div class="stat-item"><span class="stat-label">DURATION</span><span class="stat-value">${Math.floor(log.duration/60)}m</span></div>
+                        <div class="stat-item"><span class="stat-label">INTEGRITY</span><span class="stat-value ${log.integrity<50?'integrity-crit':'integrity-ok'}">${log.integrity}%</span></div>
+                        <div class="stat-item"><span class="stat-label">PAUSES</span><span class="stat-value">${log.pauses || 0}</span></div>
+                        <div class="stat-item"><span class="stat-label">DATE</span><span class="stat-value">${new Date(log.date).toLocaleDateString()}</span></div>
+                    </div>
+                    <div style="padding: 20px 0;">
+                        <div style="font-size:0.7rem; color:var(--text-muted); font-weight:700; margin-bottom:10px;">KNOWLEDGE CRYSTALLIZATION</div>
+                        <div style="background:var(--bg-elevated); padding:15px; border-radius:var(--radius-sm); font-size:0.9rem; line-height:1.5;">${log.note || 'No data recorded.'}</div>
+                    </div>
+                `;
+                this.openOverlay('overlay-log-details');
             },
 
             quickStart(subId, subName, chapter) {
@@ -795,8 +1210,12 @@
 
             resetWizard() { 
                 this.wizard = { subject: null, chapter: null, mode: 'normal', duration: 25 }; 
-                const goalInput = document.getElementById('session-goal-input');
-                if(goalInput) goalInput.value = ''; 
+                // Reset Goal Chips
+                goalState = { type: null, resource: null };
+                document.querySelectorAll('.goal-chip').forEach(c => c.classList.remove('selected'));
+                document.getElementById('goal-scope-input').value = '';
+                document.getElementById('generated-goal-text').textContent = 'SELECT PROTOCOL';
+                document.getElementById('generated-goal-text').style.color = 'var(--text-muted)';
                 this.renderWizardSubjects(); 
             },
             
@@ -804,6 +1223,32 @@
                 document.querySelectorAll('.overlay').forEach(o => o.style.display='none'); 
                 const ov = document.getElementById(id);
                 if(ov) ov.style.display = 'flex'; 
+                
+                if(id === 'overlay-setup') {
+                    // Check Hard Mode Unlock
+                    const hardBtn = document.getElementById('btn-mode-hard');
+                    const hardMeta = document.getElementById('hard-mode-meta');
+                    if(State.rank < CONSTANTS.HARD_MODE_REQ) {
+                        hardBtn.classList.add('locked');
+                        hardMeta.textContent = `LOCKED. REQ: ${CONSTANTS.HARD_MODE_REQ} XP`;
+                    } else {
+                        hardBtn.classList.remove('locked');
+                        hardMeta.textContent = `No pause. Sidebar hidden.`;
+                    }
+                }
+                
+                if(id === 'overlay-autopsy') {
+                    // Calculate Grade immediately
+                    this.autopsy.calculatedGrade = Logic.Session.calculateGrade();
+                    document.getElementById('auto-grade-display').textContent = this.autopsy.calculatedGrade;
+                    document.getElementById('auto-grade-display').className = `grade-badge grade-${this.autopsy.calculatedGrade}`;
+                    
+                    document.getElementById('auto-integrity-display').textContent = `${State.session.integrity}%`;
+                    document.getElementById('auto-pauses-display').textContent = State.session.pauses;
+                    document.getElementById('auto-duration-display').textContent = `${Math.floor((State.session.total - State.session.remaining)/60)}m`;
+                    
+                    document.getElementById('btn-autopsy-submit').disabled = true;
+                }
             },
             closeOverlays() { document.querySelectorAll('.overlay').forEach(o => o.style.display='none'); },
             openMap() { this.renderMap(); this.openOverlay('overlay-map'); },
@@ -855,7 +1300,14 @@
             },
 
             setWizardMode(m) { this.wizard.mode = m; document.querySelectorAll('[data-mode]').forEach(b => b.classList.toggle('selected', b.dataset.mode === m)); },
-            setWizardDur(d) { this.wizard.duration = d; document.querySelectorAll('[data-dur]').forEach(b => b.classList.toggle('selected', parseInt(b.dataset.dur) === d)); },
+            setWizardDur(d) { 
+                this.wizard.duration = d; 
+                // Clear custom input if preset selected
+                if(typeof d === 'number') {
+                    document.getElementById('custom-time-input').value = '';
+                    document.querySelectorAll('[data-dur]').forEach(b => b.classList.toggle('selected', parseInt(b.dataset.dur) === d)); 
+                }
+            },
             
             populateManagerSelect() {
                 const s = document.getElementById('manager-subject-select'); 
@@ -869,10 +1321,13 @@
                 const btnInit = document.getElementById('btn-init-session');
                 const btnAbort = document.getElementById('btn-emergency-exit');
                 const btnPause = document.getElementById('btn-pause-session');
+                const overlay = document.getElementById('integrity-visual-overlay');
+                const badge = document.getElementById('session-integrity-badge');
+                const badgeVal = document.getElementById('session-integrity-val');
                 
                 if(State.session.active) {
                     const sn = State.subjects.find(s=>s.id===State.session.subjectId)?.name || 'Unknown';
-                    const goalHtml = State.session.goal ? `<div class="context-goal">GOAL: ${State.session.goal}</div>` : '';
+                    const goalHtml = State.session.goal ? `<div class="context-goal">MISSION: ${State.session.goal}</div>` : '';
                     if(metaEl) metaEl.innerHTML = `<div class="context-subject">${sn}</div><div class="context-chapter">${State.session.chapter}</div>${goalHtml}`;
                     if(btnInit) btnInit.classList.add('hidden');
                     if(btnAbort) btnAbort.classList.remove('hidden');
@@ -880,21 +1335,32 @@
                         if(State.session.mode==='normal') { btnPause.classList.remove('hidden'); btnPause.textContent = State.session.paused ? "RESUME" : "PAUSE"; }
                         else btnPause.classList.add('hidden');
                     }
+                    
+                    // Integrity Badge
+                    if(badge && badgeVal) {
+                        badge.classList.add('active');
+                        badgeVal.textContent = `${State.session.integrity}%`;
+                        badgeVal.style.color = State.session.integrity > 80 ? 'var(--accent-succ)' : 'var(--accent-crit)';
+                    }
+
+                    // Visual integrity state
+                    const integ = State.session.integrity;
+                    overlay.style.opacity = integ < 50 ? (0.8 - (integ/100)) : 0;
+                    if(integ < 40) overlay.style.backgroundColor = `rgba(239, 68, 68, ${0.3 - (integ/200)})`; // Red tint
+                    
                     this.updateStats(); 
                 } else {
                     if(metaEl) metaEl.innerHTML = `<div class="context-subject">SYSTEM IDLE</div><div class="context-chapter">Ready for initialization</div>`;
                     if(btnInit) btnInit.classList.remove('hidden');
                     if(btnAbort) btnAbort.classList.add('hidden');
                     if(btnPause) btnPause.classList.add('hidden');
+                    if(overlay) { overlay.style.opacity = 0; overlay.style.backgroundColor = 'transparent'; }
+                    if(badge) badge.classList.remove('active');
+                    
                     const timerDisp = document.getElementById('timer-display');
                     if(timerDisp) {
                         timerDisp.textContent = "00:00";
                         timerDisp.style.opacity = 1;
-                    }
-                    const intStatEl = document.getElementById('stat-integrity');
-                    if(intStatEl) {
-                        intStatEl.textContent = "100%";
-                        intStatEl.className = "stat-value tabular integrity-ok";
                     }
                 }
             },
@@ -916,11 +1382,18 @@
                 setTimeout(()=>t.style.display='none', 3000);
             },
 
-            flashRed() {
+            flashRed(currentIntegrity) {
                 const o = document.getElementById('integrity-visual-overlay');
                 if(!o) return;
-                o.style.borderWidth = '10px'; o.style.boxShadow = 'inset 0 0 50px var(--accent-crit)';
-                setTimeout(() => { o.style.borderWidth = '0px'; o.style.boxShadow = 'none'; }, 300);
+                const severity = 100 - currentIntegrity;
+                o.style.opacity = 1;
+                o.style.borderWidth = `${10 + (severity/5)}px`; 
+                o.style.boxShadow = `inset 0 0 ${50 + severity}px var(--accent-crit)`;
+                setTimeout(() => { 
+                    o.style.borderWidth = '0px'; 
+                    o.style.boxShadow = 'none'; 
+                    o.style.opacity = currentIntegrity < 50 ? (0.8 - (currentIntegrity/100)) : 0;
+                }, 300);
             },
 
             toggleMistake(v) { 
@@ -931,23 +1404,66 @@
                 if(btnYes) btnYes.classList.toggle('selected',v); 
             },
 
+            validateAutopsy() {
+                const val = document.getElementById('autopsy-summary').value;
+                const btn = document.getElementById('btn-autopsy-submit');
+                if(val.length > 10) btn.disabled = false;
+                else btn.disabled = true;
+            },
+
             submitAutopsy() {
                 const autopsySum = document.getElementById('autopsy-summary');
                 const note = autopsySum ? autopsySum.value : '';
                 const dur = State.session.total - State.session.remaining;
-                const qMod = this.autopsy.quality===3 ? 1.2 : (this.autopsy.quality===1 ? 0.8 : 1);
-                const mMod = State.session.mode==='hard' ? 1.5 : 1;
-                const iMod = State.session.integrity / 100; 
                 
-                const pts = Math.floor((dur/60)*10*qMod*mMod*iMod);
+                // Calculate Points based on Grade
+                const grade = this.autopsy.calculatedGrade;
+                let qMod = 1.0;
+                if(grade === 'S') qMod = 1.3;
+                if(grade === 'A') qMod = 1.1;
+                if(grade === 'B') qMod = 1.0;
+                if(grade === 'C') qMod = 0.8;
+                if(grade === 'F') qMod = 0.5;
+
+                const mMod = State.session.mode==='hard' ? 1.5 : 1;
+                let pts = Math.floor((dur/60)*10*qMod*mMod);
+                
+                // --- ACTIVE DEBT LOGIC ---
+                const chStats = Logic.Chapter.get(State.session.subjectId, State.session.chapter);
+                const hasDebt = chStats.debt > 0;
+                
+                if(hasDebt) {
+                    pts = Math.floor(pts * 0.5); // 50% Penalty
+                    UI.showToast("DEBT PENALTY: 50% XP REDUCTION");
+                }
                 
                 State.dailySeconds += dur;
                 Logic.Rank.add(pts);
                 Logic.Chapter.addXP(State.session.subjectId, State.session.chapter, pts);
-                if(this.autopsy.mistake) Logic.Chapter.addDebt(State.session.subjectId, State.session.chapter);
-                else Logic.Chapter.payDebt(State.session.subjectId, State.session.chapter);
+                
+                if(this.autopsy.mistake) {
+                    Logic.Chapter.addDebt(State.session.subjectId, State.session.chapter);
+                } else if (hasDebt && (grade === 'A' || grade === 'S')) {
+                    // CLEARANCE PROTOCOL: High Grade + No Mistakes = Clear Debt
+                    Logic.Chapter.payDebt(State.session.subjectId, State.session.chapter);
+                    UI.showToast("OUTSTANDING PERFORMANCE: DEBT CLEARED");
+                }
 
-                State.logs.unshift({ date: Date.now(), chapter: State.session.chapter, duration: dur, quality: (this.autopsy.quality/3)*100, integrity: State.session.integrity, note: note });
+                // REPAIR SYSTEM INTEGRITY ON SUCCESS
+                if(grade === 'S') State.systemIntegrity = Math.min(100, State.systemIntegrity + 2);
+                if(grade === 'A') State.systemIntegrity = Math.min(100, State.systemIntegrity + 1);
+                // Damage on F grade
+                if(grade === 'F') State.systemIntegrity = Math.max(0, State.systemIntegrity - 2);
+
+                State.logs.unshift({ 
+                    date: Date.now(), 
+                    chapter: State.session.chapter, 
+                    duration: dur, 
+                    grade: grade,
+                    integrity: State.session.integrity, 
+                    pauses: State.session.pauses,
+                    note: note 
+                });
                 
                 if(autopsySum) autopsySum.value='';
                 this.closeOverlays(); UI.renderAll(); Storage.save();
@@ -958,4 +1474,3 @@
     </script>
 </body>
 </html>
-
