@@ -1,21 +1,21 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RANKLOCK DISCIPLINE v8.2 | SYSTEM READY</title>
+    <title>RANKLOCK DISCIPLINE v8.5 | SYSTEM READY</title>
     <meta name="author" content="Ojas Kadam">
     <meta name="description" content="RankLock is a hardcore study timer for JEE 2026 aspirants. Hard Focus mode, live competition, discipline-based study tracking. Built for serious students.">
-    <meta name="keywords" content="JEE study timer, JEE 2026 timer, hard focus timer, study timer for IIT JEE, RankLock">
     
     <!-- 
-        RANKLOCK DISCIPLINE SYSTEM v8.2
+        RANKLOCK DISCIPLINE SYSTEM v8.5
         Architect: Ojas Kadam
         Updates:
-        1. Protocol Layout Fix (Scrollable Wizard)
-        2. Active Debt Logic (XP Penalty + Clearance Criteria)
-        3. Comprehensive Tutorial (5 Steps)
-        4. Manual Help Button
+        1. Full Screen Mode (Toggle + 'F' Shortcut)
+        2. Functional Global Integrity Repair (S/A/B Grades increase health)
+        3. Enhanced Debt Mechanics (Immediate visual feedback & penalties)
+        4. Mobile Black Screen Fix Preserved
     -->
     <style>
         /* --- CSS ARCHITECTURE: RANKLOCK DESIGN LANGUAGE (RDL) --- */
@@ -24,9 +24,10 @@
             --bg-surface: #0f0f16;
             --bg-elevated: #1a1a24;
             
-            --text-primary: #f0f0f5;
-            --text-secondary: #a0a0b0;
-            --text-muted: #555565;
+            /* High Contrast & Readability */
+            --text-primary: #ffffff;      
+            --text-secondary: #d1d5db;    
+            --text-muted: #6b7280;        
             
             --accent-primary: #3b82f6;
             --accent-warn: #f59e0b;
@@ -36,7 +37,7 @@
             --accent-gold: #ffd700;
             --accent-lock: #06b6d4; 
             
-            --border-ui: #2a2a35;
+            --border-ui: #374151;
             
             --font-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
@@ -68,9 +69,9 @@
         .nav-left { display: flex; align-items: center; gap: 16px; }
         .nav-logo { font-size: 1.1rem; font-weight: 800; display: flex; align-items: center; gap: 12px; letter-spacing: 0.05em; }
         .nav-logo span { font-size: 0.6rem; background: var(--accent-lock); padding: 2px 6px; border-radius: var(--radius-sm); color: var(--bg-deep); font-weight: 900; }
-        .nav-right { display: flex; gap: 16px; align-items: center; }
+        .nav-right { display: flex; gap: 12px; align-items: center; }
         
-        .stat-item { text-align: right; display: flex; flex-direction: column; justify-content: center; }
+        .stat-item { text-align: right; display: flex; flex-direction: column; justify-content: center; margin-right: 8px; }
         .stat-label { font-size: 0.6rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
         .stat-value { font-size: 0.9rem; font-weight: 600; }
         
@@ -79,14 +80,26 @@
         .stat-value.integrity-warn { color: var(--accent-warn); }
         .stat-value.integrity-crit { color: var(--accent-crit); animation: glitchText 0.5s infinite; }
 
-        .icon-btn { background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 8px; border-radius: var(--radius-sm); transition: 0.2s; }
+        .icon-btn { background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 8px; border-radius: var(--radius-sm); transition: 0.2s; display: flex; align-items: center; justify-content: center;}
         .icon-btn:hover { background: var(--bg-elevated); color: var(--text-primary); }
         
         /* Sidebar Toggle Button */
-        .sidebar-toggle { border: 1px solid var(--border-ui); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-sm); cursor: pointer; }
-        .sidebar-toggle:hover { background: var(--bg-elevated); }
+        .sidebar-toggle { 
+            border: 1px solid var(--border-ui); 
+            width: 32px; height: 32px; 
+            display: flex; align-items: center; justify-content: center; 
+            border-radius: var(--radius-sm); cursor: pointer; 
+            color: var(--text-muted); 
+            background: transparent;
+            transition: all 0.2s;
+        }
+        .sidebar-toggle:hover { 
+            background: var(--bg-elevated); 
+            color: var(--text-primary);
+            border-color: var(--text-secondary);
+        }
 
-        /* --- Main Content (Desktop Grid) --- */
+        /* --- Main Content --- */
         main { flex: 1; padding: 16px; display: grid; grid-template-columns: 320px 1fr; gap: 16px; overflow: hidden; transition: all 0.3s ease; }
         main.sidebar-collapsed { grid-template-columns: 0px 1fr; gap: 0; }
         main.sidebar-collapsed .sidebar { opacity: 0; pointer-events: none; }
@@ -100,19 +113,18 @@
 
         .rank-box { text-align: center; padding: 10px 0; }
         .rank-value { font-size: 3rem; font-weight: 900; font-family: var(--font-mono); color: var(--accent-lock); line-height: 1; }
-        .rank-label { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.1em; margin-top: 4px; }
+        .rank-label { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.1em; margin-top: 4px; color: var(--text-primary); }
         .rank-progress { height: 4px; background: var(--bg-elevated); margin-top: 12px; border-radius: 2px; overflow: hidden; }
         .rank-bar { height: 100%; background: var(--accent-lock); width: 0%; transition: width 0.5s ease; }
-        
         .rank-perk-badge { font-size: 0.65rem; background: rgba(6, 182, 212, 0.1); color: var(--accent-lock); padding: 4px 8px; border-radius: 10px; display: inline-block; margin-top: 8px; border: 1px solid rgba(6, 182, 212, 0.3); }
 
-        .architect-tag { text-align: center; font-size: 0.65rem; color: var(--text-muted); padding: 10px; opacity: 0.6; }
+        .architect-tag { text-align: center; font-size: 0.65rem; color: var(--text-muted); padding: 10px; opacity: 0.8; }
 
         /* --- Central Stage --- */
         .stage { display: flex; flex-direction: column; height: 100%; position: relative; }
         .focus-container { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--bg-surface); border: 1px solid var(--border-ui); border-radius: var(--radius-lg); position: relative; overflow: hidden; transition: border-color 0.5s; }
 
-        #timer-display { font-size: 9rem; font-weight: 800; font-family: var(--font-mono); z-index: 2; line-height: 1; }
+        #timer-display { font-size: 9rem; font-weight: 800; font-family: var(--font-mono); z-index: 2; line-height: 1; color: var(--text-primary); }
         .focus-bg-pulse { position: absolute; width: 600px; height: 600px; background: radial-gradient(circle, var(--accent-lock) 0%, transparent 70%); opacity: 0; border-radius: 50%; pointer-events: none; }
 
         /* Visual Overlays */
@@ -143,38 +155,15 @@
         .btn-crit:hover { background: var(--accent-crit); color: white; }
         .btn-block { width: 100%; }
         
-        .file-input { display: none; }
-        
         /* Custom Input */
         .custom-time-input { background: var(--bg-deep); border: 1px solid var(--border-ui); color: var(--text-primary); border-radius: var(--radius-md); text-align: center; font-family: var(--font-mono); font-weight: 700; width: 100%; height: 100%; min-height: 52px; font-size: 1rem; transition: border-color 0.2s; }
         .custom-time-input:focus { border-color: var(--accent-lock); outline: none; }
-        .custom-time-input.active { border-color: var(--accent-lock); background: rgba(6, 182, 212, 0.05); }
 
         /* --- Modals --- */
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); backdrop-filter: blur(8px); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px; }
         
-        /* Scrollable Modal Fix */
-        .modal { 
-            background: var(--bg-surface); 
-            border: 1px solid var(--border-ui); 
-            border-radius: var(--radius-lg); 
-            width: 100%; 
-            max-width: 600px; 
-            padding: 32px; 
-            position: relative; 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5); 
-            animation: modalIn 0.3s ease; 
-            display: flex; 
-            flex-direction: column; 
-            max-height: 90vh; /* Allow max height */
-        }
-        
-        .modal-body-scroll {
-            flex: 1;
-            overflow-y: auto;
-            padding-right: 4px; /* Space for scrollbar */
-        }
-
+        .modal { background: var(--bg-surface); border: 1px solid var(--border-ui); border-radius: var(--radius-lg); width: 100%; max-width: 600px; padding: 32px; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.5); animation: modalIn 0.3s ease; display: flex; flex-direction: column; max-height: 90vh; }
+        .modal-body-scroll { flex: 1; overflow-y: auto; padding-right: 4px; }
         .modal.modal-xl { max-width: 900px; height: 85vh; padding: 0; overflow: hidden; }
         @keyframes modalIn { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
         @keyframes pulse { 0% { opacity: 0.5; transform: scale(0.95); } 50% { opacity: 1; transform: scale(1.05); } 100% { opacity: 0.5; transform: scale(0.95); } }
@@ -184,6 +173,7 @@
         .modal-title { font-size: 1.5rem; font-weight: 800; color: var(--text-primary); }
         .modal-desc { color: var(--text-secondary); font-size: 0.9rem; }
         .close-btn { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; padding: 0 8px; line-height: 1; }
+        .close-btn:hover { color: var(--text-primary); }
 
         /* Wizard */
         .wizard-step { display: none; }
@@ -194,17 +184,17 @@
         .choice-btn { background: var(--bg-elevated); border: 1px solid var(--border-ui); padding: 16px; border-radius: var(--radius-md); cursor: pointer; text-align: center; transition: 0.2s; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .choice-btn:hover { background: #252530; border-color: var(--text-muted); }
         .choice-btn.selected { border-color: var(--accent-lock); background: rgba(6, 182, 212, 0.1); color: var(--accent-lock); }
+        .choice-title { color: var(--text-primary); font-weight: 700; margin-bottom: 4px; }
+        .choice-meta { color: var(--text-muted); font-size: 0.75rem; }
         
         .choice-btn.locked { opacity: 0.5; cursor: not-allowed; border-style: dashed; }
-        .choice-btn.locked:hover { background: var(--bg-elevated); border-color: var(--border-ui); }
-        
         .choice-btn.has-debt-warn { border-color: var(--accent-warn); color: var(--accent-warn); background: rgba(245, 158, 11, 0.05); }
         .choice-btn.has-debt-warn::after { content: "⚠️ ACTIVE DEBT"; position: absolute; top: 4px; right: 4px; font-size: 0.6rem; font-weight: 700; color: var(--accent-warn); }
 
         /* Goal Selection Chips */
         .goal-chip-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
         .goal-chip { background: var(--bg-deep); border: 1px solid var(--border-ui); padding: 10px; font-size: 0.7rem; font-weight: 700; color: var(--text-secondary); cursor: pointer; text-align: center; border-radius: var(--radius-sm); transition: 0.2s; }
-        .goal-chip:hover { border-color: var(--text-muted); }
+        .goal-chip:hover { border-color: var(--text-muted); color: var(--text-primary); }
         .goal-chip.selected { background: var(--accent-lock); color: var(--bg-deep); border-color: var(--accent-lock); }
         
         .generated-goal-display { background: var(--bg-deep); padding: 12px; border: 1px dashed var(--border-ui); color: var(--accent-lock); font-family: var(--font-mono); font-size: 0.85rem; margin-bottom: 20px; border-radius: var(--radius-sm); text-align: center; }
@@ -214,15 +204,16 @@
         .map-sidebar { width: 250px; background: var(--bg-deep); border-right: 1px solid var(--border-ui); padding: 20px; display: flex; flex-direction: column; gap: 20px; }
         .map-content { flex: 1; padding: 20px; overflow-y: auto; background: var(--bg-surface); }
         .subject-group { border: 1px solid var(--border-ui); border-radius: var(--radius-sm); margin-bottom: 8px; background: var(--bg-elevated); }
-        .subject-header { padding: 12px; font-weight: 700; font-size: 0.9rem; display: flex; justify-content: space-between; cursor: pointer; }
+        .subject-header { padding: 12px; font-weight: 700; font-size: 0.9rem; display: flex; justify-content: space-between; cursor: pointer; color: var(--text-primary); }
         .subject-chapters { display: none; border-top: 1px solid var(--border-ui); }
         .subject-group.expanded .subject-chapters { display: block; }
-        .chapter-item { padding: 10px 16px; border-bottom: 1px solid var(--border-ui); display: flex; justify-content: space-between; cursor: pointer; }
+        .chapter-item { padding: 10px 16px; border-bottom: 1px solid var(--border-ui); display: flex; justify-content: space-between; cursor: pointer; color: var(--text-secondary); }
+        .chapter-item:hover { background: rgba(255,255,255,0.05); color: var(--text-primary); }
         .chapter-item.has-debt { border-left: 3px solid var(--accent-crit); background: rgba(239,68,68,0.05); }
 
         .log-list { display: flex; flex-direction: column; gap: 8px; font-size: 0.8rem; }
-        .log-item { background: var(--bg-elevated); padding: 10px; border-radius: var(--radius-sm); border-left: 2px solid var(--border-ui); cursor: pointer; transition: 0.2s; }
-        .log-item:hover { background: #252530; transform: translateX(2px); }
+        .log-item { background: var(--bg-elevated); padding: 10px; border-radius: var(--radius-sm); border-left: 2px solid var(--border-ui); cursor: pointer; transition: 0.2s; color: var(--text-secondary); }
+        .log-item:hover { background: #252530; transform: translateX(2px); color: var(--text-primary); }
 
         /* Report Card Grades */
         .grade-badge { font-family: var(--font-mono); font-weight: 900; font-size: 2rem; color: var(--text-primary); }
@@ -249,61 +240,20 @@
 
         input, select, textarea { width: 100%; background: var(--bg-deep); border: 1px solid var(--border-ui); color: var(--text-primary); padding: 10px; border-radius: var(--radius-sm); margin-bottom: 10px; font-family: inherit; }
         textarea:focus, input:focus { outline: 1px solid var(--accent-lock); border-color: transparent; }
-
-        .user-highlight { color: var(--accent-lock); text-transform: uppercase; font-weight: 700; }
+        input::placeholder { color: var(--text-muted); }
 
         /* --- MOBILE FIELD OPERATOR DISPLAY --- */
         @media (max-width: 1024px) {
-            /* Transform Layout */
-            main { grid-template-columns: 1fr; height: calc(100vh - 60px); }
-            
-            /* Sidebar becomes a drawer/overlay on mobile */
-            .sidebar { 
-                position: fixed; 
-                top: 60px; 
-                left: 0; 
-                width: 100%; 
-                height: calc(100% - 60px); 
-                background: var(--bg-deep); 
-                z-index: 90; 
-                padding: 16px;
-                transform: translateX(-100%);
-                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                border-right: none;
-            }
-            main:not(.sidebar-collapsed) .sidebar {
-                transform: translateX(0);
-                opacity: 1;
-                pointer-events: auto;
-            }
-            
-            /* Hide Sidebar content when collapsed to prevent interaction */
+            main, main.sidebar-collapsed { grid-template-columns: 1fr !important; height: calc(100vh - 60px); }
+            .sidebar { position: fixed; top: 60px; left: 0; width: 100%; height: calc(100% - 60px); background: var(--bg-deep); z-index: 90; padding: 16px; transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); border-right: none; }
+            main:not(.sidebar-collapsed) .sidebar { transform: translateX(0); opacity: 1; pointer-events: auto; }
             main.sidebar-collapsed .sidebar { opacity: 0; pointer-events: none; }
-            
-            /* Map Layout adjustment */
             .map-layout { flex-direction: column; }
             .map-sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border-ui); height: auto; max-height: 40%; overflow-y: auto;}
             .map-content { flex: 1; }
-
-            /* Timer sizing */
             #timer-display { font-size: 20vw; }
-            
-            /* Control Dock */
-            .controls {
-                position: absolute;
-                bottom: 32px;
-                left: 16px;
-                right: 16px;
-                flex-direction: row;
-                margin-top: 0;
-            }
-            .controls .btn {
-                flex: 1;
-                height: 56px;
-                font-size: 1rem;
-            }
-
-            /* Adjust Modal sizing */
+            .controls { position: absolute; bottom: 32px; left: 16px; right: 16px; flex-direction: row; margin-top: 0; }
+            .controls .btn { flex: 1; height: 56px; font-size: 1rem; }
             .modal { padding: 20px; max-height: 95vh; }
             .goal-chip-grid { grid-template-columns: repeat(2, 1fr); }
             .choice-grid { grid-template-columns: 1fr; }
@@ -318,7 +268,7 @@
         <nav>
             <div class="nav-left">
                 <button class="sidebar-toggle" onclick="UI.toggleSidebar()">☰</button>
-                <div class="nav-logo">RANKLOCK <span>v8.2</span></div>
+                <div class="nav-logo">RANKLOCK <span>v8.5</span></div>
             </div>
             <div class="nav-right">
                 <div class="stat-item">
@@ -330,11 +280,15 @@
                     <div class="stat-label">Sys. Integrity</div>
                     <div class="stat-value tabular integrity-ok" id="stat-global-integrity">100%</div>
                 </div>
+                <!-- FULLSCREEN TOGGLE -->
+                <button class="icon-btn" onclick="Logic.System.toggleFullscreen()" title="Fullscreen (F)">
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
+                </button>
                 <button class="icon-btn" onclick="UI.openSettings()">⚙</button>
             </div>
         </nav>
 
-        <main id="main-layout" class="sidebar-collapsed"> <!-- Default collapsed on mobile logic -->
+        <main id="main-layout" class="sidebar-collapsed"> 
             <!-- SIDEBAR -->
             <aside class="sidebar" id="sidebar">
                 <div class="card">
@@ -472,12 +426,12 @@
                         </div>
                     </div>
 
-                    <div class="form-label" style="margin-bottom:10px; font-weight:700; color:var(--text-secondary);">DURATION</div>
+                    <div class="form-label" style="margin-bottom:10px; font-weight:700; color:var(--text-secondary);">DURATION (MINS)</div>
                     <div class="choice-grid" style="grid-template-columns: repeat(4, 1fr);">
                         <div class="choice-btn" data-dur="25" onclick="Logic.UI.selectDuration(25)">25m</div>
                         <div class="choice-btn" data-dur="50" onclick="Logic.UI.selectDuration(50)">50m</div>
                         <div class="choice-btn" data-dur="90" onclick="Logic.UI.selectDuration(90)">90m</div>
-                        <input type="number" id="custom-time-input" class="custom-time-input" placeholder="Cust" min="5" max="300" oninput="Logic.UI.selectDuration('custom')" onfocus="Logic.UI.selectDuration('custom')">
+                        <input type="number" id="custom-time-input" class="custom-time-input" placeholder="1-600" min="1" max="600" oninput="Logic.UI.selectDuration('custom')" onfocus="Logic.UI.selectDuration('custom')">
                     </div>
 
                     <div class="flex" style="display: flex; justify-content: space-between; gap: 10px; margin-top: 2rem; padding-bottom: 10px;">
@@ -513,7 +467,7 @@
         </div>
     </div>
 
-    <!-- OVERLAY: AUTOPSY -->
+    <!-- OVERLAY: AUTOPSY (GENERATIVE REPORT) -->
     <div id="overlay-autopsy" class="overlay">
         <div class="modal">
             <div class="modal-header">
@@ -524,11 +478,14 @@
                 <div style="background: var(--bg-elevated); padding: 16px; border-radius: var(--radius-md); text-align: center;">
                     <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700; margin-bottom: 8px;">SYSTEM GRADE</div>
                     <div class="grade-badge" id="auto-grade-display">-</div>
+                    <div id="auto-analysis-text" style="font-size: 0.65rem; color: var(--text-secondary); margin-top: 8px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">ANALYZING...</div>
                 </div>
                 <div style="background: var(--bg-elevated); padding: 16px; border-radius: var(--radius-md); font-size: 0.8rem; display: flex; flex-direction: column; justify-content: center; gap: 4px;">
-                    <div style="display: flex; justify-content: space-between;"><span>SESSION INTEGRITY:</span> <span id="auto-integrity-display" style="font-weight: 700;">-</span></div>
-                    <div style="display: flex; justify-content: space-between;"><span>PAUSES:</span> <span id="auto-pauses-display" style="font-weight: 700;">-</span></div>
+                    <div style="display: flex; justify-content: space-between;"><span>INTEGRITY:</span> <span id="auto-integrity-display" style="font-weight: 700;">-</span></div>
                     <div style="display: flex; justify-content: space-between;"><span>DURATION:</span> <span id="auto-duration-display" style="font-weight: 700;">-</span></div>
+                    <div style="display: flex; justify-content: space-between;"><span>EFFICIENCY:</span> <span id="auto-efficiency-display" style="font-weight: 700;">-</span></div>
+                    <div style="border-top: 1px dashed var(--border-ui); margin: 6px 0;"></div>
+                    <div style="display: flex; justify-content: space-between; color: var(--accent-lock);"><span>PROJECTED XP:</span> <span id="auto-xp-display" style="font-weight: 700;">-</span></div>
                 </div>
             </div>
 
@@ -579,14 +536,14 @@
             <div class="tut-slide active" id="tut-step-1">
                 <div class="tut-img">🚀</div>
                 <h2 class="modal-title">System Online</h2>
-                <p class="modal-desc">RankLock v8.2 Initialized. Welcome to the discipline protocol.</p>
+                <p class="modal-desc">RankLock v8.5 Initialized. Welcome to the discipline protocol.</p>
                 <button class="btn btn-primary btn-block" style="margin-top: 30px;" onclick="Logic.Tutorial.next(2)">NEXT: INTEGRITY</button>
             </div>
             <div class="tut-slide" id="tut-step-2">
                 <div class="tut-img" style="color: var(--accent-crit); border-color: var(--accent-crit);">🛡️</div>
                 <h2 class="modal-title">Dual Integrity</h2>
                 <p class="modal-desc">
-                    <strong>Global Integrity:</strong> Your Account Health. If it drops too low, you lose rank.<br><br>
+                    <strong>Global Integrity:</strong> Your Account Health. Can be repaired by high grades (S/A/B).<br><br>
                     <strong>Session Integrity:</strong> Focus quality. Tab switching = -20%.
                 </p>
                 <button class="btn btn-primary btn-block" style="margin-top: 30px;" onclick="Logic.Tutorial.next(3)">NEXT: MISSIONS</button>
@@ -604,7 +561,7 @@
                 <div class="tut-img" style="color: var(--accent-warn); border-color: var(--accent-warn);">⚠️</div>
                 <h2 class="modal-title">Active Debts</h2>
                 <p class="modal-desc">
-                    Mistakes create Debt. <strong>Active Debt reduces XP gain by 50%</strong> for that chapter.<br><br>
+                    Mistakes create Debt immediately. <strong>Active Debt reduces XP gain by 50%</strong>.<br><br>
                     <strong>To Clear:</strong> Score Grade 'A' or 'S' with a "Clean Run" (No mistakes).
                 </p>
                 <button class="btn btn-primary btn-block" style="margin-top: 30px;" onclick="Logic.Tutorial.next(5)">NEXT: FOCUS</button>
@@ -650,7 +607,7 @@
 
     <script>
         const CONSTANTS = {
-            VERSION: 8.2,
+            VERSION: 8.5,
             APP_ID: "RANKLOCK_JEE_V8",
             RANKS: [
                 {t:0, title:"UNINITIATED", perk:"None"},
@@ -719,6 +676,9 @@
                     }
 
                     document.addEventListener('keydown', (e) => {
+                        // Avoid triggering shortcuts when typing
+                        if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
                         if (e.code === 'Space' && State.session.active && State.session.mode === 'normal') { e.preventDefault(); Logic.Session.togglePause(); }
                         if (e.code === 'Escape') {
                             const unOverlay = document.getElementById('overlay-username');
@@ -726,11 +686,24 @@
                             if (State.session.active) { if(confirm("ABORT SESSION?")) Logic.Session.abort(); }
                             else UI.closeOverlays();
                         }
+                        // Fullscreen Shortcut
+                        if (e.code === 'KeyF') { e.preventDefault(); Logic.System.toggleFullscreen(); }
                     });
 
                     document.addEventListener('visibilitychange', () => {
                         if (document.hidden && State.session.active && !State.session.paused) Logic.Session.breach("TAB SWITCH");
                     });
+                },
+                toggleFullscreen() {
+                    if (!document.fullscreenElement) {
+                        document.documentElement.requestFullscreen().catch((err) => {
+                            console.log(`Error attempting to enable fullscreen: ${err.message}`);
+                        });
+                    } else {
+                        if (document.exitFullscreen) {
+                            document.exitFullscreen();
+                        }
+                    }
                 },
                 showNameModal() {
                     const ov = document.getElementById('overlay-username');
@@ -880,7 +853,7 @@
                     
                     UI.flashRed(State.session.integrity);
                     UI.showToast(`BREACH: ${reason} (-20%)`);
-                    UI.updateStats(); 
+                    UI.updateSessionView(); 
 
                     if(State.session.integrity < 30) {
                         this.abort("CRITICAL SESSION FAILURE (<30%)");
@@ -897,15 +870,16 @@
                 },
                 abort(reason) { 
                     const r = reason || "MANUAL ABORT";
+                    
+                    const timeSpent = State.session.total - State.session.remaining;
+                    
                     State.session.active = false; 
                     document.body.classList.remove('mode-hard-focus'); 
                     State.rank = Math.max(0, State.rank - 50); 
                     
-                    // Damage Global Integrity
                     State.systemIntegrity = Math.max(0, State.systemIntegrity - 5);
                     
-                    // Log the failure
-                    State.logs.unshift({ date: Date.now(), chapter: "SYSTEM ABORT", duration: 0, quality: 0, integrity: 0, note: r, grade: "F", pauses: 0 });
+                    State.logs.unshift({ date: Date.now(), chapter: "SYSTEM ABORT", duration: timeSpent, quality: 0, integrity: 0, note: r, grade: "F", pauses: 0 });
                     
                     alert(`SESSION TERMINATED.\nReason: ${r}\nXP Gained: 0\nGlobal Integrity Damaged (-5%)`);
                     UI.renderAll(); Storage.save(); 
@@ -974,12 +948,10 @@
                 },
                 selectDuration: (d) => {
                     if(d === 'custom') {
-                        // Just focus styling, logic handled in oninput
                         document.querySelectorAll('[data-dur]').forEach(b => b.classList.remove('selected'));
                         document.getElementById('custom-time-input').classList.add('active');
-                        // Validation logic inside check
                         const val = document.getElementById('custom-time-input').value;
-                        if(val && val >= 5 && val <= 300) UI.setWizardDur(parseInt(val));
+                        if(val && val >= 1 && val <= 600) UI.setWizardDur(parseInt(val));
                     } else {
                          document.getElementById('custom-time-input').classList.remove('active');
                          document.getElementById('custom-time-input').value = '';
@@ -1025,7 +997,6 @@
                 const btnLaunch = document.getElementById('btn-setup-launch');
                 if(btnLaunch) btnLaunch.onclick = () => {
                     const disp = document.getElementById('generated-goal-text').textContent;
-                    // Ensure valid goal
                     if(disp.includes("SELECT PROTOCOL")) { alert("Protocol Incomplete."); return; }
                     Logic.Session.preFlight(this.wizard.subject, this.wizard.chapter, this.wizard.mode, this.wizard.duration, disp);
                 };
@@ -1116,7 +1087,7 @@
                         if(stats.debt>0) badges.push(`<span style="color:var(--accent-crit); font-weight:700;">DEBT:${stats.debt}</span>`);
                         if(stats.xp>0) badges.push(`<span style="color:var(--accent-succ);">XP:${stats.xp}</span>`);
                         
-                        row.innerHTML = `<span style="font-size:0.85rem; color:var(--text-secondary);">${ch}</span> <div style="font-size:0.7rem;">${badges.join(' ')}</div>`;
+                        row.innerHTML = `<span style="font-size:0.85rem;">${ch}</span> <div style="font-size:0.7rem;">${badges.join(' ')}</div>`;
                         
                         row.onclick = () => {
                             if(stats.debt > 0 && State.rank >= 1500) {
@@ -1143,7 +1114,7 @@
                         total += State.chapterStats[k].debt;
                         const d = document.createElement('div'); d.className = 'log-item';
                         d.style.borderLeftColor = 'var(--accent-crit)';
-                        d.innerHTML = `<div style="display:flex; justify-content:space-between; font-weight:700;"><span>${ch}</span><span style="color:var(--accent-crit)">x${State.chapterStats[k].debt}</span></div><div style="font-size:0.65rem; color:var(--text-secondary);">${sName.toUpperCase()}</div>`;
+                        d.innerHTML = `<div style="display:flex; justify-content:space-between; font-weight:700;"><span>${ch}</span><span style="color:var(--accent-crit)">x${State.chapterStats[k].debt}</span></div><div style="font-size:0.65rem; color:var(--text-muted);">${sName.toUpperCase()}</div>`;
                         list.appendChild(d);
                     }
                 });
@@ -1164,8 +1135,11 @@
                     if(l.grade === 'A') color = 'var(--accent-succ)';
                     if(l.grade === 'F') color = 'var(--accent-crit)';
                     
+                    const mins = Math.floor(l.duration / 60);
+                    const secs = l.duration % 60;
+                    
                     d.style.borderLeftColor = color;
-                    d.innerHTML = `<div style="display:flex; justify-content:space-between; font-weight:700;"><span>${l.chapter}</span><span style="color:${color}">${l.grade || '-'}</span></div><div style="font-size:0.65rem; color:var(--text-muted);">${new Date(l.date).toLocaleDateString()} • I:${l.integrity}%</div>`;
+                    d.innerHTML = `<div style="display:flex; justify-content:space-between; font-weight:700;"><span>${l.chapter}</span><span style="color:${color}">${l.grade || '-'}</span></div><div style="font-size:0.65rem; color:var(--text-muted);">${new Date(l.date).toLocaleDateString()} • ${mins}m ${secs}s</div>`;
                     
                     d.onclick = () => this.showLogDetails(idx);
                     c.appendChild(d);
@@ -1178,6 +1152,8 @@
                 if(!log || !content) return;
                 
                 let gradeClass = `grade-${log.grade}`;
+                const mins = Math.floor(log.duration/60);
+                const secs = log.duration % 60;
                 
                 content.innerHTML = `
                     <div style="text-align:center; padding: 20px 0; border-bottom: 1px solid var(--border-ui);">
@@ -1186,7 +1162,7 @@
                         <div style="margin-top:10px; font-weight:700; color:var(--text-primary);">${log.chapter}</div>
                     </div>
                     <div style="padding: 20px 0; display:grid; grid-template-columns: 1fr 1fr; gap:10px; border-bottom: 1px solid var(--border-ui);">
-                        <div class="stat-item"><span class="stat-label">DURATION</span><span class="stat-value">${Math.floor(log.duration/60)}m</span></div>
+                        <div class="stat-item"><span class="stat-label">DURATION</span><span class="stat-value">${mins}m ${secs}s</span></div>
                         <div class="stat-item"><span class="stat-label">INTEGRITY</span><span class="stat-value ${log.integrity<50?'integrity-crit':'integrity-ok'}">${log.integrity}%</span></div>
                         <div class="stat-item"><span class="stat-label">PAUSES</span><span class="stat-value">${log.pauses || 0}</span></div>
                         <div class="stat-item"><span class="stat-label">DATE</span><span class="stat-value">${new Date(log.date).toLocaleDateString()}</span></div>
@@ -1210,7 +1186,6 @@
 
             resetWizard() { 
                 this.wizard = { subject: null, chapter: null, mode: 'normal', duration: 25 }; 
-                // Reset Goal Chips
                 goalState = { type: null, resource: null };
                 document.querySelectorAll('.goal-chip').forEach(c => c.classList.remove('selected'));
                 document.getElementById('goal-scope-input').value = '';
@@ -1225,7 +1200,6 @@
                 if(ov) ov.style.display = 'flex'; 
                 
                 if(id === 'overlay-setup') {
-                    // Check Hard Mode Unlock
                     const hardBtn = document.getElementById('btn-mode-hard');
                     const hardMeta = document.getElementById('hard-mode-meta');
                     if(State.rank < CONSTANTS.HARD_MODE_REQ) {
@@ -1244,9 +1218,54 @@
                     document.getElementById('auto-grade-display').className = `grade-badge grade-${this.autopsy.calculatedGrade}`;
                     
                     document.getElementById('auto-integrity-display').textContent = `${State.session.integrity}%`;
-                    document.getElementById('auto-pauses-display').textContent = State.session.pauses;
-                    document.getElementById('auto-duration-display').textContent = `${Math.floor((State.session.total - State.session.remaining)/60)}m`;
                     
+                    const durSecs = State.session.total - State.session.remaining;
+                    const durMins = Math.floor(durSecs / 60);
+                    const durRemSecs = durSecs % 60;
+                    document.getElementById('auto-duration-display').textContent = `${durMins}m ${durRemSecs}s`;
+                    
+                    const eff = Math.round(State.session.integrity * (1 - (State.session.pauses * 0.05)));
+                    document.getElementById('auto-efficiency-display').textContent = `${Math.max(0, eff)}%`;
+
+                    const analysisEl = document.getElementById('auto-analysis-text');
+                    let analysis = "ANALYSIS COMPLETE.";
+                    if(this.autopsy.calculatedGrade === 'S') analysis = "FLAWLESS VICTORY. SYSTEM OPTIMAL.";
+                    else if(this.autopsy.calculatedGrade === 'A') analysis = "HIGH EFFICIENCY DETECTED.";
+                    else if(this.autopsy.calculatedGrade === 'B') analysis = "ACCEPTABLE PARAMETERS.";
+                    else if(this.autopsy.calculatedGrade === 'C') analysis = "MEDIOCRE. DISCIPLINE REQUIRED.";
+                    else if(this.autopsy.calculatedGrade === 'F') analysis = "SYSTEM FAILURE. REBOOT.";
+                    
+                    if(State.session.pauses > 2) analysis += " EXCESSIVE PAUSES.";
+                    
+                    // --- DEBT CHECK VISUALIZATION IN ANALYSIS ---
+                    const chStats = Logic.Chapter.get(State.session.subjectId, State.session.chapter);
+                    if(chStats.debt > 0) {
+                        analysis += " [ACTIVE DEBT DETECTED]";
+                        analysisEl.style.color = "var(--accent-warn)";
+                    } else {
+                        analysisEl.style.color = "var(--text-secondary)";
+                    }
+                    analysisEl.textContent = analysis;
+
+                    // Projected XP Calculation
+                    let qMod = 1.0;
+                    if(this.autopsy.calculatedGrade === 'S') qMod = 1.3;
+                    if(this.autopsy.calculatedGrade === 'A') qMod = 1.1;
+                    if(this.autopsy.calculatedGrade === 'C') qMod = 0.8;
+                    if(this.autopsy.calculatedGrade === 'F') qMod = 0.5;
+                    const mMod = State.session.mode==='hard' ? 1.5 : 1;
+                    let pts = Math.floor((durSecs/60)*10*qMod*mMod);
+                    
+                    const xpDisplay = document.getElementById('auto-xp-display');
+                    if(chStats.debt > 0) {
+                        pts = Math.floor(pts * 0.5);
+                        xpDisplay.textContent = `+${pts} (PENALTY -50%)`;
+                        xpDisplay.style.color = "var(--accent-warn)";
+                    } else {
+                        xpDisplay.textContent = `+${pts}`;
+                        xpDisplay.style.color = "var(--accent-lock)";
+                    }
+
                     document.getElementById('btn-autopsy-submit').disabled = true;
                 }
             },
@@ -1288,7 +1307,7 @@
                     const stats = Logic.Chapter.get(sub.id, c);
                     const d = document.createElement('div'); d.className = 'choice-btn';
                     if(stats.debt > 0) d.classList.add('has-debt-warn');
-                    d.textContent = c;
+                    d.innerHTML = `<span class="choice-title">${c}</span>`;
                     d.onclick = () => { 
                         this.wizard.chapter = c; 
                         const targetDisplay = document.getElementById('wizard-target-display');
@@ -1304,7 +1323,10 @@
                 this.wizard.duration = d; 
                 // Clear custom input if preset selected
                 if(typeof d === 'number') {
-                    document.getElementById('custom-time-input').value = '';
+                    const cust = document.getElementById('custom-time-input');
+                    // Only clear if the selected preset is one of the fixed buttons
+                    if([25, 50, 90].includes(d)) cust.value = '';
+                    
                     document.querySelectorAll('[data-dur]').forEach(b => b.classList.toggle('selected', parseInt(b.dataset.dur) === d)); 
                 }
             },
@@ -1375,11 +1397,18 @@
                 }
             },
 
-            showToast(msg) {
+            showToast(msg, type='normal') {
                 const t = document.getElementById('integrity-toast');
                 if(!t) return;
-                t.textContent = msg; t.style.display = 'block';
-                setTimeout(()=>t.style.display='none', 3000);
+                t.textContent = msg; 
+                t.style.display = 'block';
+                if(type === 'success') t.style.background = 'var(--accent-succ)';
+                else t.style.background = 'var(--accent-crit)';
+                
+                setTimeout(()=> {
+                    t.style.display='none';
+                    t.style.background = 'var(--accent-crit)'; // Reset
+                }, 3000);
             },
 
             flashRed(currentIntegrity) {
@@ -1428,13 +1457,13 @@
                 const mMod = State.session.mode==='hard' ? 1.5 : 1;
                 let pts = Math.floor((dur/60)*10*qMod*mMod);
                 
-                // --- ACTIVE DEBT LOGIC ---
+                // --- ACTIVE DEBT LOGIC (IMPROVED) ---
                 const chStats = Logic.Chapter.get(State.session.subjectId, State.session.chapter);
                 const hasDebt = chStats.debt > 0;
                 
                 if(hasDebt) {
                     pts = Math.floor(pts * 0.5); // 50% Penalty
-                    UI.showToast("DEBT PENALTY: 50% XP REDUCTION");
+                    UI.showToast("ACTIVE DEBT: XP PENALIZED (-50%)");
                 }
                 
                 State.dailySeconds += dur;
@@ -1442,18 +1471,29 @@
                 Logic.Chapter.addXP(State.session.subjectId, State.session.chapter, pts);
                 
                 if(this.autopsy.mistake) {
+                    // MISTAKE LOGIC: ADD DEBT INSTANTLY
                     Logic.Chapter.addDebt(State.session.subjectId, State.session.chapter);
+                    UI.showToast("MISTAKE RECORDED: DEBT ADDED TO CHAPTER");
                 } else if (hasDebt && (grade === 'A' || grade === 'S')) {
                     // CLEARANCE PROTOCOL: High Grade + No Mistakes = Clear Debt
                     Logic.Chapter.payDebt(State.session.subjectId, State.session.chapter);
-                    UI.showToast("OUTSTANDING PERFORMANCE: DEBT CLEARED");
+                    UI.showToast("OUTSTANDING PERFORMANCE: DEBT CLEARED", "success");
                 }
 
-                // REPAIR SYSTEM INTEGRITY ON SUCCESS
-                if(grade === 'S') State.systemIntegrity = Math.min(100, State.systemIntegrity + 2);
-                if(grade === 'A') State.systemIntegrity = Math.min(100, State.systemIntegrity + 1);
+                // --- REPAIR SYSTEM INTEGRITY (IMPROVED) ---
+                let repairAmount = 0;
+                if(grade === 'S') repairAmount = 5;
+                else if(grade === 'A') repairAmount = 3;
+                else if(grade === 'B') repairAmount = 1;
+
+                if(repairAmount > 0 && State.systemIntegrity < 100) {
+                    State.systemIntegrity = Math.min(100, State.systemIntegrity + repairAmount);
+                    // Slight delay to allow previous toast to clear if any
+                    setTimeout(() => UI.showToast(`SYSTEM INTEGRITY REPAIRED (+${repairAmount}%)`, 'success'), 1500);
+                }
+                
                 // Damage on F grade
-                if(grade === 'F') State.systemIntegrity = Math.max(0, State.systemIntegrity - 2);
+                if(grade === 'F') State.systemIntegrity = Math.max(0, State.systemIntegrity - 5);
 
                 State.logs.unshift({ 
                     date: Date.now(), 
