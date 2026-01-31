@@ -3,22 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RANKLOCK DISCIPLINE v9.0 | FIELD OPERATOR READY</title>
+    <title>RANKLOCK DISCIPLINE v9.1 | FIELD OPERATOR READY</title>
     <meta name="author" content="Ojas Kadam">
-    <meta name="description" content="RankLock v9.0. Field Operator Mobile Interface. Hardcore study timer for JEE 2026.">
+    <meta name="description" content="RankLock v9.1. Field Operator Mobile Interface. Hardcore study timer for JEE 2026.">
     
     <!-- 
-        RANKLOCK DISCIPLINE SYSTEM v9.0
+        RANKLOCK DISCIPLINE SYSTEM v9.1
         Architect: Ojas Kadam
         
-        CHANGELOG v9.0:
-        1. MOBILE FIELD OPERATOR UI: Dedicated bottom navigation for mobile users.
-        2. COMMS UPLINK: Integrated feedback system sending directly to HQ (okwarrior.2456@gmail.com).
-        3. UI OPTIMIZATION: Bigger touch targets, cleaner mobile layout.
-        4. TAB SYSTEM: Separated OPS (Timer), INTEL (Stats), and MAP (Syllabus) on mobile.
-        
-        HOTFIX v9.0.1:
-        - Fixed ReferenceError for 'submitted' variable in Comms Uplink.
+        CHANGELOG v9.1:
+        1. FIXED: Mobile view now defaults to OPS tab (Timer) on load.
+        2. FIXED: Active Debt section logic patched for reliable rendering.
+        3. UI: Consolidated "Restore Data" button in Settings (hidden file input).
+        4. FEATURE: Hard Focus now auto-triggers Fullscreen mode on initiation.
     -->
     <style>
         /* --- CSS ARCHITECTURE: RANKLOCK DESIGN LANGUAGE (RDL) --- */
@@ -337,7 +334,7 @@
         <nav>
             <div class="nav-left">
                 <button class="sidebar-toggle" onclick="UI.toggleSidebar()">☰</button>
-                <div class="nav-logo">RANKLOCK <span>v9.0</span></div>
+                <div class="nav-logo">RANKLOCK <span>v9.1</span></div>
             </div>
             <div class="nav-right">
                 <div class="stat-item">
@@ -514,7 +511,7 @@
                         </div>
                         <div class="choice-btn" id="btn-mode-hard" data-mode="hard" onclick="Logic.UI.selectMode('hard')">
                             <span class="choice-title" style="color:var(--accent-crit)">HARD FOCUS</span>
-                            <span class="choice-meta" id="hard-mode-meta">No pause. Sidebar hidden.</span>
+                            <span class="choice-meta" id="hard-mode-meta">No pause. Fullscreen.</span>
                         </div>
                     </div>
 
@@ -706,7 +703,7 @@
                 <h2 class="modal-title">Hard Focus</h2>
                 <p class="modal-desc">
                     Unlocked at Rank 500 (Aspirant). <br>
-                    No Pause. Sidebar Hidden. Maximum Points.<br>
+                    No Pause. Sidebar Hidden. Fullscreen Mode.<br>
                     <br><strong>Begin your ascent.</strong>
                 </p>
                 <button class="btn btn-primary btn-block" style="margin-top: 30px;" onclick="Logic.Tutorial.finish()">INITIALIZE SYSTEM</button>
@@ -723,7 +720,7 @@
                 <div style="font-size:0.7rem; color:var(--text-muted); margin-bottom:10px; font-weight:700;">DATA PERSISTENCE</div>
                 <button class="btn btn-outline" onclick="Logic.System.exportData()" style="width: 100%; margin-bottom: 10px;">BACKUP DATA (JSON)</button>
                 <button class="btn btn-outline" onclick="document.getElementById('import-file').click()" style="width: 100%; margin-bottom: 10px;">RESTORE DATA</button>
-                <input type="file" id="import-file" class="file-input" accept=".json" onchange="Logic.System.importData(this)">
+                <input type="file" id="import-file" class="file-input" accept=".json" onchange="Logic.System.importData(this)" style="display:none;">
             </div>
             
             <button class="btn btn-outline" onclick="UI.openComms()" style="width: 100%; margin-bottom: 10px;">FEEDBACK / REPORT BUG</button>
@@ -747,7 +744,7 @@
         window.submitted = false;
 
         const CONSTANTS = {
-            VERSION: 9.0,
+            VERSION: 9.1,
             APP_ID: "RANKLOCK_JEE_V9", // Updated for v9 to ensure fresh migration if needed
             RANKS: [
                 {t:0, title:"UNINITIATED", perk:"None"},
@@ -820,7 +817,12 @@
                     UI.init();
                     
                     // Handle responsive sidebar on load
-                    if(window.innerWidth > 1024) document.getElementById('main-layout').classList.remove('sidebar-collapsed');
+                    if(window.innerWidth > 1024) {
+                        document.getElementById('main-layout').classList.remove('sidebar-collapsed');
+                    } else {
+                        // FIX: Force OPS tab on mobile load
+                        UI.switchMobileTab('ops');
+                    }
                     
                     UI.renderAll();
                     setInterval(() => Logic.Session.tick(), 1000);
@@ -963,6 +965,10 @@
                     if(!goalState.resource) { alert("PROTOCOL ERROR: Select Resource."); return; }
                     
                     UI.closeOverlays();
+                    
+                    // Trigger Fullscreen immediately for Hard Mode
+                    if(mode === 'hard') Logic.System.toggleFullscreen();
+
                     const overlay = document.getElementById('countdown-overlay');
                     const valEl = document.getElementById('countdown-val');
                     overlay.style.display = 'flex';
@@ -983,7 +989,9 @@
                 },
                 start(subId, ch, mode, durMins, goal) {
                     State.session = { active: true, paused: false, mode: mode, subjectId: subId, chapter: ch, total: durMins*60, remaining: durMins*60, integrity: 100, startTime: Date.now(), goal: goal, pauses: 0, lastPauseTime: 0 };
-                    if (mode === 'hard') document.body.classList.add('mode-hard-focus');
+                    if (mode === 'hard') {
+                        document.body.classList.add('mode-hard-focus');
+                    }
                     
                     // Force switch to OPS tab on mobile when starting
                     UI.switchMobileTab('ops');
@@ -1302,20 +1310,33 @@
                 if(!list) return;
                 list.innerHTML = '';
                 let total = 0;
+                
+                // Safety check for empty State
+                if(!State.chapterStats) State.chapterStats = {};
+                
                 Object.keys(State.chapterStats).forEach(k => {
-                    if(State.chapterStats[k].debt > 0) {
-                        const [sid, ch] = k.split('|');
-                        const sName = State.subjects.find(s=>s.id===sid)?.name.substr(0,3) || sid;
+                    if(State.chapterStats[k] && State.chapterStats[k].debt > 0) {
+                        // FIX: Ensure safe split of key
+                        const parts = k.split('|');
+                        const sid = parts[0];
+                        const ch = parts[1] || 'Unknown';
+                        
+                        const sObj = State.subjects.find(s=>s.id===sid);
+                        const sName = sObj ? sObj.name.substr(0,3) : sid;
+                        
                         total += State.chapterStats[k].debt;
-                        const d = document.createElement('div'); d.className = 'log-item';
+                        
+                        const d = document.createElement('div'); 
+                        d.className = 'log-item';
                         d.style.borderLeftColor = 'var(--accent-crit)';
                         d.innerHTML = `<div style="display:flex; justify-content:space-between; font-weight:700;"><span>${ch}</span><span style="color:var(--accent-crit)">x${State.chapterStats[k].debt}</span></div><div style="font-size:0.65rem; color:var(--text-muted);">${sName.toUpperCase()}</div>`;
                         list.appendChild(d);
                     }
                 });
+                
                 const debtCountEl = document.getElementById('debt-count');
                 if(debtCountEl) debtCountEl.textContent = total;
-                if(total===0) list.innerHTML = '<div style="color:var(--text-muted); padding:10px; font-size:0.75rem;">System Clear. No Debts.</div>';
+                if(total === 0) list.innerHTML = '<div style="color:var(--text-muted); padding:10px; font-size:0.75rem; text-align:center;">System Clear. No Debts.</div>';
             },
 
             renderLogs() {
@@ -1402,7 +1423,7 @@
                         hardMeta.textContent = `LOCKED. REQ: ${CONSTANTS.HARD_MODE_REQ} XP`;
                     } else {
                         hardBtn.classList.remove('locked');
-                        hardMeta.textContent = `No pause. Sidebar hidden.`;
+                        hardMeta.textContent = `No pause. Fullscreen.`;
                     }
                 }
                 
