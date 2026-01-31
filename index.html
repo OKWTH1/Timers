@@ -1,21 +1,24 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RANKLOCK DISCIPLINE v8.5 | SYSTEM READY</title>
+    <title>RANKLOCK DISCIPLINE v9.0 | FIELD OPERATOR READY</title>
     <meta name="author" content="Ojas Kadam">
-    <meta name="description" content="RankLock is a hardcore study timer for JEE 2026 aspirants. Hard Focus mode, live competition, discipline-based study tracking. Built for serious students.">
+    <meta name="description" content="RankLock v9.0. Field Operator Mobile Interface. Hardcore study timer for JEE 2026.">
     
     <!-- 
-        RANKLOCK DISCIPLINE SYSTEM v8.5
+        RANKLOCK DISCIPLINE SYSTEM v9.0
         Architect: Ojas Kadam
-        Updates:
-        1. Full Screen Mode (Toggle + 'F' Shortcut)
-        2. Functional Global Integrity Repair (S/A/B Grades increase health)
-        3. Enhanced Debt Mechanics (Immediate visual feedback & penalties)
-        4. Mobile Black Screen Fix Preserved
+        
+        CHANGELOG v9.0:
+        1. MOBILE FIELD OPERATOR UI: Dedicated bottom navigation for mobile users.
+        2. COMMS UPLINK: Integrated feedback system sending directly to HQ (okwarrior.2456@gmail.com).
+        3. UI OPTIMIZATION: Bigger touch targets, cleaner mobile layout.
+        4. TAB SYSTEM: Separated OPS (Timer), INTEL (Stats), and MAP (Syllabus) on mobile.
+        
+        HOTFIX v9.0.1:
+        - Fixed ReferenceError for 'submitted' variable in Comms Uplink.
     -->
     <style>
         /* --- CSS ARCHITECTURE: RANKLOCK DESIGN LANGUAGE (RDL) --- */
@@ -45,6 +48,8 @@
             --radius-sm: 4px;
             --radius-md: 8px;
             --radius-lg: 12px;
+            
+            --mobile-nav-height: 65px;
         }
 
         /* --- Global Resets --- */
@@ -83,7 +88,7 @@
         .icon-btn { background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 8px; border-radius: var(--radius-sm); transition: 0.2s; display: flex; align-items: center; justify-content: center;}
         .icon-btn:hover { background: var(--bg-elevated); color: var(--text-primary); }
         
-        /* Sidebar Toggle Button */
+        /* Sidebar Toggle Button (Desktop Only) */
         .sidebar-toggle { 
             border: 1px solid var(--border-ui); 
             width: 32px; height: 32px; 
@@ -234,7 +239,7 @@
         /* Hard Focus Mode */
         body.mode-hard-focus .focus-container { border-color: var(--accent-crit); background: #080505; }
         body.mode-hard-focus #timer-display { color: var(--accent-crit); text-shadow: 0 0 30px rgba(239, 68, 68, 0.3); }
-        body.mode-hard-focus .sidebar, body.mode-hard-focus nav { opacity: 0; pointer-events: none; transition: opacity 0.5s; }
+        body.mode-hard-focus .sidebar, body.mode-hard-focus nav, body.mode-hard-focus .bottom-nav { opacity: 0; pointer-events: none; transition: opacity 0.5s; }
         body.mode-hard-focus main { grid-template-columns: 1fr; }
         body.mode-hard-focus .sidebar { display: none; }
 
@@ -242,22 +247,86 @@
         textarea:focus, input:focus { outline: 1px solid var(--accent-lock); border-color: transparent; }
         input::placeholder { color: var(--text-muted); }
 
-        /* --- MOBILE FIELD OPERATOR DISPLAY --- */
+        /* --- MOBILE BOTTOM NAVIGATION (NEW) --- */
+        .bottom-nav {
+            display: none; /* Hidden on desktop */
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: var(--mobile-nav-height);
+            background: var(--bg-deep);
+            border-top: 1px solid var(--border-ui);
+            z-index: 900;
+            justify-content: space-around;
+            align-items: center;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .nav-tab {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: var(--text-muted);
+            font-size: 0.65rem;
+            font-weight: 700;
+            background: none; border: none;
+            width: 100%; height: 100%;
+        }
+        .nav-tab.active { color: var(--accent-lock); }
+        .nav-tab svg { margin-bottom: 4px; }
+
+        /* --- MOBILE FIELD OPERATOR DISPLAY (REVISED) --- */
         @media (max-width: 1024px) {
-            main, main.sidebar-collapsed { grid-template-columns: 1fr !important; height: calc(100vh - 60px); }
-            .sidebar { position: fixed; top: 60px; left: 0; width: 100%; height: calc(100% - 60px); background: var(--bg-deep); z-index: 90; padding: 16px; transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); border-right: none; }
-            main:not(.sidebar-collapsed) .sidebar { transform: translateX(0); opacity: 1; pointer-events: auto; }
-            main.sidebar-collapsed .sidebar { opacity: 0; pointer-events: none; }
-            .map-layout { flex-direction: column; }
-            .map-sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border-ui); height: auto; max-height: 40%; overflow-y: auto;}
-            .map-content { flex: 1; }
+            /* Layout Adjustments */
+            body { overflow: hidden; }
+            #app-container { height: calc(100vh - var(--mobile-nav-height)); }
+            main, main.sidebar-collapsed { 
+                grid-template-columns: 1fr !important; 
+                gap: 0; 
+                padding: 10px; 
+                height: 100%;
+                overflow-y: auto;
+            }
+            
+            /* Hide Desktop Elements */
+            .sidebar-toggle { display: none; }
+            nav { padding: 0 12px; }
+            .nav-logo { font-size: 1rem; }
+            
+            /* Show Mobile Elements */
+            .bottom-nav { display: flex; }
+            
+            /* Tab Logic CSS */
+            .sidebar { 
+                display: none; /* Controlled by JS Tabs */
+                min-width: 100%; 
+                padding: 0; 
+                margin-bottom: 80px; /* Space for nav */
+                border: none;
+                opacity: 1 !important;
+                pointer-events: auto !important;
+            }
+            .stage { 
+                display: none; /* Controlled by JS Tabs */
+                height: 100%;
+            }
+            
+            /* Active State overrides */
+            .mobile-tab-active { display: flex !important; animation: fadeIn 0.2s; }
+            
+            /* Adjustments for Mobile View */
             #timer-display { font-size: 20vw; }
-            .controls { position: absolute; bottom: 32px; left: 16px; right: 16px; flex-direction: row; margin-top: 0; }
-            .controls .btn { flex: 1; height: 56px; font-size: 1rem; }
-            .modal { padding: 20px; max-height: 95vh; }
+            .controls { flex-direction: column; width: 100%; gap: 10px; }
+            .controls .btn { width: 100%; height: 56px; font-size: 1rem; }
+            
+            .modal { padding: 20px; max-height: 95vh; width: 95%; }
             .goal-chip-grid { grid-template-columns: repeat(2, 1fr); }
             .choice-grid { grid-template-columns: 1fr; }
             .custom-time-input { grid-column: span 1; }
+            
+            /* Map Overlay Mobile Fixes */
+            .map-layout { flex-direction: column; }
+            .map-sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border-ui); height: auto; max-height: 30vh; overflow-y: auto;}
+            .map-content { flex: 1; }
+            
+            /* Toast Position */
+            #integrity-toast { bottom: 80px; left: 16px; right: 16px; width: auto; text-align: center; }
         }
     </style>
 </head>
@@ -268,7 +337,7 @@
         <nav>
             <div class="nav-left">
                 <button class="sidebar-toggle" onclick="UI.toggleSidebar()">☰</button>
-                <div class="nav-logo">RANKLOCK <span>v8.5</span></div>
+                <div class="nav-logo">RANKLOCK <span>v9.0</span></div>
             </div>
             <div class="nav-right">
                 <div class="stat-item">
@@ -289,7 +358,7 @@
         </nav>
 
         <main id="main-layout" class="sidebar-collapsed"> 
-            <!-- SIDEBAR -->
+            <!-- SIDEBAR (INTEL TAB ON MOBILE) -->
             <aside class="sidebar" id="sidebar">
                 <div class="card">
                     <div class="card-header">
@@ -304,7 +373,9 @@
                         <div style="font-size: 0.65rem; color: var(--text-muted); margin-top: 4px; text-align: right;" id="rank-next-val">NEXT: 500 XP</div>
                     </div>
                 </div>
-                <div class="card">
+                
+                <!-- Desktop Map Button (Hidden on Mobile usually handled by tabs) -->
+                <div class="card" id="desktop-map-card">
                     <div class="card-header"><span class="card-title">Syllabus Map</span></div>
                     <div style="text-align: center; padding: 10px 0;">
                         <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px;" id="map-summary-text">System Idle</div>
@@ -312,6 +383,7 @@
                         <button class="btn btn-outline btn-block" onclick="UI.openMap()">OPEN COMMAND CENTER</button>
                     </div>
                 </div>
+
                 <div class="card" style="flex:1; max-height: 300px;">
                     <div class="card-header">
                         <span class="card-title">Active Debts</span>
@@ -326,8 +398,8 @@
                 <div class="architect-tag">DESIGNED BY OJAS KADAM</div>
             </aside>
 
-            <!-- STAGE -->
-            <section class="stage">
+            <!-- STAGE (OPS TAB ON MOBILE) -->
+            <section class="stage" id="stage">
                 <div class="focus-container">
                     <div class="focus-bg-pulse"></div>
                     
@@ -352,13 +424,33 @@
                     <div id="timer-display" class="tabular">00:00</div>
 
                     <div class="controls" id="session-controls">
-                        <button class="btn btn-primary" id="btn-init-session">INITIALIZE</button>
+                        <button class="btn btn-primary" id="btn-init-session">INITIALIZE SESSION</button>
                         <button class="btn btn-outline hidden" id="btn-pause-session">PAUSE</button>
                         <button class="btn btn-crit hidden" id="btn-emergency-exit">ABORT</button>
                     </div>
                 </div>
             </section>
         </main>
+        
+        <!-- MOBILE BOTTOM NAV -->
+        <div class="bottom-nav">
+            <button class="nav-tab active" onclick="UI.switchMobileTab('ops')">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                OPS
+            </button>
+            <button class="nav-tab" onclick="UI.switchMobileTab('intel')">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"></path></svg>
+                INTEL
+            </button>
+            <button class="nav-tab" onclick="UI.switchMobileTab('map')">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
+                MAP
+            </button>
+            <button class="nav-tab" onclick="UI.openComms()">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                COMMS
+            </button>
+        </div>
     </div>
 
     <!-- OVERLAY: WIZARD -->
@@ -467,6 +559,49 @@
         </div>
     </div>
 
+    <!-- OVERLAY: COMMS (FEEDBACK) -->
+    <div id="overlay-comms" class="overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Comms Uplink</h2>
+                <button class="close-btn" onclick="UI.closeOverlays()">×</button>
+            </div>
+            <p class="modal-desc" style="margin-bottom: 20px;">Direct line to Ojas Kadam (Architect). Report bugs or request features.</p>
+            
+            <!-- Hidden iframe to prevent redirect on submit -->
+            <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(typeof submitted !== 'undefined' && submitted) {UI.commsSuccess()}"></iframe>
+            
+            <form action="https://formsubmit.co/okwarrior.2456@gmail.com" method="POST" target="hidden_iframe" onsubmit="window.submitted=true;">
+                <!-- Configuration for FormSubmit -->
+                <input type="hidden" name="_subject" value="RANKLOCK V9 FEEDBACK">
+                <input type="hidden" name="_captcha" value="false">
+                <input type="hidden" name="_template" value="table">
+                
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label class="form-label" style="font-size:0.7rem; color:var(--text-muted); font-weight:700;">USER IDENTITY</label>
+                    <input type="text" name="name" id="comms-name" readonly style="background: var(--bg-elevated); color: var(--text-secondary); cursor: not-allowed;">
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label class="form-label" style="font-size:0.7rem; color:var(--text-muted); font-weight:700;">MESSAGE TYPE</label>
+                    <select name="type">
+                        <option value="Feature Request">Feature Request</option>
+                        <option value="Bug Report">Bug Report</option>
+                        <option value="General Feedback">General Feedback</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label class="form-label" style="font-size:0.7rem; color:var(--text-muted); font-weight:700;">TRANSMISSION CONTENT</label>
+                    <textarea name="message" rows="5" placeholder="Type your message here..." required></textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-block">TRANSMIT DATA</button>
+                <div style="font-size: 0.65rem; color: var(--text-muted); margin-top: 10px; text-align: center;">Secure transmission via FormSubmit Protocol.</div>
+            </form>
+        </div>
+    </div>
+
     <!-- OVERLAY: AUTOPSY (GENERATIVE REPORT) -->
     <div id="overlay-autopsy" class="overlay">
         <div class="modal">
@@ -536,7 +671,7 @@
             <div class="tut-slide active" id="tut-step-1">
                 <div class="tut-img">🚀</div>
                 <h2 class="modal-title">System Online</h2>
-                <p class="modal-desc">RankLock v8.5 Initialized. Welcome to the discipline protocol.</p>
+                <p class="modal-desc">RankLock v9.0 Initialized. Welcome to the discipline protocol.</p>
                 <button class="btn btn-primary btn-block" style="margin-top: 30px;" onclick="Logic.Tutorial.next(2)">NEXT: INTEGRITY</button>
             </div>
             <div class="tut-slide" id="tut-step-2">
@@ -591,6 +726,7 @@
                 <input type="file" id="import-file" class="file-input" accept=".json" onchange="Logic.System.importData(this)">
             </div>
             
+            <button class="btn btn-outline" onclick="UI.openComms()" style="width: 100%; margin-bottom: 10px;">FEEDBACK / REPORT BUG</button>
             <button class="btn btn-primary" onclick="Logic.Tutorial.restart()" style="width: 100%; margin-bottom: 10px;">SYSTEM MANUAL (TUTORIAL)</button>
 
             <div style="margin: 20px 0;">
@@ -604,11 +740,15 @@
     </div>
 
     <div id="integrity-toast">INTEGRITY BREACH DETECTED</div>
-
+    
+    <!-- JS Logic -->
     <script>
+        // Global variable for form submission status
+        window.submitted = false;
+
         const CONSTANTS = {
-            VERSION: 8.5,
-            APP_ID: "RANKLOCK_JEE_V8",
+            VERSION: 9.0,
+            APP_ID: "RANKLOCK_JEE_V9", // Updated for v9 to ensure fresh migration if needed
             RANKS: [
                 {t:0, title:"UNINITIATED", perk:"None"},
                 {t:500, title:"ASPIRANT", perk:"Hard Focus Unlocked"},
@@ -642,8 +782,24 @@
         const Storage = {
             save: () => localStorage.setItem(CONSTANTS.APP_ID, JSON.stringify(State)),
             load: () => {
+                // Try to load v9
                 const raw = localStorage.getItem(CONSTANTS.APP_ID);
-                if (raw) { State = { ...State, ...JSON.parse(raw) }; return true; }
+                if (raw) { 
+                    State = { ...State, ...JSON.parse(raw) }; 
+                    return true; 
+                }
+                
+                // Migration Logic: Check for v8 data and migrate
+                const v8 = localStorage.getItem("RANKLOCK_JEE_V8");
+                if(v8) {
+                    try {
+                        const v8Data = JSON.parse(v8);
+                        State = { ...State, ...v8Data };
+                        console.log("Migrated from v8 to v9");
+                        Storage.save(); // Save to new ID
+                        return true;
+                    } catch(e) { console.error("Migration failed"); }
+                }
                 return false;
             },
             reset: () => { localStorage.removeItem(CONSTANTS.APP_ID); location.reload(); }
@@ -828,6 +984,10 @@
                 start(subId, ch, mode, durMins, goal) {
                     State.session = { active: true, paused: false, mode: mode, subjectId: subId, chapter: ch, total: durMins*60, remaining: durMins*60, integrity: 100, startTime: Date.now(), goal: goal, pauses: 0, lastPauseTime: 0 };
                     if (mode === 'hard') document.body.classList.add('mode-hard-focus');
+                    
+                    // Force switch to OPS tab on mobile when starting
+                    UI.switchMobileTab('ops');
+                    
                     UI.updateSessionView(); Storage.save();
                 },
                 tick() {
@@ -1020,10 +1180,45 @@
             updateUsername(name) {
                 document.querySelectorAll('.user-name-target').forEach(el => el.textContent = name);
                 document.title = `RANKLOCK DISCIPLINE | ${name.toUpperCase()}`;
+                
+                // Update Comms Name
+                const commsName = document.getElementById('comms-name');
+                if(commsName) commsName.value = name;
             },
 
             toggleSidebar() {
                 document.getElementById('main-layout').classList.toggle('sidebar-collapsed');
+            },
+            
+            // --- NEW: MOBILE TAB SWITCHER LOGIC ---
+            switchMobileTab(tab) {
+                // Remove active class from all tabs
+                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                
+                // Add active to clicked (logic to find which one based on onclick matches)
+                const tabs = document.querySelectorAll('.nav-tab');
+                if(tab === 'ops') tabs[0].classList.add('active');
+                if(tab === 'intel') tabs[1].classList.add('active');
+                if(tab === 'map') tabs[2].classList.add('active');
+                
+                const sidebar = document.getElementById('sidebar');
+                const stage = document.getElementById('stage');
+                
+                // Logic
+                if (tab === 'ops') {
+                    // Show Timer (Stage), Hide Sidebar
+                    stage.classList.add('mobile-tab-active');
+                    sidebar.classList.remove('mobile-tab-active');
+                    this.closeOverlays();
+                } else if (tab === 'intel') {
+                    // Show Sidebar, Hide Timer
+                    sidebar.classList.add('mobile-tab-active');
+                    stage.classList.remove('mobile-tab-active');
+                    this.closeOverlays();
+                } else if (tab === 'map') {
+                    // Open Map Overlay directly
+                    this.openMap();
+                }
             },
 
             renderAll() { this.renderStats(); this.renderMap(); this.renderDebts(); this.renderLogs(); this.populateManagerSelect(); this.updateSessionView(); },
@@ -1273,6 +1468,11 @@
             openMap() { this.renderMap(); this.openOverlay('overlay-map'); },
             openSettings() { this.openOverlay('overlay-settings'); },
             openAutopsy() { this.openOverlay('overlay-autopsy'); },
+            openComms() { this.openOverlay('overlay-comms'); },
+            commsSuccess() {
+                this.closeOverlays();
+                this.showToast("DATA TRANSMITTED TO HQ", "success");
+            },
             
             wizardStep(id) { 
                 document.querySelectorAll('.wizard-step').forEach(e => e.classList.remove('active')); 
@@ -1501,7 +1701,7 @@
                     duration: dur, 
                     grade: grade,
                     integrity: State.session.integrity, 
-                    pauses: State.session.pauses,
+                    pauses: State.session.pauses, 
                     note: note 
                 });
                 
