@@ -3,19 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RANKLOCK DISCIPLINE v9.1 | FIELD OPERATOR READY</title>
+    <title>RANKLOCK v9.4 | DEBT & CURRENCY</title>
     <meta name="author" content="Ojas Kadam">
-    <meta name="description" content="RankLock v9.1. Field Operator Mobile Interface. Hardcore study timer for JEE 2026.">
+    <meta name="description" content="RankLock v9.4. XP Economy, Time-Based Debt, and Event Management.">
     
     <!-- 
-        RANKLOCK DISCIPLINE SYSTEM v9.1
+        RANKLOCK DISCIPLINE SYSTEM v9.4
         Architect: Ojas Kadam
         
-        CHANGELOG v9.1:
-        1. FIXED: Mobile view now defaults to OPS tab (Timer) on load.
-        2. FIXED: Active Debt section logic patched for reliable rendering.
-        3. UI: Consolidated "Restore Data" button in Settings (hidden file input).
-        4. FEATURE: Hard Focus now auto-triggers Fullscreen mode on initiation.
+        CHANGELOG v9.4:
+        1. ECONOMY: XP is now Currency. Added "Black Market" to spend XP.
+        2. INFLATION: Daily XP Cap (1500) implemented. 90% tax after cap.
+        3. DEBT 2.0: Debt is Time-Based (Minutes). Active Debt = 50% XP Tax.
+        4. EVENTS: Added Edit/Delete for events. Official links verified.
+        5. UI: Added "Debt Clearance" mode in Session Wizard.
     -->
     <style>
         /* --- CSS ARCHITECTURE: RANKLOCK DESIGN LANGUAGE (RDL) --- */
@@ -36,6 +37,7 @@
             --accent-void: #6366f1;
             --accent-gold: #ffd700;
             --accent-lock: #06b6d4; 
+            --accent-debt: #7f1d1d;
             
             --border-ui: #374151;
             
@@ -194,7 +196,7 @@
         .choice-btn.has-debt-warn::after { content: "⚠️ ACTIVE DEBT"; position: absolute; top: 4px; right: 4px; font-size: 0.6rem; font-weight: 700; color: var(--accent-warn); }
 
         /* Goal Selection Chips */
-        .goal-chip-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+        .goal-chip-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
         .goal-chip { background: var(--bg-deep); border: 1px solid var(--border-ui); padding: 10px; font-size: 0.7rem; font-weight: 700; color: var(--text-secondary); cursor: pointer; text-align: center; border-radius: var(--radius-sm); transition: 0.2s; }
         .goal-chip:hover { border-color: var(--text-muted); color: var(--text-primary); }
         .goal-chip.selected { background: var(--accent-lock); color: var(--bg-deep); border-color: var(--accent-lock); }
@@ -230,8 +232,38 @@
         .tut-slide.active { display: block; animation: fadeIn 0.3s; }
         .tut-img { width: 100%; height: 150px; background: var(--bg-elevated); border-radius: var(--radius-md); margin-bottom: 20px; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: var(--accent-lock); border: 1px dashed var(--border-ui); }
 
+        /* Onboarding Styles */
+        .onboard-card { background: var(--bg-elevated); border: 1px solid var(--border-ui); border-radius: var(--radius-md); padding: 15px; margin-bottom: 15px; }
+        .exam-selector { display: flex; align-items: center; justify-content: space-between; padding: 10px; border-bottom: 1px solid var(--border-ui); }
+        .exam-selector:last-child { border-bottom: none; }
+        .exam-label { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--text-primary); }
+        .checkbox-custom { width: 20px; height: 20px; accent-color: var(--accent-lock); }
+        
+        .resource-tag { display: inline-block; padding: 8px 12px; border: 1px solid var(--border-ui); border-radius: 20px; font-size: 0.75rem; color: var(--text-secondary); margin: 4px; cursor: pointer; transition: 0.2s; background: var(--bg-deep); }
+        .resource-tag.selected { background: var(--accent-lock); color: var(--bg-deep); border-color: var(--accent-lock); font-weight: 700; }
+
         #integrity-toast { position: fixed; bottom: 32px; right: 32px; background: var(--accent-crit); color: white; padding: 16px 24px; border-radius: var(--radius-md); font-weight: 800; font-size: 0.85rem; display: none; z-index: 10000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
         @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        /* --- INTEGRITY PING ELEMENT --- */
+        #integrity-ping-box {
+            position: absolute; width: 60px; height: 60px;
+            background: rgba(6, 182, 212, 0.2); border: 2px solid var(--accent-lock);
+            border-radius: var(--radius-sm); z-index: 50;
+            display: none; cursor: crosshair;
+            box-shadow: 0 0 15px var(--accent-lock);
+            animation: pingPulse 0.5s infinite;
+        }
+        @keyframes pingPulse { 0% { opacity: 0.8; transform: scale(1); } 50% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0.8; transform: scale(1); } }
+
+        /* Market Item */
+        .market-item {
+            background: var(--bg-elevated); border: 1px solid var(--border-ui);
+            padding: 16px; border-radius: var(--radius-md); margin-bottom: 12px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .market-item:hover { border-color: var(--accent-gold); }
+        .xp-cost { font-family: var(--font-mono); font-weight: 700; color: var(--accent-gold); }
 
         /* Hard Focus Mode */
         body.mode-hard-focus .focus-container { border-color: var(--accent-crit); background: #080505; }
@@ -267,6 +299,11 @@
         }
         .nav-tab.active { color: var(--accent-lock); }
         .nav-tab svg { margin-bottom: 4px; }
+        
+        /* URGENCY COLORS */
+        .urgency-crit { border-left: 4px solid var(--accent-crit); background: rgba(239, 68, 68, 0.05); }
+        .urgency-high { border-left: 4px solid var(--accent-warn); background: rgba(245, 158, 11, 0.05); }
+        .urgency-med { border-left: 4px solid var(--accent-lock); background: rgba(6, 182, 212, 0.05); }
 
         /* --- MOBILE FIELD OPERATOR DISPLAY (REVISED) --- */
         @media (max-width: 1024px) {
@@ -334,16 +371,16 @@
         <nav>
             <div class="nav-left">
                 <button class="sidebar-toggle" onclick="UI.toggleSidebar()">☰</button>
-                <div class="nav-logo">RANKLOCK <span>v9.1</span></div>
+                <div class="nav-logo">RANKLOCK <span>v9.4</span></div>
             </div>
             <div class="nav-right">
                 <div class="stat-item">
-                    <div class="stat-label">Streak</div>
-                    <div class="stat-value tabular streak-fire" id="stat-streak">0 DAYS</div>
+                    <div class="stat-label">Wallet (XP)</div>
+                    <div class="stat-value tabular" style="color:var(--accent-gold);" id="stat-xp">0</div>
                 </div>
                 <!-- GLOBAL SYSTEM INTEGRITY -->
                 <div class="stat-item">
-                    <div class="stat-label">Sys. Integrity</div>
+                    <div class="stat-label" id="top-stat-label">Sys. Integrity</div>
                     <div class="stat-value tabular integrity-ok" id="stat-global-integrity">100%</div>
                 </div>
                 <!-- FULLSCREEN TOGGLE -->
@@ -360,7 +397,7 @@
                 <div class="card">
                     <div class="card-header">
                         <span class="card-title">System Rank</span>
-                        <span style="font-size:0.6rem; color:var(--accent-lock)" class="user-name-target">RECRUIT</span>
+                        <button style="font-size:0.6rem; background: var(--bg-elevated); border:1px solid var(--border-ui); color:var(--text-secondary); cursor:pointer; padding:2px 6px;" onclick="UI.openMarket()">OPEN MARKET</button>
                     </div>
                     <div class="rank-box">
                         <div class="rank-value tabular" id="display-rank">0</div>
@@ -371,7 +408,7 @@
                     </div>
                 </div>
                 
-                <!-- Desktop Map Button (Hidden on Mobile usually handled by tabs) -->
+                <!-- Desktop Map Button -->
                 <div class="card" id="desktop-map-card">
                     <div class="card-header"><span class="card-title">Syllabus Map</span></div>
                     <div style="text-align: center; padding: 10px 0;">
@@ -380,11 +417,16 @@
                         <button class="btn btn-outline btn-block" onclick="UI.openMap()">OPEN COMMAND CENTER</button>
                     </div>
                 </div>
+                
+                <!-- Desktop Events Button -->
+                <div class="card hidden" id="desktop-events-card">
+                    <button class="btn btn-primary btn-block" onclick="UI.openEvents()">MANAGE EVENTS</button>
+                </div>
 
                 <div class="card" style="flex:1; max-height: 300px;">
                     <div class="card-header">
                         <span class="card-title">Active Debts</span>
-                        <span id="debt-count" style="color: var(--accent-crit); font-weight: 700;">0</span>
+                        <span id="debt-count" style="color: var(--accent-crit); font-weight: 700;">0m</span>
                     </div>
                     <div class="log-list" id="debt-list" style="overflow-y: auto;"></div>
                 </div>
@@ -402,6 +444,7 @@
                     
                     <!-- Overlays -->
                     <div id="integrity-visual-overlay"></div>
+                    <div id="integrity-ping-box" onclick="Logic.Session.handlePingSuccess()"></div>
                     <div id="countdown-overlay">
                         <div class="countdown-val" id="countdown-val">3</div>
                         <div class="countdown-label">Visualize</div>
@@ -443,9 +486,10 @@
                 <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
                 MAP
             </button>
-            <button class="nav-tab" onclick="UI.openComms()">
-                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-                COMMS
+            <!-- REPLACED COMMS WITH EVENTS -->
+            <button class="nav-tab" onclick="UI.openEvents()">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                EVENTS
             </button>
         </div>
     </div>
@@ -491,12 +535,7 @@
                     
                     <div class="form-label" style="margin-bottom:10px; font-weight:700; color:var(--text-secondary);">RESOURCE</div>
                     <div class="goal-chip-grid" id="goal-resource-grid">
-                        <div class="goal-chip" onclick="Logic.UI.setGoalRes(this, 'NOTES')">NOTES</div>
-                        <div class="goal-chip" onclick="Logic.UI.setGoalRes(this, 'NCERT')">NCERT</div>
-                        <div class="goal-chip" onclick="Logic.UI.setGoalRes(this, 'PYQS')">PYQS</div>
-                        <div class="goal-chip" onclick="Logic.UI.setGoalRes(this, 'MODULE')">MODULE</div>
-                        <div class="goal-chip" onclick="Logic.UI.setGoalRes(this, 'LECTURE')">LECTURE</div>
-                        <div class="goal-chip" onclick="Logic.UI.setGoalRes(this, 'BOOK')">BOOK</div>
+                        <!-- Populated dynamically by User Preference -->
                     </div>
 
                     <div class="form-label" style="margin-bottom:10px; font-weight:700; color:var(--text-secondary);">SCOPE (OPTIONAL)</div>
@@ -512,6 +551,10 @@
                         <div class="choice-btn" id="btn-mode-hard" data-mode="hard" onclick="Logic.UI.selectMode('hard')">
                             <span class="choice-title" style="color:var(--accent-crit)">HARD FOCUS</span>
                             <span class="choice-meta" id="hard-mode-meta">No pause. Fullscreen.</span>
+                        </div>
+                        <div class="choice-btn hidden" id="btn-mode-debt" data-mode="debt" onclick="Logic.UI.selectMode('debt')">
+                            <span class="choice-title" style="color:var(--accent-warn)">DEBT CLEARANCE</span>
+                            <span class="choice-meta">Repay Active Time.</span>
                         </div>
                     </div>
 
@@ -555,6 +598,131 @@
             </div>
         </div>
     </div>
+    
+    <!-- OVERLAY: EVENTS -->
+    <div id="overlay-events" class="overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h2 class="modal-title">Temporal Engine</h2>
+                    <p class="modal-desc">Track deadlines. Manage urgency.</p>
+                </div>
+                <button class="close-btn" onclick="UI.closeOverlays()">×</button>
+            </div>
+            <div class="modal-body-scroll" id="events-container">
+                <!-- Injected via JS -->
+            </div>
+            <div style="border-top: 1px solid var(--border-ui); padding-top: 16px; margin-top: 16px;">
+                <div style="font-size:0.7rem; color:var(--text-muted); font-weight:700; margin-bottom:8px;">ADD CUSTOM EVENT</div>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <input type="text" id="new-event-name" placeholder="Name (e.g. Mock Test 1)" style="flex:1; margin:0;">
+                    <input type="date" id="new-event-date" style="flex:1; margin:0; background:var(--bg-elevated);">
+                    <button class="btn btn-primary" onclick="Logic.Onboarding.addCustomEvent()">ADD</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- OVERLAY: MARKET (NEW) -->
+    <div id="overlay-market" class="overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <div><h2 class="modal-title">The Black Market</h2><p class="modal-desc">Spend XP. Survive.</p></div>
+                <button class="close-btn" onclick="UI.closeOverlays()">×</button>
+            </div>
+            <div style="text-align: center; margin-bottom: 20px; padding: 10px; background: var(--bg-elevated); border-radius: var(--radius-md);">
+                <div style="font-size: 0.8rem; color: var(--text-secondary);">AVAILABLE FUNDS</div>
+                <div style="font-size: 2rem; font-weight: 900; color: var(--accent-gold); font-family: var(--font-mono);" id="market-balance">0</div>
+            </div>
+            <div id="market-listings">
+                <!-- Injected -->
+            </div>
+        </div>
+    </div>
+
+    <!-- OVERLAY: ONBOARDING -->
+    <div id="overlay-onboarding" class="overlay" style="z-index: 2200;">
+        <div class="modal" style="max-width: 500px;">
+            <!-- Philosophy Slide -->
+            <div class="tut-slide active" id="onboard-step-0">
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <div style="font-size: 3rem; margin-bottom: 10px;">🧠</div>
+                    <h2 class="modal-title">Entry Philosophy</h2>
+                    <p class="modal-desc" style="margin-top:10px;">
+                        This is not just a timer.<br>
+                        It is a war room for your ambition.<br>
+                        Configure your battlefield to begin.
+                    </p>
+                </div>
+                <button class="btn btn-primary btn-block" onclick="Logic.Onboarding.next(1)">CONFIGURE PROTOCOL (3 MINS)</button>
+            </div>
+
+            <!-- Step 1: Exam Selection -->
+            <div class="tut-slide" id="onboard-step-1">
+                <h2 class="modal-title">Identity Protocol</h2>
+                <p class="modal-desc" style="margin-bottom: 20px;">Select your primary battlefield. This is unskippable.</p>
+                
+                <div class="onboard-card">
+                    <div class="exam-selector">
+                        <label class="exam-label"><input type="checkbox" class="checkbox-custom" value="JEE Main"> JEE Main</label>
+                        <input type="radio" name="primary_exam" value="JEE Main">
+                    </div>
+                    <div class="exam-selector">
+                        <label class="exam-label"><input type="checkbox" class="checkbox-custom" value="JEE Advanced"> JEE Advanced</label>
+                        <input type="radio" name="primary_exam" value="JEE Advanced">
+                    </div>
+                    <div class="exam-selector">
+                        <label class="exam-label"><input type="checkbox" class="checkbox-custom" value="NEET"> NEET</label>
+                        <input type="radio" name="primary_exam" value="NEET">
+                    </div>
+                    <div class="exam-selector">
+                        <label class="exam-label"><input type="checkbox" class="checkbox-custom" value="Boards"> Boards (12th)</label>
+                        <input type="radio" name="primary_exam" value="Boards">
+                    </div>
+                    <div class="exam-selector">
+                        <label class="exam-label"><input type="checkbox" class="checkbox-custom" value="Other"> Other</label>
+                        <input type="radio" name="primary_exam" value="Other">
+                    </div>
+                    <div style="text-align: right; padding: 8px; font-size: 0.7rem; color: var(--text-muted);">Select Radio for Primary Target</div>
+                </div>
+                
+                <button class="btn btn-primary btn-block" onclick="Logic.Onboarding.validateExam()">CONFIRM IDENTITY</button>
+            </div>
+
+            <!-- Step 2: Dates -->
+            <div class="tut-slide" id="onboard-step-2">
+                <h2 class="modal-title">Temporal Data</h2>
+                <p class="modal-desc" style="margin-bottom: 20px;">When is D-Day? Skip if unknown.</p>
+                <div id="onboard-date-container"></div>
+                <button class="btn btn-primary btn-block" style="margin-top: 20px;" onclick="Logic.Onboarding.next(3)">NEXT</button>
+            </div>
+
+            <!-- Step 3: Resources -->
+            <div class="tut-slide" id="onboard-step-3">
+                <h2 class="modal-title">Arsenal Inventory</h2>
+                <p class="modal-desc" style="margin-bottom: 20px;">What weapons do you actually use?</p>
+                
+                <div style="background: var(--bg-elevated); padding: 20px; border-radius: 8px; border: 1px solid var(--border-ui); margin-bottom: 20px;">
+                    <div id="resource-tags-container">
+                        <span class="resource-tag selected" onclick="this.classList.toggle('selected')">Coaching Modules</span>
+                        <span class="resource-tag selected" onclick="this.classList.toggle('selected')">NCERT</span>
+                        <span class="resource-tag selected" onclick="this.classList.toggle('selected')">PYQs</span>
+                        <span class="resource-tag" onclick="this.classList.toggle('selected')">H.C. Verma</span>
+                        <span class="resource-tag" onclick="this.classList.toggle('selected')">Reference Books</span>
+                        <span class="resource-tag" onclick="this.classList.toggle('selected')">Lecture Notes</span>
+                        <span class="resource-tag" onclick="this.classList.toggle('selected')">YouTube</span>
+                        <span class="resource-tag" onclick="this.classList.toggle('selected')">Test Series</span>
+                    </div>
+                    <input type="text" id="custom-resource-input" placeholder="+ Add Custom Resource" style="margin-top: 15px; background: var(--bg-deep);" onkeydown="if(event.key === 'Enter') Logic.Onboarding.addCustomResource(this)">
+                </div>
+
+                <button class="btn btn-primary btn-block" onclick="Logic.Onboarding.finish()">INITIALIZE SYSTEM</button>
+                <div style="margin-top: 15px; font-size: 0.7rem; color: var(--text-muted); text-align: center;">
+                    Disclaimer: You can add custom subjects and modify resources later in the System Map.
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- OVERLAY: COMMS (FEEDBACK) -->
     <div id="overlay-comms" class="overlay">
@@ -565,11 +733,9 @@
             </div>
             <p class="modal-desc" style="margin-bottom: 20px;">Direct line to Ojas Kadam (Architect). Report bugs or request features.</p>
             
-            <!-- Hidden iframe to prevent redirect on submit -->
             <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(typeof submitted !== 'undefined' && submitted) {UI.commsSuccess()}"></iframe>
             
             <form action="https://formsubmit.co/okwarrior.2456@gmail.com" method="POST" target="hidden_iframe" onsubmit="window.submitted=true;">
-                <!-- Configuration for FormSubmit -->
                 <input type="hidden" name="_subject" value="RANKLOCK V9 FEEDBACK">
                 <input type="hidden" name="_captcha" value="false">
                 <input type="hidden" name="_template" value="table">
@@ -594,7 +760,6 @@
                 </div>
                 
                 <button type="submit" class="btn btn-primary btn-block">TRANSMIT DATA</button>
-                <div style="font-size: 0.65rem; color: var(--text-muted); margin-top: 10px; text-align: center;">Secure transmission via FormSubmit Protocol.</div>
             </form>
         </div>
     </div>
@@ -617,7 +782,7 @@
                     <div style="display: flex; justify-content: space-between;"><span>DURATION:</span> <span id="auto-duration-display" style="font-weight: 700;">-</span></div>
                     <div style="display: flex; justify-content: space-between;"><span>EFFICIENCY:</span> <span id="auto-efficiency-display" style="font-weight: 700;">-</span></div>
                     <div style="border-top: 1px dashed var(--border-ui); margin: 6px 0;"></div>
-                    <div style="display: flex; justify-content: space-between; color: var(--accent-lock);"><span>PROJECTED XP:</span> <span id="auto-xp-display" style="font-weight: 700;">-</span></div>
+                    <div style="display: flex; justify-content: space-between; color: var(--accent-lock);"><span>EARNINGS:</span> <span id="auto-xp-display" style="font-weight: 700;">-</span></div>
                 </div>
             </div>
 
@@ -663,12 +828,12 @@
     </div>
 
     <!-- OVERLAY: TUTORIAL -->
-    <div id="overlay-tutorial" class="overlay" style="z-index: 2000;">
+    <div id="overlay-tutorial" class="overlay" style="z-index: 2300;">
         <div class="modal" style="max-width: 500px; text-align: center;">
             <div class="tut-slide active" id="tut-step-1">
                 <div class="tut-img">🚀</div>
                 <h2 class="modal-title">System Online</h2>
-                <p class="modal-desc">RankLock v9.0 Initialized. Welcome to the discipline protocol.</p>
+                <p class="modal-desc">RankLock v9.4 Initialized. Welcome to the discipline protocol.</p>
                 <button class="btn btn-primary btn-block" style="margin-top: 30px;" onclick="Logic.Tutorial.next(2)">NEXT: INTEGRITY</button>
             </div>
             <div class="tut-slide" id="tut-step-2">
@@ -691,10 +856,11 @@
             </div>
             <div class="tut-slide" id="tut-step-4">
                 <div class="tut-img" style="color: var(--accent-warn); border-color: var(--accent-warn);">⚠️</div>
-                <h2 class="modal-title">Active Debts</h2>
+                <h2 class="modal-title">Time Debt</h2>
                 <p class="modal-desc">
-                    Mistakes create Debt immediately. <strong>Active Debt reduces XP gain by 50%</strong>.<br><br>
-                    <strong>To Clear:</strong> Score Grade 'A' or 'S' with a "Clean Run" (No mistakes).
+                    Leaving a session early creates <strong>Time Debt</strong>.<br>
+                    Active Debt applies a <strong>50% Tax</strong> on all XP earnings.<br><br>
+                    <strong>To Clear:</strong> Use "Debt Clearance" mode. No shortcuts.
                 </p>
                 <button class="btn btn-primary btn-block" style="margin-top: 30px;" onclick="Logic.Tutorial.next(5)">NEXT: FOCUS</button>
             </div>
@@ -740,16 +906,15 @@
     
     <!-- JS Logic -->
     <script>
-        // Global variable for form submission status
         window.submitted = false;
 
         const CONSTANTS = {
-            VERSION: 9.1,
-            APP_ID: "RANKLOCK_JEE_V9", // Updated for v9 to ensure fresh migration if needed
+            VERSION: 9.4,
+            APP_ID: "RANKLOCK_JEE_V9_4", 
             RANKS: [
                 {t:0, title:"UNINITIATED", perk:"None"},
                 {t:500, title:"ASPIRANT", perk:"Hard Focus Unlocked"},
-                {t:1500, title:"DISCIPLINE I", perk:"Debt Buyout (500 XP)"},
+                {t:1500, title:"DISCIPLINE I", perk:"Market Access"},
                 {t:4000, title:"DISCIPLINE II", perk:"Entropy Shield I"},
                 {t:10000, title:"SCHOLAR", perk:"Entropy Shield II"},
                 {t:25000, title:"ELITE", perk:"Max Authority"},
@@ -757,43 +922,62 @@
                 {t:100000, title:"IITIAN", perk:"God Tier"}
             ],
             HARD_MODE_REQ: 500,
-            DEBT_BUYOUT_COST: 500,
-            DEFAULT_SUBJECTS: [
-                { id: 'phys', name: 'PHYSICS', chapters: ['Units & Dimensions', 'Kinematics', 'Laws of Motion', 'Work Energy Power', 'Rotational Motion', 'Gravitation', 'Solids & Fluids', 'Thermodynamics', 'Electrostatics', 'Current Electricity', 'Magnetism', 'EMI & AC', 'Optics', 'Modern Physics'] },
-                { id: 'chem', name: 'CHEMISTRY', chapters: ['Mole Concept', 'Atomic Structure', 'Periodic Table', 'Bonding', 'States of Matter', 'Thermodynamics', 'Equilibrium', 'Kinetics', 'Electrochemistry', 'Solutions', 'Metallurgy', 'Block Chemistry', 'Coordination Compounds', 'GOC', 'Hydrocarbons', 'Haloalkanes', 'Oxygen Compounds', 'Nitrogen Compounds', 'Biomolecules'] },
-                { id: 'math', name: 'MATHEMATICS', chapters: ['Sets & Relations', 'Trigonometry', 'Quadratic Eq', 'Complex Numbers', 'P&C', 'Binomial', 'Sequences', 'Straight Lines', 'Circles', 'Conics', 'Limits & Continuity', 'Derivatives', 'Indefinite Integral', 'Definite Integral', 'Diff Equations', 'Vectors & 3D', 'Probability'] }
-            ]
+            MARKET_REQ: 0,
+            DAILY_XP_CAP: 1500,
+            
+            PRESETS: {
+                PHYSICS: { id: 'phys', name: 'PHYSICS', chapters: ['Units & Dimensions', 'Kinematics', 'Laws of Motion', 'Work Energy Power', 'Rotational Motion', 'Gravitation', 'Solids & Fluids', 'Thermodynamics', 'Electrostatics', 'Current Electricity', 'Magnetism', 'EMI & AC', 'Optics', 'Modern Physics'] },
+                CHEMISTRY: { id: 'chem', name: 'CHEMISTRY', chapters: ['Mole Concept', 'Atomic Structure', 'Periodic Table', 'Bonding', 'States of Matter', 'Thermodynamics', 'Equilibrium', 'Kinetics', 'Electrochemistry', 'Solutions', 'Metallurgy', 'Block Chemistry', 'Coordination Compounds', 'GOC', 'Hydrocarbons', 'Haloalkanes', 'Oxygen Compounds', 'Nitrogen Compounds', 'Biomolecules'] },
+                MATH: { id: 'math', name: 'MATHEMATICS', chapters: ['Sets & Relations', 'Trigonometry', 'Quadratic Eq', 'Complex Numbers', 'P&C', 'Binomial', 'Sequences', 'Straight Lines', 'Circles', 'Conics', 'Limits & Continuity', 'Derivatives', 'Indefinite Integral', 'Definite Integral', 'Diff Equations', 'Vectors & 3D', 'Probability'] },
+                BIOLOGY: { id: 'bio', name: 'BIOLOGY', chapters: ['Living World', 'Biological Classification', 'Plant Kingdom', 'Animal Kingdom', 'Morphology', 'Anatomy', 'Structural Org', 'Cell Unit', 'Biomolecules', 'Cell Cycle', 'Transport', 'Mineral Nutrition', 'Photosynthesis', 'Respiration', 'Plant Growth', 'Digestion', 'Breathing', 'Body Fluids', 'Excretory', 'Locomotion', 'Neural Control', 'Chemical Coord', 'Reproduction', 'Genetics', 'Evolution', 'Human Health', 'Microbes', 'Biotech', 'Ecology'] }
+            },
+
+            LINKS: {
+                "JEE Main": { main: "https://jeemain.nta.ac.in", backup: "https://nta.ac.in" },
+                "JEE Advanced": { main: "https://jeeadv.ac.in", backup: "https://jeemain.nta.ac.in" },
+                "NEET": { main: "https://neet.nta.nic.in", backup: "https://nta.ac.in" },
+                "Boards": { main: "https://cbse.gov.in", backup: "https://ncert.nic.in" },
+                "Other": { main: "https://google.com", backup: null }
+            }
         };
+
+        let defaultSubjects = [CONSTANTS.PRESETS.PHYSICS, CONSTANTS.PRESETS.CHEMISTRY, CONSTANTS.PRESETS.MATH];
 
         let State = {
             username: null,
-            rank: 0, dailySeconds: 0, chapterStats: {}, subjects: [...CONSTANTS.DEFAULT_SUBJECTS], logs: [], tutorialComplete: false,
+            rank: 0, dailySeconds: 0, 
+            dailyXP: 0, 
+            chapterStats: {}, subjects: [...defaultSubjects], logs: [], 
+            tutorialComplete: false,
+            onboardingComplete: false,
+            userProfile: { exams: [], resources: [] }, 
             streak: 0, lastLoginDate: null,
-            systemIntegrity: 100, // Global Integrity
-            session: { active: false, paused: false, mode: 'normal', remaining: 0, total: 0, integrity: 100, goal: '', pauses: 0, lastPauseTime: 0 }
+            systemIntegrity: 100, 
+            session: { active: false, paused: false, mode: 'normal', remaining: 0, total: 0, integrity: 100, goal: '', pauses: 0, lastPauseTime: 0, pingMissed: 0 }
         };
 
-        // Temporary Goal State (Not saved in DB, just for Wizard)
         let goalState = { type: null, resource: null };
+        let pingTimer = null;
 
         const Storage = {
             save: () => localStorage.setItem(CONSTANTS.APP_ID, JSON.stringify(State)),
             load: () => {
-                // Try to load v9
                 const raw = localStorage.getItem(CONSTANTS.APP_ID);
                 if (raw) { 
-                    State = { ...State, ...JSON.parse(raw) }; 
+                    const loaded = JSON.parse(raw);
+                    if(!loaded.userProfile) loaded.userProfile = { exams: [], resources: [] };
+                    if(loaded.dailyXP === undefined) loaded.dailyXP = 0;
+                    State = { ...State, ...loaded }; 
                     return true; 
                 }
-                
-                // Migration Logic: Check for v8 data and migrate
-                const v8 = localStorage.getItem("RANKLOCK_JEE_V8");
-                if(v8) {
+                const v93 = localStorage.getItem("RANKLOCK_JEE_V9_3");
+                if(v93) {
                     try {
-                        const v8Data = JSON.parse(v8);
-                        State = { ...State, ...v8Data };
-                        console.log("Migrated from v8 to v9");
-                        Storage.save(); // Save to new ID
+                        const v9Data = JSON.parse(v93);
+                        State = { ...State, ...v9Data };
+                        State.dailyXP = 0;
+                        console.log("Migrated from v9.3 to v9.4");
+                        Storage.save();
                         return true;
                     } catch(e) { console.error("Migration failed"); }
                 }
@@ -807,6 +991,13 @@
                 init() {
                     Storage.load();
                     if(State.systemIntegrity === undefined) State.systemIntegrity = 100;
+                    
+                    const today = new Date().toDateString();
+                    if(State.lastLoginDate !== today) {
+                        State.dailyXP = 0; // Reset Daily Cap
+                    }
+                    State.lastLoginDate = today;
+
                     if(State.username) UI.updateUsername(State.username);
                     else {
                         const tempUser = document.querySelector('.user-name-target');
@@ -816,11 +1007,10 @@
                     this.checkIntegrityOnLoad();
                     UI.init();
                     
-                    // Handle responsive sidebar on load
                     if(window.innerWidth > 1024) {
                         document.getElementById('main-layout').classList.remove('sidebar-collapsed');
+                        document.getElementById('desktop-events-card').classList.remove('hidden');
                     } else {
-                        // FIX: Force OPS tab on mobile load
                         UI.switchMobileTab('ops');
                     }
                     
@@ -829,22 +1019,25 @@
                     
                     if(!State.tutorialComplete) {
                         Logic.Tutorial.start();
+                    } else if (!State.onboardingComplete) {
+                        Logic.Onboarding.start();
                     } else if (!State.username) {
                         Logic.System.showNameModal();
                     }
+                    
+                    UI.renderUrgency();
 
                     document.addEventListener('keydown', (e) => {
-                        // Avoid triggering shortcuts when typing
                         if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-
                         if (e.code === 'Space' && State.session.active && State.session.mode === 'normal') { e.preventDefault(); Logic.Session.togglePause(); }
                         if (e.code === 'Escape') {
                             const unOverlay = document.getElementById('overlay-username');
-                            if (unOverlay.style.display === 'flex') return;
+                            const obOverlay = document.getElementById('overlay-onboarding');
+                            if ((unOverlay && unOverlay.style.display === 'flex') || (obOverlay && obOverlay.style.display === 'flex')) return;
+                            
                             if (State.session.active) { if(confirm("ABORT SESSION?")) Logic.Session.abort(); }
                             else UI.closeOverlays();
                         }
-                        // Fullscreen Shortcut
                         if (e.code === 'KeyF') { e.preventDefault(); Logic.System.toggleFullscreen(); }
                     });
 
@@ -854,19 +1047,12 @@
                 },
                 toggleFullscreen() {
                     if (!document.fullscreenElement) {
-                        document.documentElement.requestFullscreen().catch((err) => {
-                            console.log(`Error attempting to enable fullscreen: ${err.message}`);
-                        });
+                        document.documentElement.requestFullscreen().catch((err) => {});
                     } else {
-                        if (document.exitFullscreen) {
-                            document.exitFullscreen();
-                        }
+                        if (document.exitFullscreen) document.exitFullscreen();
                     }
                 },
-                showNameModal() {
-                    const ov = document.getElementById('overlay-username');
-                    ov.style.display = 'flex';
-                },
+                showNameModal() { document.getElementById('overlay-username').style.display = 'flex'; },
                 setUsername() {
                     const input = document.getElementById('input-username');
                     const val = input.value.trim();
@@ -881,33 +1067,11 @@
                     if(State.session.active) {
                         State.session.active = false;
                         State.streak = 0; 
-                        State.rank = Math.max(0, State.rank - 200); 
-                        State.systemIntegrity = Math.max(0, State.systemIntegrity - 15); // Global Hit
+                        Logic.Economy.spend(200, "SYSTEM FAILURE");
+                        State.systemIntegrity = Math.max(0, State.systemIntegrity - 15);
                         State.logs.unshift({ date: Date.now(), chapter: "SYSTEM", duration: 0, quality: 0, integrity: 0, note: "CRITICAL FAILURE: GHOST EXIT DETECTED", grade: "F" });
-                        alert("CRITICAL FAILURE DETECTED.\nSession terminated abnormally.\nPenalty: -200 XP, Global Integrity Damaged\nStreak: RESET");
+                        alert("CRITICAL FAILURE DETECTED.\nSession terminated abnormally.\nPenalty: -200 XP\nStreak: RESET");
                     }
-
-                    const today = new Date().toDateString();
-                    if (State.lastLoginDate && State.lastLoginDate !== today) {
-                        const d1 = new Date(State.lastLoginDate);
-                        const d2 = new Date();
-                        const diffTime = Math.abs(d2 - d1);
-                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-                        
-                        if(diffDays > 1) {
-                            State.streak = 0; 
-                            UI.showToast("STREAK LOST: INCONSISTENCY DETECTED");
-                        }
-                        
-                        // Entropy Formula
-                        let baseEntropy = 50;
-                        if(State.rank > 4000) baseEntropy = 30;
-                        if(State.rank > 10000) baseEntropy = 10;
-
-                        State.rank = Math.max(0, State.rank - baseEntropy);
-                        UI.showToast(`ENTROPY DECAY: -${baseEntropy} XP`);
-                    }
-                    State.lastLoginDate = today;
                     Storage.save();
                 },
                 factoryReset() { if(confirm("System Purge?")) Storage.reset(); },
@@ -927,60 +1091,238 @@
                     reader.onload = function(e) {
                         try {
                             const data = JSON.parse(e.target.result);
-                            if(data.rank !== undefined && data.subjects) {
+                            if(data.rank !== undefined) {
                                 State = data;
                                 Storage.save();
                                 alert("System Restoration Successful.");
                                 location.reload();
-                            } else {
-                                alert("Corrupt Data Signature.");
-                            }
+                            } else { alert("Corrupt Data Signature."); }
                         } catch(err) { alert("Parse Error."); }
                     };
                     reader.readAsText(file);
                 }
             },
-            Tutorial: {
-                start() { document.getElementById('overlay-tutorial').style.display = 'flex'; },
-                restart() { 
-                    UI.closeOverlays();
-                    document.querySelectorAll('.tut-slide').forEach(s => s.classList.remove('active'));
-                    document.getElementById('tut-step-1').classList.add('active');
-                    document.getElementById('overlay-tutorial').style.display = 'flex'; 
+            
+            // --- NEW: ECONOMY LOGIC ---
+            Economy: {
+                earn(amount, reason) {
+                    if(amount <= 0) return;
+                    
+                    // Check for Active Debt (Global Tax)
+                    const totalDebt = Logic.Debt.getTotalMinutes();
+                    let multiplier = 1.0;
+                    
+                    if(totalDebt > 0 && State.session.mode !== 'debt') {
+                         multiplier = 0.5;
+                         UI.showToast("ACTIVE DEBT TAX APPLIED (50%)");
+                    }
+                    
+                    // Daily Cap Logic
+                    let actualEarn = amount * multiplier;
+                    
+                    if(State.dailyXP >= CONSTANTS.DAILY_XP_CAP) {
+                        actualEarn = actualEarn * 0.1; // 90% Tax
+                        UI.showToast("DAILY CAP REACHED. 90% TAX.");
+                    }
+                    
+                    State.dailyXP += actualEarn;
+                    State.rank += Math.floor(actualEarn);
+                    UI.renderStats();
+                    Storage.save();
                 },
-                next(step) {
-                    document.querySelectorAll('.tut-slide').forEach(s => s.classList.remove('active'));
-                    document.getElementById('tut-step-'+step).classList.add('active');
+                spend(amount, reason) {
+                    if(State.rank >= amount) {
+                        State.rank -= amount;
+                        UI.renderStats();
+                        Storage.save();
+                        return true;
+                    }
+                    return false;
+                },
+                buy(item) {
+                    if(item === 'freeze') {
+                        if(this.spend(1000, "Streak Freeze")) {
+                             alert("STREAK FROZEN FOR 24 HOURS.");
+                             // Logic for streak freeze implementation would go here (timestamp)
+                        } else alert("INSUFFICIENT FUNDS");
+                    } else if (item === 'repair') {
+                        if(State.systemIntegrity >= 100) { alert("Integrity Maximum."); return; }
+                        if(this.spend(500, "System Repair")) {
+                             State.systemIntegrity = Math.min(100, State.systemIntegrity + 20);
+                             UI.showToast("INTEGRITY REPAIRED");
+                             UI.renderStats();
+                        } else alert("INSUFFICIENT FUNDS");
+                    }
+                }
+            },
+            
+            // --- NEW: DEBT LOGIC (TIME BASED) ---
+            Debt: {
+                add(subId, chapter, minutes) {
+                    if(minutes <= 0) return;
+                    const key = `${subId}|${chapter}`;
+                    if(!State.chapterStats[key]) State.chapterStats[key] = {xp:0, debtMinutes: 0};
+                    if(!State.chapterStats[key].debtMinutes) State.chapterStats[key].debtMinutes = 0;
+                    
+                    State.chapterStats[key].debtMinutes += minutes;
+                    Storage.save();
+                    UI.renderDebts();
+                },
+                repay(subId, chapter, minutes) {
+                    const key = `${subId}|${chapter}`;
+                    if(State.chapterStats[key] && State.chapterStats[key].debtMinutes > 0) {
+                        State.chapterStats[key].debtMinutes = Math.max(0, State.chapterStats[key].debtMinutes - minutes);
+                        Storage.save();
+                        UI.renderDebts();
+                        UI.showToast(`DEBT REPAID: ${minutes} MINS`, "success");
+                    }
+                },
+                getTotalMinutes() {
+                    let total = 0;
+                    if(!State.chapterStats) return 0;
+                    Object.values(State.chapterStats).forEach(s => {
+                        if(s.debtMinutes) total += s.debtMinutes;
+                        // Legacy support (count based)
+                        if(s.debt) total += (s.debt * 20); 
+                    });
+                    return total;
+                }
+            },
+
+            Onboarding: {
+                tempData: { exams: [] },
+                start() { document.getElementById('overlay-onboarding').style.display = 'flex'; this.showStep(0); },
+                showStep(n) { document.querySelectorAll('#overlay-onboarding .tut-slide').forEach(s => s.classList.remove('active')); document.getElementById('onboard-step-'+n).classList.add('active'); },
+                next(n) { if(n === 3) this.renderDateInputs(); this.showStep(n); },
+                validateExam() {
+                    const checks = document.querySelectorAll('#onboard-step-1 .checkbox-custom:checked');
+                    const primary = document.querySelector('input[name="primary_exam"]:checked');
+                    if(checks.length === 0) { alert("PROTOCOL HALTED: Select at least one exam target."); return; }
+                    if(!primary) { alert("PROTOCOL HALTED: Mark one exam as Primary."); return; }
+                    
+                    let validPrimary = false;
+                    checks.forEach(c => { if(c.value === primary.value) validPrimary = true; });
+                    if(!validPrimary) { alert("Logic Error: Primary exam must be one of your selected targets."); return; }
+                    
+                    this.tempData.exams = [];
+                    checks.forEach(c => {
+                        this.tempData.exams.push({ id: c.value, name: c.value, primary: c.value === primary.value, date: null });
+                    });
+                    this.next(2);
+                },
+                renderDateInputs() {
+                    const c = document.getElementById('onboard-date-container');
+                    c.innerHTML = '';
+                    this.tempData.exams.forEach(ex => {
+                        const row = document.createElement('div');
+                        row.style.marginBottom = '15px';
+                        row.innerHTML = `
+                            <div style="font-size:0.8rem; font-weight:700; color:var(--text-secondary); margin-bottom:5px;">${ex.name} ${ex.primary ? '<span style="color:var(--accent-lock)">(PRIMARY)</span>' : ''}</div>
+                            <input type="date" class="exam-date-input" data-exam="${ex.name}" style="background:var(--bg-elevated);">
+                        `;
+                        c.appendChild(row);
+                    });
+                },
+                addCustomResource(input) {
+                    const val = input.value.trim();
+                    if(val) {
+                        const cont = document.getElementById('resource-tags-container');
+                        const tag = document.createElement('span'); tag.className = 'resource-tag selected'; tag.textContent = val;
+                        tag.onclick = function(){ this.classList.toggle('selected'); };
+                        cont.appendChild(tag);
+                        input.value = '';
+                    }
+                },
+                addCustomEvent() {
+                     const name = document.getElementById('new-event-name').value.trim();
+                     const date = document.getElementById('new-event-date').value;
+                     if(name && date) {
+                         if(!State.userProfile.exams) State.userProfile.exams = [];
+                         State.userProfile.exams.push({id: 'custom-'+Date.now(), name: name, primary: false, date: date});
+                         Storage.save();
+                         UI.renderUrgency(); 
+                         document.getElementById('new-event-name').value = '';
+                         document.getElementById('new-event-date').value = '';
+                         UI.showToast("EVENT ADDED");
+                     }
+                },
+                deleteEvent(id) {
+                    if(confirm("Delete this event?")) {
+                        State.userProfile.exams = State.userProfile.exams.filter(e => e.id !== id);
+                        Storage.save();
+                        UI.renderUrgency();
+                    }
                 },
                 finish() {
-                    State.tutorialComplete = true;
+                    const dateInputs = document.querySelectorAll('.exam-date-input');
+                    dateInputs.forEach(inp => {
+                        const name = inp.dataset.exam;
+                        const val = inp.value;
+                        const ex = this.tempData.exams.find(e => e.name === name);
+                        if(ex && val) ex.date = val;
+                    });
+                    const resTags = document.querySelectorAll('.resource-tag.selected');
+                    const resources = Array.from(resTags).map(t => t.textContent);
+                    if(resources.length === 0) resources.push("Notes", "Books"); 
+                    
+                    let newSubjects = [];
+                    const hasJEE = this.tempData.exams.some(e => e.name.includes("JEE") || e.name.includes("Boards"));
+                    const hasNEET = this.tempData.exams.some(e => e.name === "NEET");
+                    
+                    newSubjects.push(CONSTANTS.PRESETS.PHYSICS);
+                    newSubjects.push(CONSTANTS.PRESETS.CHEMISTRY);
+                    if(hasJEE && !hasNEET) newSubjects.push(CONSTANTS.PRESETS.MATH);
+                    else if (hasNEET && !hasJEE) newSubjects.push(CONSTANTS.PRESETS.BIOLOGY);
+                    else if (hasJEE && hasNEET) { newSubjects.push(CONSTANTS.PRESETS.MATH); newSubjects.push(CONSTANTS.PRESETS.BIOLOGY); }
+                    else newSubjects.push(CONSTANTS.PRESETS.MATH);
+                    
+                    State.userProfile.exams = this.tempData.exams;
+                    State.userProfile.resources = resources;
+                    State.subjects = newSubjects;
+                    State.onboardingComplete = true;
                     Storage.save();
-                    document.getElementById('overlay-tutorial').style.display = 'none';
-                    if(!State.username) Logic.System.showNameModal(); 
+                    
+                    document.getElementById('overlay-onboarding').style.display = 'none';
+                    UI.renderMap();
+                    UI.renderUrgency(); 
+                    Logic.System.showNameModal();
                 }
+            },
+            
+            Tutorial: {
+                start() { document.getElementById('overlay-tutorial').style.display = 'flex'; },
+                restart() { UI.closeOverlays(); document.querySelectorAll('.tut-slide').forEach(s => s.classList.remove('active')); document.getElementById('tut-step-1').classList.add('active'); document.getElementById('overlay-tutorial').style.display = 'flex'; },
+                next(step) { document.querySelectorAll('.tut-slide').forEach(s => s.classList.remove('active')); document.getElementById('tut-step-'+step).classList.add('active'); },
+                finish() { State.tutorialComplete = true; Storage.save(); document.getElementById('overlay-tutorial').style.display = 'none'; Logic.Onboarding.start(); }
             },
             Session: {
                 preFlight(subId, ch, mode, durMins, goalText) {
                     if(!goalState.type) { alert("PROTOCOL ERROR: Select Mission Type."); return; }
                     if(!goalState.resource) { alert("PROTOCOL ERROR: Select Resource."); return; }
                     
+                    // DEBT CHECK
+                    if(mode === 'debt') {
+                        const key = `${subId}|${ch}`;
+                        const stats = State.chapterStats[key];
+                        const dVal = stats ? (stats.debtMinutes || (stats.debt*20) || 0) : 0;
+                        if(dVal <= 0) {
+                            alert("NO ACTIVE DEBT ON THIS CHAPTER.");
+                            return;
+                        }
+                    }
+
                     UI.closeOverlays();
-                    
-                    // Trigger Fullscreen immediately for Hard Mode
                     if(mode === 'hard') Logic.System.toggleFullscreen();
 
                     const overlay = document.getElementById('countdown-overlay');
                     const valEl = document.getElementById('countdown-val');
                     overlay.style.display = 'flex';
-                    
                     let count = 3;
                     valEl.textContent = count;
-                    
                     const int = setInterval(() => {
                         count--;
-                        if(count > 0) {
-                            valEl.textContent = count;
-                        } else {
+                        if(count > 0) valEl.textContent = count;
+                        else {
                             clearInterval(int);
                             overlay.style.display = 'none';
                             this.start(subId, ch, mode, durMins, goalText);
@@ -988,19 +1330,17 @@
                     }, 1000);
                 },
                 start(subId, ch, mode, durMins, goal) {
-                    State.session = { active: true, paused: false, mode: mode, subjectId: subId, chapter: ch, total: durMins*60, remaining: durMins*60, integrity: 100, startTime: Date.now(), goal: goal, pauses: 0, lastPauseTime: 0 };
-                    if (mode === 'hard') {
-                        document.body.classList.add('mode-hard-focus');
-                    }
-                    
-                    // Force switch to OPS tab on mobile when starting
+                    State.session = { active: true, paused: false, mode: mode, subjectId: subId, chapter: ch, total: durMins*60, remaining: durMins*60, integrity: 100, startTime: Date.now(), goal: goal, pauses: 0, lastPauseTime: 0, pingMissed: 0 };
+                    if (mode === 'hard') document.body.classList.add('mode-hard-focus');
                     UI.switchMobileTab('ops');
-                    
                     UI.updateSessionView(); Storage.save();
+                    
+                    if(durMins >= 25) {
+                        this.schedulePing(durMins);
+                    }
                 },
                 tick() {
                     if (!State.session.active) return;
-                    
                     if (State.session.paused) {
                         if(Date.now() - State.session.lastPauseTime > 120000) {
                             if(State.session.remaining % 5 === 0) {
@@ -1010,50 +1350,100 @@
                         }
                         return;
                     }
-
                     State.session.remaining--;
                     if (State.session.remaining <= 0) this.finish();
                     UI.updateTimer();
                 },
+                
+                // --- INTEGRITY PING LOGIC ---
+                schedulePing(durationMins) {
+                    const safeZone = 5 * 60; 
+                    const sessionDuration = durationMins * 60;
+                    const randomDelay = Math.floor(Math.random() * (sessionDuration - 2 * safeZone) + safeZone);
+                    
+                    if(pingTimer) clearTimeout(pingTimer);
+                    pingTimer = setTimeout(() => {
+                        if(State.session.active && !State.session.paused) {
+                            this.triggerPing();
+                        }
+                    }, randomDelay * 1000);
+                },
+                triggerPing() {
+                    const box = document.getElementById('integrity-ping-box');
+                    const container = document.querySelector('.focus-container');
+                    if(!box || !container) return;
+                    
+                    const maxX = container.clientWidth - 80;
+                    const maxY = container.clientHeight - 80;
+                    const randomX = Math.floor(Math.random() * maxX);
+                    const randomY = Math.floor(Math.random() * maxY);
+                    
+                    box.style.left = randomX + 'px';
+                    box.style.top = randomY + 'px';
+                    box.style.display = 'block';
+                    
+                    this.pingWindow = setTimeout(() => {
+                        this.handlePingFail();
+                    }, 5000);
+                },
+                handlePingSuccess() {
+                    const box = document.getElementById('integrity-ping-box');
+                    box.style.display = 'none';
+                    if(this.pingWindow) clearTimeout(this.pingWindow);
+                    UI.showToast("INTEGRITY CONFIRMED", "success");
+                },
+                handlePingFail() {
+                    const box = document.getElementById('integrity-ping-box');
+                    box.style.display = 'none';
+                    State.session.pingMissed++;
+                    
+                    if(State.session.pingMissed === 1) {
+                        UI.showToast("WARNING: PRESENCE CHECK MISSED");
+                    } else if (State.session.pingMissed === 2) {
+                        this.breach("MISSED PING");
+                    } else {
+                        Logic.Debt.add(State.session.subjectId, State.session.chapter, 15); // Add penalty debt
+                        UI.showToast("CRITICAL: 15m DEBT ASSIGNED");
+                        this.breach("ABSENCE DETECTED");
+                    }
+                },
+
                 breach(reason) {
                     if(!State.session.active) return;
                     State.session.integrity = Math.max(0, State.session.integrity - 20);
-                    
                     UI.flashRed(State.session.integrity);
                     UI.showToast(`BREACH: ${reason} (-20%)`);
                     UI.updateSessionView(); 
-
-                    if(State.session.integrity < 30) {
-                        this.abort("CRITICAL SESSION FAILURE (<30%)");
-                    }
+                    if(State.session.integrity < 30) this.abort("CRITICAL SESSION FAILURE (<30%)");
                 },
                 togglePause() { 
                     if(State.session.mode === 'hard') return; 
                     State.session.paused = !State.session.paused; 
-                    if(State.session.paused) {
-                        State.session.pauses++;
-                        State.session.lastPauseTime = Date.now();
-                    }
+                    if(State.session.paused) { State.session.pauses++; State.session.lastPauseTime = Date.now(); }
                     UI.updateSessionView(); 
                 },
                 abort(reason) { 
                     const r = reason || "MANUAL ABORT";
-                    
                     const timeSpent = State.session.total - State.session.remaining;
+                    const timeLeft = Math.ceil(State.session.remaining / 60);
                     
                     State.session.active = false; 
+                    if(pingTimer) clearTimeout(pingTimer);
                     document.body.classList.remove('mode-hard-focus'); 
-                    State.rank = Math.max(0, State.rank - 50); 
                     
+                    // DEBT CREATION ON ABORT
+                    if(timeLeft > 5) {
+                        Logic.Debt.add(State.session.subjectId, State.session.chapter, timeLeft);
+                        alert(`SESSION ABORTED. ${timeLeft} MINS ADDED TO ACTIVE DEBT.`);
+                    }
+
                     State.systemIntegrity = Math.max(0, State.systemIntegrity - 5);
-                    
                     State.logs.unshift({ date: Date.now(), chapter: "SYSTEM ABORT", duration: timeSpent, quality: 0, integrity: 0, note: r, grade: "F", pauses: 0 });
-                    
-                    alert(`SESSION TERMINATED.\nReason: ${r}\nXP Gained: 0\nGlobal Integrity Damaged (-5%)`);
                     UI.renderAll(); Storage.save(); 
                 },
                 finish() { 
                     State.session.active = false; 
+                    if(pingTimer) clearTimeout(pingTimer);
                     document.body.classList.remove('mode-hard-focus'); 
                     UI.openAutopsy(); 
                 },
@@ -1063,7 +1453,6 @@
                     let score = i;
                     score -= (p * 5);
                     if(State.session.mode === 'hard') score += 5;
-
                     if(score >= 95) return 'S';
                     if(score >= 85) return 'A';
                     if(score >= 70) return 'B';
@@ -1072,32 +1461,11 @@
                 }
             },
             Rank: {
-                add(p) {
-                    State.rank += p;
-                    UI.renderAll(); Storage.save();
-                },
-                getRankIndex(p) { for(let i=CONSTANTS.RANKS.length-1; i>=0; i--) if(p >= CONSTANTS.RANKS[i].t) return i; return 0; },
-                getData(p) { return CONSTANTS.RANKS[this.getRankIndex(p)]; }
+                getData(p) { for(let i=CONSTANTS.RANKS.length-1; i>=0; i--) if(p >= CONSTANTS.RANKS[i].t) return CONSTANTS.RANKS[i]; return CONSTANTS.RANKS[0]; }
             },
             Chapter: {
-                get(s,c) { const k=`${s}|${c}`; if(!State.chapterStats[k]) State.chapterStats[k]={xp:0,debt:0}; return State.chapterStats[k]; },
+                get(s,c) { const k=`${s}|${c}`; if(!State.chapterStats[k]) State.chapterStats[k]={xp:0,debtMinutes:0}; return State.chapterStats[k]; },
                 addXP(s,c,a) { this.get(s,c).xp += a; },
-                addDebt(s,c) { this.get(s,c).debt++; },
-                payDebt(s,c) { if(this.get(s,c).debt > 0) this.get(s,c).debt--; },
-                buyoutDebt(s,c) {
-                    if(State.rank >= CONSTANTS.DEBT_BUYOUT_COST) {
-                        if(this.get(s,c).debt > 0) {
-                            if(confirm(`AUTHORITY PROTOCOL:\nSpend ${CONSTANTS.DEBT_BUYOUT_COST} XP to clear 1 Debt?`)) {
-                                State.rank -= CONSTANTS.DEBT_BUYOUT_COST;
-                                this.get(s,c).debt--;
-                                UI.showToast("DEBT CLEARED VIA AUTHORITY");
-                                UI.renderAll(); Storage.save();
-                            }
-                        }
-                    } else {
-                        alert(`INSUFFICIENT AUTHORITY.\nRequired: ${CONSTANTS.DEBT_BUYOUT_COST} XP`);
-                    }
-                }
             },
             UI: {
                 addSubject: () => {
@@ -1111,7 +1479,7 @@
                     if(s && v) { s.chapters.push(v); UI.renderMap(); Storage.save(); document.getElementById('new-chapter-input').value=''; }
                 },
                 selectMode: (m) => {
-                    if(m === 'hard' && State.rank < CONSTANTS.HARD_MODE_REQ) return; // Locked
+                    if(m === 'hard' && State.rank < CONSTANTS.HARD_MODE_REQ) return; 
                     UI.setWizardMode(m);
                 },
                 selectDuration: (d) => {
@@ -1141,7 +1509,6 @@
                 updateGoalDisplay() {
                     const disp = document.getElementById('generated-goal-text');
                     const scope = document.getElementById('goal-scope-input').value.trim();
-                    
                     if(!goalState.type || !goalState.resource) {
                         disp.textContent = "SELECT PROTOCOL DATA";
                         disp.style.color = "var(--text-muted)";
@@ -1180,7 +1547,7 @@
                 
                 document.querySelectorAll('.overlay').forEach(ov => {
                     ov.addEventListener('click', (e) => { 
-                        if(e.target === ov && ov.id !== 'overlay-tutorial' && ov.id !== 'overlay-username' && ov.id !== 'overlay-autopsy' && !State.session.active) this.closeOverlays(); 
+                        if(e.target === ov && ov.id !== 'overlay-tutorial' && ov.id !== 'overlay-username' && ov.id !== 'overlay-autopsy' && ov.id !== 'overlay-onboarding' && !State.session.active) this.closeOverlays(); 
                     });
                 });
             },
@@ -1188,22 +1555,14 @@
             updateUsername(name) {
                 document.querySelectorAll('.user-name-target').forEach(el => el.textContent = name);
                 document.title = `RANKLOCK DISCIPLINE | ${name.toUpperCase()}`;
-                
-                // Update Comms Name
                 const commsName = document.getElementById('comms-name');
                 if(commsName) commsName.value = name;
             },
 
-            toggleSidebar() {
-                document.getElementById('main-layout').classList.toggle('sidebar-collapsed');
-            },
+            toggleSidebar() { document.getElementById('main-layout').classList.toggle('sidebar-collapsed'); },
             
-            // --- NEW: MOBILE TAB SWITCHER LOGIC ---
             switchMobileTab(tab) {
-                // Remove active class from all tabs
                 document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-                
-                // Add active to clicked (logic to find which one based on onclick matches)
                 const tabs = document.querySelectorAll('.nav-tab');
                 if(tab === 'ops') tabs[0].classList.add('active');
                 if(tab === 'intel') tabs[1].classList.add('active');
@@ -1211,25 +1570,87 @@
                 
                 const sidebar = document.getElementById('sidebar');
                 const stage = document.getElementById('stage');
-                
-                // Logic
-                if (tab === 'ops') {
-                    // Show Timer (Stage), Hide Sidebar
-                    stage.classList.add('mobile-tab-active');
-                    sidebar.classList.remove('mobile-tab-active');
-                    this.closeOverlays();
-                } else if (tab === 'intel') {
-                    // Show Sidebar, Hide Timer
-                    sidebar.classList.add('mobile-tab-active');
-                    stage.classList.remove('mobile-tab-active');
-                    this.closeOverlays();
-                } else if (tab === 'map') {
-                    // Open Map Overlay directly
-                    this.openMap();
-                }
+                if (tab === 'ops') { stage.classList.add('mobile-tab-active'); sidebar.classList.remove('mobile-tab-active'); this.closeOverlays(); } 
+                else if (tab === 'intel') { sidebar.classList.add('mobile-tab-active'); stage.classList.remove('mobile-tab-active'); this.closeOverlays(); } 
+                else if (tab === 'map') { this.openMap(); }
+                if(tab === 'events') tabs[3].classList.add('active');
             },
 
             renderAll() { this.renderStats(); this.renderMap(); this.renderDebts(); this.renderLogs(); this.populateManagerSelect(); this.updateSessionView(); },
+            
+            renderUrgency() {
+                const container = document.getElementById('events-container');
+                if(!container) return;
+                container.innerHTML = '';
+                
+                let exams = State.userProfile.exams || [];
+                exams.sort((a,b) => {
+                    if(!a.date) return 1;
+                    if(!b.date) return -1;
+                    return new Date(a.date) - new Date(b.date);
+                });
+                
+                exams.forEach(ex => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.style.marginBottom = '12px';
+                    
+                    let days = 'Unknown';
+                    let urgencyClass = '';
+                    let urgencyText = 'NO DATE';
+                    
+                    if(ex.date) {
+                        const d1 = new Date();
+                        const d2 = new Date(ex.date);
+                        const diff = Math.ceil((d2 - d1) / (1000 * 60 * 60 * 24));
+                        days = diff;
+                        
+                        if(diff < 30) { urgencyClass = 'urgency-crit'; urgencyText = 'CRITICAL'; }
+                        else if(diff < 90) { urgencyClass = 'urgency-high'; urgencyText = 'HIGH'; }
+                        else { urgencyClass = 'urgency-med'; urgencyText = 'NORMAL'; }
+                    }
+                    
+                    if(urgencyClass) card.classList.add(urgencyClass);
+                    
+                    const linkData = CONSTANTS.LINKS[ex.name] || CONSTANTS.LINKS["Other"];
+                    const mainLink = linkData.main;
+                    
+                    const isCustom = ex.id && ex.id.startsWith('custom-');
+                    const actions = isCustom ? 
+                        `<button class="btn btn-outline" style="padding:4px 8px; font-size:0.6rem;" onclick="Logic.Onboarding.deleteEvent('${ex.id}')">DELETE</button>` : '';
+
+                    card.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <div>
+                                <div style="font-weight:800; font-size:1.1rem; color:var(--text-primary);">${ex.name} ${ex.primary ? '⭐' : ''}</div>
+                                <div style="font-size:0.75rem; color:var(--text-muted);">${ex.date ? new Date(ex.date).toLocaleDateString() : 'Date Not Set'}</div>
+                            </div>
+                            <div style="text-align:right;">
+                                <div style="font-size:1.5rem; font-weight:900; color:var(--text-primary); line-height:1;">${days}</div>
+                                <div style="font-size:0.6rem; font-weight:700; color:var(--text-secondary);">DAYS LEFT</div>
+                            </div>
+                        </div>
+                        <div style="margin-top:10px; font-size:0.7rem; font-weight:700; color:var(--text-secondary); display:flex; justify-content:space-between; align-items:center;">
+                            <span>URGENCY: ${urgencyText}</span>
+                            ${actions}
+                        </div>
+                        <div style="margin-top:12px; padding-top:10px; border-top:1px solid var(--border-ui); display:flex; gap:10px;">
+                            <a href="${mainLink}" target="_blank" class="btn btn-outline" style="flex:1; padding:8px; font-size:0.7rem; text-decoration:none;">VERIFY INTEL ↗</a>
+                        </div>
+                        <div style="font-size:0.6rem; color:var(--text-muted); margin-top:8px; font-style:italic;">Disclaimer: Dates subject to change. Verify on official site.</div>
+                    `;
+                    container.appendChild(card);
+                });
+
+                const primary = exams.find(e => e.primary);
+                const summaryText = document.getElementById('map-summary-text');
+                if(primary && primary.date && summaryText) {
+                    const d1 = new Date();
+                    const d2 = new Date(primary.date);
+                    const days = Math.ceil((d2 - d1) / (1000 * 60 * 60 * 24));
+                    if(days > 0) summaryText.innerHTML = `<span style="color:var(--accent-crit); font-weight:700;">⚠ ${primary.name}: ${days} DAYS LEFT</span>`;
+                }
+            },
 
             renderStats() {
                 const rankData = Logic.Rank.getData(State.rank);
@@ -1240,34 +1661,39 @@
                 if(displayRank) displayRank.textContent = State.rank;
                 if(displayRankTitle) displayRankTitle.textContent = rankData.title;
                 
+                // Show wallet in header
+                document.getElementById('stat-xp').textContent = State.rank;
+
                 let next = 100;
                 for(let r of CONSTANTS.RANKS) { if(r.t > State.rank){ next = r.t; perkBadge.textContent = `NEXT: ${r.perk.toUpperCase()}`; break; } }
                 if(State.rank >= 100000) perkBadge.textContent = "AUTHORITY ABSOLUTE";
 
-                const prev = CONSTANTS.RANKS[Logic.Rank.getRankIndex(State.rank)].t;
-                const perc = ((State.rank-prev)/(next-prev))*100;
+                const prev = CONSTANTS.RANKS.find(r => r.t <= State.rank).t; 
+                // Fix for rank bar calculation
+                const prevRank = CONSTANTS.RANKS.reduce((acc, curr) => (curr.t <= State.rank ? curr : acc), CONSTANTS.RANKS[0]);
+                const nextRank = CONSTANTS.RANKS.find(r => r.t > State.rank) || {t: 200000}; // Arbitrary max
+                const perc = ((State.rank - prevRank.t) / (nextRank.t - prevRank.t)) * 100;
+                
                 const rankBarFill = document.getElementById('rank-bar-fill');
                 const rankNextVal = document.getElementById('rank-next-val');
                 if(rankBarFill) rankBarFill.style.width = `${Math.min(100,perc)}%`;
-                if(rankNextVal) rankNextVal.textContent = `NEXT: ${next}`;
+                if(rankNextVal) rankNextVal.textContent = `NEXT: ${nextRank.t}`;
                 
                 const h = Math.floor(State.dailySeconds/3600), m = Math.floor((State.dailySeconds%3600)/60);
                 const dailyQualEl = document.getElementById('stat-daily-quality');
                 if(dailyQualEl) dailyQualEl.textContent = `${h}h ${m}m Focus`;
                 
-                // GLOBAL INTEGRITY IN HEADER
                 const intEl = document.getElementById('stat-global-integrity');
                 if(intEl) {
-                    intEl.textContent = `${Math.floor(State.systemIntegrity)}%`;
-                    intEl.className = `stat-value tabular ${State.systemIntegrity > 80 ? 'integrity-ok' : (State.systemIntegrity > 50 ? 'integrity-warn' : 'integrity-crit')}`;
+                     intEl.textContent = `${Math.floor(State.systemIntegrity)}%`;
+                     intEl.className = `stat-value tabular ${State.systemIntegrity > 80 ? 'integrity-ok' : (State.systemIntegrity > 50 ? 'integrity-warn' : 'integrity-crit')}`;
                 }
                 
-                const streakEl = document.getElementById('stat-streak');
-                if(streakEl) streakEl.textContent = `${State.streak} DAYS`;
-                
-                const totalCh = State.subjects.reduce((a,b)=>a+b.chapters.length, 0);
                 const summaryText = document.getElementById('map-summary-text');
-                if(summaryText) summaryText.textContent = `${State.subjects.length} Subjects | ${totalCh} Chapters`;
+                if(summaryText && !summaryText.innerHTML.includes('DAYS LEFT')) {
+                    const totalCh = State.subjects.reduce((a,b)=>a+b.chapters.length, 0);
+                    summaryText.textContent = `${State.subjects.length} Subjects | ${totalCh} Chapters`;
+                }
             },
 
             renderMap() {
@@ -1283,21 +1709,18 @@
                     const chList = document.createElement('div'); chList.className = 'subject-chapters';
                     s.chapters.forEach(ch => {
                         const stats = Logic.Chapter.get(s.id, ch);
+                        // Debt is now Minutes. Convert for legacy check or direct check
+                        const debtMins = stats.debtMinutes || (stats.debt*20) || 0;
+                        
                         const row = document.createElement('div'); row.className = 'chapter-item';
-                        if(stats.debt>0) row.classList.add('has-debt');
-                        
+                        if(debtMins>0) row.classList.add('has-debt');
                         let badges = [];
-                        if(stats.debt>0) badges.push(`<span style="color:var(--accent-crit); font-weight:700;">DEBT:${stats.debt}</span>`);
+                        if(debtMins>0) badges.push(`<span style="color:var(--accent-crit); font-weight:700;">DEBT:${debtMins}m</span>`);
                         if(stats.xp>0) badges.push(`<span style="color:var(--accent-succ);">XP:${stats.xp}</span>`);
-                        
                         row.innerHTML = `<span style="font-size:0.85rem;">${ch}</span> <div style="font-size:0.7rem;">${badges.join(' ')}</div>`;
-                        
                         row.onclick = () => {
-                            if(stats.debt > 0 && State.rank >= 1500) {
-                                Logic.Chapter.buyoutDebt(s.id, ch);
-                            } else {
-                                this.quickStart(s.id, s.name, ch);
-                            }
+                            // Quick start logic handles Debt Clearance mode selection in wizard
+                            this.quickStart(s.id, s.name, ch);
                         };
                         chList.appendChild(row);
                     });
@@ -1309,34 +1732,32 @@
                 const list = document.getElementById('debt-list'); 
                 if(!list) return;
                 list.innerHTML = '';
-                let total = 0;
-                
-                // Safety check for empty State
+                let totalMins = 0;
                 if(!State.chapterStats) State.chapterStats = {};
                 
                 Object.keys(State.chapterStats).forEach(k => {
-                    if(State.chapterStats[k] && State.chapterStats[k].debt > 0) {
-                        // FIX: Ensure safe split of key
+                    const s = State.chapterStats[k];
+                    // Unify debt model (legacy count * 20 + new minutes)
+                    const dMin = (s.debtMinutes || 0) + ((s.debt || 0) * 20);
+                    
+                    if(dMin > 0) {
                         const parts = k.split('|');
                         const sid = parts[0];
                         const ch = parts[1] || 'Unknown';
-                        
-                        const sObj = State.subjects.find(s=>s.id===sid);
+                        const sObj = State.subjects.find(sub=>sub.id===sid);
                         const sName = sObj ? sObj.name.substr(0,3) : sid;
                         
-                        total += State.chapterStats[k].debt;
-                        
+                        totalMins += dMin;
                         const d = document.createElement('div'); 
                         d.className = 'log-item';
                         d.style.borderLeftColor = 'var(--accent-crit)';
-                        d.innerHTML = `<div style="display:flex; justify-content:space-between; font-weight:700;"><span>${ch}</span><span style="color:var(--accent-crit)">x${State.chapterStats[k].debt}</span></div><div style="font-size:0.65rem; color:var(--text-muted);">${sName.toUpperCase()}</div>`;
+                        d.innerHTML = `<div style="display:flex; justify-content:space-between; font-weight:700;"><span>${ch}</span><span style="color:var(--accent-crit)">${dMin}m</span></div><div style="font-size:0.65rem; color:var(--text-muted);">${sName.toUpperCase()}</div>`;
                         list.appendChild(d);
                     }
                 });
-                
                 const debtCountEl = document.getElementById('debt-count');
-                if(debtCountEl) debtCountEl.textContent = total;
-                if(total === 0) list.innerHTML = '<div style="color:var(--text-muted); padding:10px; font-size:0.75rem; text-align:center;">System Clear. No Debts.</div>';
+                if(debtCountEl) debtCountEl.textContent = `${totalMins}m`;
+                if(totalMins === 0) list.innerHTML = '<div style="color:var(--text-muted); padding:10px; font-size:0.75rem; text-align:center;">System Clear. No Debts.</div>';
             },
 
             renderLogs() {
@@ -1345,18 +1766,14 @@
                 c.innerHTML = '';
                 State.logs.slice(0, 10).forEach((l, idx) => {
                     const d = document.createElement('div'); d.className = 'log-item';
-                    
                     let color = 'var(--text-muted)';
                     if(l.grade === 'S') color = 'var(--accent-gold)';
                     if(l.grade === 'A') color = 'var(--accent-succ)';
                     if(l.grade === 'F') color = 'var(--accent-crit)';
-                    
                     const mins = Math.floor(l.duration / 60);
                     const secs = l.duration % 60;
-                    
                     d.style.borderLeftColor = color;
                     d.innerHTML = `<div style="display:flex; justify-content:space-between; font-weight:700;"><span>${l.chapter}</span><span style="color:${color}">${l.grade || '-'}</span></div><div style="font-size:0.65rem; color:var(--text-muted);">${new Date(l.date).toLocaleDateString()} • ${mins}m ${secs}s</div>`;
-                    
                     d.onclick = () => this.showLogDetails(idx);
                     c.appendChild(d);
                 });
@@ -1366,11 +1783,9 @@
                 const log = State.logs[idx];
                 const content = document.getElementById('log-details-content');
                 if(!log || !content) return;
-                
                 let gradeClass = `grade-${log.grade}`;
                 const mins = Math.floor(log.duration/60);
                 const secs = log.duration % 60;
-                
                 content.innerHTML = `
                     <div style="text-align:center; padding: 20px 0; border-bottom: 1px solid var(--border-ui);">
                         <div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom: 5px;">SYSTEM EVALUATION</div>
@@ -1396,6 +1811,20 @@
                 this.wizard.chapter = chapter;
                 const targetDisplay = document.getElementById('wizard-target-display');
                 if(targetDisplay) targetDisplay.textContent = `${subName} - ${chapter}`;
+                
+                // Show Debt Mode option if applicable
+                const key = `${subId}|${chapter}`;
+                const stats = State.chapterStats[key];
+                const debtMins = stats ? ((stats.debtMinutes||0) + ((stats.debt||0)*20)) : 0;
+                
+                const debtBtn = document.getElementById('btn-mode-debt');
+                if(debtMins > 0) {
+                    debtBtn.classList.remove('hidden');
+                    debtBtn.querySelector('.choice-meta').textContent = `REPAY ${debtMins} MINS`;
+                } else {
+                    debtBtn.classList.add('hidden');
+                }
+                
                 this.openOverlay('overlay-setup');
                 this.wizardStep('mode');
             },
@@ -1408,6 +1837,19 @@
                 document.getElementById('generated-goal-text').textContent = 'SELECT PROTOCOL';
                 document.getElementById('generated-goal-text').style.color = 'var(--text-muted)';
                 this.renderWizardSubjects(); 
+                
+                const resGrid = document.getElementById('goal-resource-grid');
+                resGrid.innerHTML = '';
+                let resources = State.userProfile.resources || ["Notes", "NCERT", "PYQs"];
+                if(resources.length === 0) resources = ["Notes", "NCERT", "PYQs"];
+                
+                resources.forEach(r => {
+                    const d = document.createElement('div');
+                    d.className = 'goal-chip';
+                    d.textContent = r.toUpperCase();
+                    d.onclick = function() { Logic.UI.setGoalRes(this, r.toUpperCase()); };
+                    resGrid.appendChild(d);
+                });
             },
             
             openOverlay(id) { 
@@ -1428,72 +1870,102 @@
                 }
                 
                 if(id === 'overlay-autopsy') {
-                    // Calculate Grade immediately
                     this.autopsy.calculatedGrade = Logic.Session.calculateGrade();
                     document.getElementById('auto-grade-display').textContent = this.autopsy.calculatedGrade;
                     document.getElementById('auto-grade-display').className = `grade-badge grade-${this.autopsy.calculatedGrade}`;
-                    
                     document.getElementById('auto-integrity-display').textContent = `${State.session.integrity}%`;
-                    
                     const durSecs = State.session.total - State.session.remaining;
                     const durMins = Math.floor(durSecs / 60);
                     const durRemSecs = durSecs % 60;
                     document.getElementById('auto-duration-display').textContent = `${durMins}m ${durRemSecs}s`;
-                    
                     const eff = Math.round(State.session.integrity * (1 - (State.session.pauses * 0.05)));
                     document.getElementById('auto-efficiency-display').textContent = `${Math.max(0, eff)}%`;
 
                     const analysisEl = document.getElementById('auto-analysis-text');
                     let analysis = "ANALYSIS COMPLETE.";
-                    if(this.autopsy.calculatedGrade === 'S') analysis = "FLAWLESS VICTORY. SYSTEM OPTIMAL.";
-                    else if(this.autopsy.calculatedGrade === 'A') analysis = "HIGH EFFICIENCY DETECTED.";
-                    else if(this.autopsy.calculatedGrade === 'B') analysis = "ACCEPTABLE PARAMETERS.";
-                    else if(this.autopsy.calculatedGrade === 'C') analysis = "MEDIOCRE. DISCIPLINE REQUIRED.";
-                    else if(this.autopsy.calculatedGrade === 'F') analysis = "SYSTEM FAILURE. REBOOT.";
+                    const grade = this.autopsy.calculatedGrade;
+                    
+                    if(grade === 'S') analysis = "FLAWLESS VICTORY. SYSTEM OPTIMAL.";
+                    else if(grade === 'A') analysis = "HIGH EFFICIENCY DETECTED.";
+                    else if(grade === 'B') analysis = "ACCEPTABLE PARAMETERS.";
+                    else if(grade === 'C') analysis = "MEDIOCRE. DISCIPLINE REQUIRED.";
+                    else if(grade === 'F') analysis = "SYSTEM FAILURE. REBOOT.";
                     
                     if(State.session.pauses > 2) analysis += " EXCESSIVE PAUSES.";
                     
-                    // --- DEBT CHECK VISUALIZATION IN ANALYSIS ---
                     const chStats = Logic.Chapter.get(State.session.subjectId, State.session.chapter);
-                    if(chStats.debt > 0) {
-                        analysis += " [ACTIVE DEBT DETECTED]";
+                    const debtMins = (chStats.debtMinutes||0) + ((chStats.debt||0)*20);
+                    const totalDebt = Logic.Debt.getTotalMinutes();
+                    
+                    if(State.session.mode === 'debt') {
+                        analysis += " [DEBT REPAYMENT MODE]";
+                        analysisEl.style.color = "var(--accent-lock)";
+                    } else if (totalDebt > 0) {
+                        analysis += " [ACTIVE DEBT TAX APPLIED]";
                         analysisEl.style.color = "var(--accent-warn)";
                     } else {
                         analysisEl.style.color = "var(--text-secondary)";
                     }
                     analysisEl.textContent = analysis;
 
-                    // Projected XP Calculation
+                    // XP CALCULATION
                     let qMod = 1.0;
-                    if(this.autopsy.calculatedGrade === 'S') qMod = 1.3;
-                    if(this.autopsy.calculatedGrade === 'A') qMod = 1.1;
-                    if(this.autopsy.calculatedGrade === 'C') qMod = 0.8;
-                    if(this.autopsy.calculatedGrade === 'F') qMod = 0.5;
+                    if(grade === 'S') qMod = 1.3;
+                    if(grade === 'A') qMod = 1.1;
+                    if(grade === 'C') qMod = 0.8;
+                    if(grade === 'F') qMod = 0.5;
                     const mMod = State.session.mode==='hard' ? 1.5 : 1;
+                    
                     let pts = Math.floor((durSecs/60)*10*qMod*mMod);
                     
                     const xpDisplay = document.getElementById('auto-xp-display');
-                    if(chStats.debt > 0) {
-                        pts = Math.floor(pts * 0.5);
-                        xpDisplay.textContent = `+${pts} (PENALTY -50%)`;
+                    
+                    if(State.session.mode === 'debt') {
+                        // In Debt Mode, XP is negligible, focus is repayment
+                        pts = Math.floor(pts * 0.1); 
+                        xpDisplay.textContent = `+${pts} (REPAYMENT MODE)`;
+                        xpDisplay.style.color = "var(--text-muted)";
+                    } else if (totalDebt > 0) {
+                        pts = Math.floor(pts * 0.5); // 50% Tax
+                        xpDisplay.textContent = `+${pts} (DEBT TAX -50%)`;
                         xpDisplay.style.color = "var(--accent-warn)";
                     } else {
                         xpDisplay.textContent = `+${pts}`;
                         xpDisplay.style.color = "var(--accent-lock)";
                     }
-
                     document.getElementById('btn-autopsy-submit').disabled = true;
                 }
             },
+            
+            openMarket() {
+                document.getElementById('market-balance').textContent = State.rank;
+                const list = document.getElementById('market-listings');
+                list.innerHTML = `
+                    <div class="market-item">
+                        <div>
+                            <div style="font-weight:700;">STREAK FREEZE</div>
+                            <div style="font-size:0.7rem; color:var(--text-muted);">Protect streak for 24h.</div>
+                        </div>
+                        <button class="btn btn-outline btn-sm" onclick="Logic.Economy.buy('freeze')"><span class="xp-cost">1000 XP</span></button>
+                    </div>
+                    <div class="market-item">
+                        <div>
+                            <div style="font-weight:700;">SYSTEM REPAIR</div>
+                            <div style="font-size:0.7rem; color:var(--text-muted);">Restore 20% Integrity.</div>
+                        </div>
+                        <button class="btn btn-outline btn-sm" onclick="Logic.Economy.buy('repair')"><span class="xp-cost">500 XP</span></button>
+                    </div>
+                `;
+                this.openOverlay('overlay-market');
+            },
+            
             closeOverlays() { document.querySelectorAll('.overlay').forEach(o => o.style.display='none'); },
             openMap() { this.renderMap(); this.openOverlay('overlay-map'); },
+            openEvents() { this.renderUrgency(); this.openOverlay('overlay-events'); if(window.innerWidth <= 1024) this.switchMobileTab('events'); },
             openSettings() { this.openOverlay('overlay-settings'); },
             openAutopsy() { this.openOverlay('overlay-autopsy'); },
             openComms() { this.openOverlay('overlay-comms'); },
-            commsSuccess() {
-                this.closeOverlays();
-                this.showToast("DATA TRANSMITTED TO HQ", "success");
-            },
+            commsSuccess() { this.closeOverlays(); this.showToast("DATA TRANSMITTED TO HQ", "success"); },
             
             wizardStep(id) { 
                 document.querySelectorAll('.wizard-step').forEach(e => e.classList.remove('active')); 
@@ -1526,13 +1998,24 @@
                 g.innerHTML = '';
                 sub.chapters.forEach(c => {
                     const stats = Logic.Chapter.get(sub.id, c);
+                    const debtMins = (stats.debtMinutes||0) + ((stats.debt||0)*20);
                     const d = document.createElement('div'); d.className = 'choice-btn';
-                    if(stats.debt > 0) d.classList.add('has-debt-warn');
+                    if(debtMins > 0) d.classList.add('has-debt-warn');
                     d.innerHTML = `<span class="choice-title">${c}</span>`;
                     d.onclick = () => { 
                         this.wizard.chapter = c; 
                         const targetDisplay = document.getElementById('wizard-target-display');
                         if(targetDisplay) targetDisplay.textContent = `${sub.name} - ${c}`; 
+                        
+                        // Show/Hide Debt mode logic happens in quickStart, but we check here too for direct wizard usage
+                        const debtBtn = document.getElementById('btn-mode-debt');
+                        if(debtMins > 0) {
+                            debtBtn.classList.remove('hidden');
+                            debtBtn.querySelector('.choice-meta').textContent = `REPAY ${debtMins} MINS`;
+                        } else {
+                            debtBtn.classList.add('hidden');
+                        }
+
                         this.wizardStep('mode'); 
                     };
                     g.appendChild(d);
@@ -1542,12 +2025,9 @@
             setWizardMode(m) { this.wizard.mode = m; document.querySelectorAll('[data-mode]').forEach(b => b.classList.toggle('selected', b.dataset.mode === m)); },
             setWizardDur(d) { 
                 this.wizard.duration = d; 
-                // Clear custom input if preset selected
                 if(typeof d === 'number') {
                     const cust = document.getElementById('custom-time-input');
-                    // Only clear if the selected preset is one of the fixed buttons
                     if([25, 50, 90].includes(d)) cust.value = '';
-                    
                     document.querySelectorAll('[data-dur]').forEach(b => b.classList.toggle('selected', parseInt(b.dataset.dur) === d)); 
                 }
             },
@@ -1578,19 +2058,14 @@
                         if(State.session.mode==='normal') { btnPause.classList.remove('hidden'); btnPause.textContent = State.session.paused ? "RESUME" : "PAUSE"; }
                         else btnPause.classList.add('hidden');
                     }
-                    
-                    // Integrity Badge
                     if(badge && badgeVal) {
                         badge.classList.add('active');
                         badgeVal.textContent = `${State.session.integrity}%`;
                         badgeVal.style.color = State.session.integrity > 80 ? 'var(--accent-succ)' : 'var(--accent-crit)';
                     }
-
-                    // Visual integrity state
                     const integ = State.session.integrity;
                     overlay.style.opacity = integ < 50 ? (0.8 - (integ/100)) : 0;
-                    if(integ < 40) overlay.style.backgroundColor = `rgba(239, 68, 68, ${0.3 - (integ/200)})`; // Red tint
-                    
+                    if(integ < 40) overlay.style.backgroundColor = `rgba(239, 68, 68, ${0.3 - (integ/200)})`; 
                     this.updateStats(); 
                 } else {
                     if(metaEl) metaEl.innerHTML = `<div class="context-subject">SYSTEM IDLE</div><div class="context-chapter">Ready for initialization</div>`;
@@ -1599,12 +2074,8 @@
                     if(btnPause) btnPause.classList.add('hidden');
                     if(overlay) { overlay.style.opacity = 0; overlay.style.backgroundColor = 'transparent'; }
                     if(badge) badge.classList.remove('active');
-                    
                     const timerDisp = document.getElementById('timer-display');
-                    if(timerDisp) {
-                        timerDisp.textContent = "00:00";
-                        timerDisp.style.opacity = 1;
-                    }
+                    if(timerDisp) { timerDisp.textContent = "00:00"; timerDisp.style.opacity = 1; }
                 }
             },
             
@@ -1625,11 +2096,7 @@
                 t.style.display = 'block';
                 if(type === 'success') t.style.background = 'var(--accent-succ)';
                 else t.style.background = 'var(--accent-crit)';
-                
-                setTimeout(()=> {
-                    t.style.display='none';
-                    t.style.background = 'var(--accent-crit)'; // Reset
-                }, 3000);
+                setTimeout(()=> { t.style.display='none'; t.style.background = 'var(--accent-crit)'; }, 3000);
             },
 
             flashRed(currentIntegrity) {
@@ -1665,9 +2132,9 @@
                 const autopsySum = document.getElementById('autopsy-summary');
                 const note = autopsySum ? autopsySum.value : '';
                 const dur = State.session.total - State.session.remaining;
-                
-                // Calculate Points based on Grade
+                const durMins = Math.floor(dur / 60);
                 const grade = this.autopsy.calculatedGrade;
+                
                 let qMod = 1.0;
                 if(grade === 'S') qMod = 1.3;
                 if(grade === 'A') qMod = 1.1;
@@ -1678,30 +2145,23 @@
                 const mMod = State.session.mode==='hard' ? 1.5 : 1;
                 let pts = Math.floor((dur/60)*10*qMod*mMod);
                 
-                // --- ACTIVE DEBT LOGIC (IMPROVED) ---
-                const chStats = Logic.Chapter.get(State.session.subjectId, State.session.chapter);
-                const hasDebt = chStats.debt > 0;
-                
-                if(hasDebt) {
-                    pts = Math.floor(pts * 0.5); // 50% Penalty
-                    UI.showToast("ACTIVE DEBT: XP PENALIZED (-50%)");
+                // --- DEBT REPAYMENT LOGIC ---
+                if(State.session.mode === 'debt' && (grade === 'A' || grade === 'S')) {
+                    Logic.Debt.repay(State.session.subjectId, State.session.chapter, durMins);
+                    pts = Math.floor(pts * 0.1); // Minimal XP for repayment
+                } else {
+                    // Normal session logic
+                    if(this.autopsy.mistake) {
+                        Logic.Debt.add(State.session.subjectId, State.session.chapter, 15); // Penalty debt
+                        UI.showToast("MISTAKE RECORDED: 15m DEBT ADDED");
+                    }
+                    // Apply XP Earnings
+                    Logic.Economy.earn(pts, "SESSION COMPLETE");
                 }
                 
                 State.dailySeconds += dur;
-                Logic.Rank.add(pts);
                 Logic.Chapter.addXP(State.session.subjectId, State.session.chapter, pts);
                 
-                if(this.autopsy.mistake) {
-                    // MISTAKE LOGIC: ADD DEBT INSTANTLY
-                    Logic.Chapter.addDebt(State.session.subjectId, State.session.chapter);
-                    UI.showToast("MISTAKE RECORDED: DEBT ADDED TO CHAPTER");
-                } else if (hasDebt && (grade === 'A' || grade === 'S')) {
-                    // CLEARANCE PROTOCOL: High Grade + No Mistakes = Clear Debt
-                    Logic.Chapter.payDebt(State.session.subjectId, State.session.chapter);
-                    UI.showToast("OUTSTANDING PERFORMANCE: DEBT CLEARED", "success");
-                }
-
-                // --- REPAIR SYSTEM INTEGRITY (IMPROVED) ---
                 let repairAmount = 0;
                 if(grade === 'S') repairAmount = 5;
                 else if(grade === 'A') repairAmount = 3;
@@ -1709,11 +2169,8 @@
 
                 if(repairAmount > 0 && State.systemIntegrity < 100) {
                     State.systemIntegrity = Math.min(100, State.systemIntegrity + repairAmount);
-                    // Slight delay to allow previous toast to clear if any
                     setTimeout(() => UI.showToast(`SYSTEM INTEGRITY REPAIRED (+${repairAmount}%)`, 'success'), 1500);
                 }
-                
-                // Damage on F grade
                 if(grade === 'F') State.systemIntegrity = Math.max(0, State.systemIntegrity - 5);
 
                 State.logs.unshift({ 
