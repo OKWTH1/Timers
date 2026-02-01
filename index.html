@@ -3,20 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RANKLOCK v9.4 | DEBT & CURRENCY</title>
+    <title>RANKLOCK v9.5 | WAR ROOM</title>
     <meta name="author" content="Ojas Kadam">
-    <meta name="description" content="RankLock v9.4. XP Economy, Time-Based Debt, and Event Management.">
+    <meta name="description" content="RankLock v9.5. XP Economy, Time-Based Debt, Event Editing, and Enhanced UI.">
     
     <!-- 
-        RANKLOCK DISCIPLINE SYSTEM v9.4
+        RANKLOCK DISCIPLINE SYSTEM v9.5
         Architect: Ojas Kadam
         
-        CHANGELOG v9.4:
-        1. ECONOMY: XP is now Currency. Added "Black Market" to spend XP.
-        2. INFLATION: Daily XP Cap (1500) implemented. 90% tax after cap.
-        3. DEBT 2.0: Debt is Time-Based (Minutes). Active Debt = 50% XP Tax.
-        4. EVENTS: Added Edit/Delete for events. Official links verified.
-        5. UI: Added "Debt Clearance" mode in Session Wizard.
+        CHANGELOG v9.5:
+        1. UI: Overhauled Onboarding "Identity Protocol" (Grid Layout).
+        2. FLOW: Removed "Temporal Data" step from setup (Dates added later).
+        3. EVENTS: Added "Edit" functionality to Temporal Engine.
+        4. RESOURCES: Added "Manage Arsenal" to Settings to edit resources anytime.
     -->
     <style>
         /* --- CSS ARCHITECTURE: RANKLOCK DESIGN LANGUAGE (RDL) --- */
@@ -232,15 +231,38 @@
         .tut-slide.active { display: block; animation: fadeIn 0.3s; }
         .tut-img { width: 100%; height: 150px; background: var(--bg-elevated); border-radius: var(--radius-md); margin-bottom: 20px; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: var(--accent-lock); border: 1px dashed var(--border-ui); }
 
-        /* Onboarding Styles */
+        /* Onboarding Styles (REVAMPED v9.5) */
         .onboard-card { background: var(--bg-elevated); border: 1px solid var(--border-ui); border-radius: var(--radius-md); padding: 15px; margin-bottom: 15px; }
-        .exam-selector { display: flex; align-items: center; justify-content: space-between; padding: 10px; border-bottom: 1px solid var(--border-ui); }
-        .exam-selector:last-child { border-bottom: none; }
-        .exam-label { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--text-primary); }
-        .checkbox-custom { width: 20px; height: 20px; accent-color: var(--accent-lock); }
         
         .resource-tag { display: inline-block; padding: 8px 12px; border: 1px solid var(--border-ui); border-radius: 20px; font-size: 0.75rem; color: var(--text-secondary); margin: 4px; cursor: pointer; transition: 0.2s; background: var(--bg-deep); }
         .resource-tag.selected { background: var(--accent-lock); color: var(--bg-deep); border-color: var(--accent-lock); font-weight: 700; }
+
+        /* New Exam Grid Styles (v9.5) */
+        .exam-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+        .exam-card {
+            background: var(--bg-elevated); border: 1px solid var(--border-ui);
+            border-radius: var(--radius-md); padding: 12px;
+            cursor: pointer; position: relative; transition: all 0.2s;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; height: 120px;
+        }
+        .exam-card:hover { border-color: var(--text-muted); background: #20202a; }
+        .exam-card.selected { border-color: var(--accent-lock); background: rgba(6, 182, 212, 0.1); box-shadow: 0 0 15px rgba(6,182,212,0.15); }
+        .exam-card .exam-icon { font-size: 1.8rem; margin-bottom: 8px; filter: grayscale(1); transition: 0.2s; }
+        .exam-card.selected .exam-icon { filter: grayscale(0); transform: scale(1.1); }
+        .exam-card .exam-name { font-weight: 700; font-size: 0.9rem; text-align: center; }
+        .exam-card .check-circle {
+            position: absolute; top: 8px; right: 8px; width: 18px; height: 18px;
+            border-radius: 50%; border: 2px solid var(--border-ui); transition: 0.2s;
+        }
+        .exam-card.selected .check-circle { background: var(--accent-lock); border-color: var(--accent-lock); }
+        
+        .primary-badge-btn {
+            margin-top: 8px; font-size: 0.65rem; padding: 4px 10px;
+            border-radius: 12px; background: var(--bg-deep); border: 1px solid var(--border-ui);
+            color: var(--text-muted); cursor: pointer; transition: 0.2s;
+        }
+        .primary-badge-btn:hover { color: var(--text-primary); border-color: var(--text-secondary); }
+        .primary-badge-btn.active { background: var(--accent-gold); color: black; border-color: var(--accent-gold); font-weight: 800; }
 
         #integrity-toast { position: fixed; bottom: 32px; right: 32px; background: var(--accent-crit); color: white; padding: 16px 24px; border-radius: var(--radius-md); font-weight: 800; font-size: 0.85rem; display: none; z-index: 10000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
         @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -371,7 +393,7 @@
         <nav>
             <div class="nav-left">
                 <button class="sidebar-toggle" onclick="UI.toggleSidebar()">☰</button>
-                <div class="nav-logo">RANKLOCK <span>v9.4</span></div>
+                <div class="nav-logo">RANKLOCK <span>v9.5</span></div>
             </div>
             <div class="nav-right">
                 <div class="stat-item">
@@ -486,7 +508,6 @@
                 <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
                 MAP
             </button>
-            <!-- REPLACED COMMS WITH EVENTS -->
             <button class="nav-tab" onclick="UI.openEvents()">
                 <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                 EVENTS
@@ -502,7 +523,6 @@
                 <button class="close-btn" onclick="UI.closeOverlays()">×</button>
             </div>
             
-            <!-- Scrollable Content -->
             <div class="modal-body-scroll">
                 
                 <!-- STEP 1: SUBJECT -->
@@ -535,7 +555,7 @@
                     
                     <div class="form-label" style="margin-bottom:10px; font-weight:700; color:var(--text-secondary);">RESOURCE</div>
                     <div class="goal-chip-grid" id="goal-resource-grid">
-                        <!-- Populated dynamically by User Preference -->
+                        <!-- Populated dynamically -->
                     </div>
 
                     <div class="form-label" style="margin-bottom:10px; font-weight:700; color:var(--text-secondary);">SCOPE (OPTIONAL)</div>
@@ -599,7 +619,7 @@
         </div>
     </div>
     
-    <!-- OVERLAY: EVENTS -->
+    <!-- OVERLAY: EVENTS (TEMPORAL ENGINE) -->
     <div id="overlay-events" class="overlay">
         <div class="modal">
             <div class="modal-header">
@@ -612,18 +632,20 @@
             <div class="modal-body-scroll" id="events-container">
                 <!-- Injected via JS -->
             </div>
-            <div style="border-top: 1px solid var(--border-ui); padding-top: 16px; margin-top: 16px;">
-                <div style="font-size:0.7rem; color:var(--text-muted); font-weight:700; margin-bottom:8px;">ADD CUSTOM EVENT</div>
+            <div style="border-top: 1px solid var(--border-ui); padding-top: 16px; margin-top: 16px; background: var(--bg-surface); position: sticky; bottom: -20px; z-index: 10;">
+                <div style="font-size:0.7rem; color:var(--text-muted); font-weight:700; margin-bottom:8px;">EVENT CONTROL PANEL</div>
                 <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <input type="hidden" id="event-edit-id">
                     <input type="text" id="new-event-name" placeholder="Name (e.g. Mock Test 1)" style="flex:1; margin:0;">
                     <input type="date" id="new-event-date" style="flex:1; margin:0; background:var(--bg-elevated);">
-                    <button class="btn btn-primary" onclick="Logic.Onboarding.addCustomEvent()">ADD</button>
+                    <button class="btn btn-primary" id="btn-add-event" onclick="Logic.Onboarding.addCustomEvent()">ADD</button>
+                    <button class="btn btn-outline" onclick="Logic.Onboarding.clearEventInput()">CLR</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- OVERLAY: MARKET (NEW) -->
+    <!-- OVERLAY: MARKET -->
     <div id="overlay-market" class="overlay">
         <div class="modal">
             <div class="modal-header">
@@ -640,9 +662,9 @@
         </div>
     </div>
 
-    <!-- OVERLAY: ONBOARDING -->
+    <!-- OVERLAY: ONBOARDING (REVAMPED v9.5) -->
     <div id="overlay-onboarding" class="overlay" style="z-index: 2200;">
-        <div class="modal" style="max-width: 500px;">
+        <div class="modal" style="max-width: 600px;">
             <!-- Philosophy Slide -->
             <div class="tut-slide active" id="onboard-step-0">
                 <div style="text-align: center; margin-bottom: 30px;">
@@ -654,71 +676,36 @@
                         Configure your battlefield to begin.
                     </p>
                 </div>
-                <button class="btn btn-primary btn-block" onclick="Logic.Onboarding.next(1)">CONFIGURE PROTOCOL (3 MINS)</button>
+                <button class="btn btn-primary btn-block" onclick="Logic.Onboarding.next(1)">CONFIGURE PROTOCOL</button>
             </div>
 
-            <!-- Step 1: Exam Selection -->
+            <!-- Step 1: Exam Selection (NEW GRID UI) -->
             <div class="tut-slide" id="onboard-step-1">
                 <h2 class="modal-title">Identity Protocol</h2>
-                <p class="modal-desc" style="margin-bottom: 20px;">Select your primary battlefield. This is unskippable.</p>
+                <p class="modal-desc" style="margin-bottom: 20px;">Select your targets. Click card to select. Click button inside to make Primary.</p>
                 
-                <div class="onboard-card">
-                    <div class="exam-selector">
-                        <label class="exam-label"><input type="checkbox" class="checkbox-custom" value="JEE Main"> JEE Main</label>
-                        <input type="radio" name="primary_exam" value="JEE Main">
-                    </div>
-                    <div class="exam-selector">
-                        <label class="exam-label"><input type="checkbox" class="checkbox-custom" value="JEE Advanced"> JEE Advanced</label>
-                        <input type="radio" name="primary_exam" value="JEE Advanced">
-                    </div>
-                    <div class="exam-selector">
-                        <label class="exam-label"><input type="checkbox" class="checkbox-custom" value="NEET"> NEET</label>
-                        <input type="radio" name="primary_exam" value="NEET">
-                    </div>
-                    <div class="exam-selector">
-                        <label class="exam-label"><input type="checkbox" class="checkbox-custom" value="Boards"> Boards (12th)</label>
-                        <input type="radio" name="primary_exam" value="Boards">
-                    </div>
-                    <div class="exam-selector">
-                        <label class="exam-label"><input type="checkbox" class="checkbox-custom" value="Other"> Other</label>
-                        <input type="radio" name="primary_exam" value="Other">
-                    </div>
-                    <div style="text-align: right; padding: 8px; font-size: 0.7rem; color: var(--text-muted);">Select Radio for Primary Target</div>
+                <div id="onboard-exam-grid" class="exam-grid">
+                    <!-- Populated by JS -->
                 </div>
                 
                 <button class="btn btn-primary btn-block" onclick="Logic.Onboarding.validateExam()">CONFIRM IDENTITY</button>
             </div>
 
-            <!-- Step 2: Dates -->
-            <div class="tut-slide" id="onboard-step-2">
-                <h2 class="modal-title">Temporal Data</h2>
-                <p class="modal-desc" style="margin-bottom: 20px;">When is D-Day? Skip if unknown.</p>
-                <div id="onboard-date-container"></div>
-                <button class="btn btn-primary btn-block" style="margin-top: 20px;" onclick="Logic.Onboarding.next(3)">NEXT</button>
-            </div>
-
-            <!-- Step 3: Resources -->
+            <!-- Step 3: Resources (Moved up, Step 2 Deleted) -->
             <div class="tut-slide" id="onboard-step-3">
                 <h2 class="modal-title">Arsenal Inventory</h2>
                 <p class="modal-desc" style="margin-bottom: 20px;">What weapons do you actually use?</p>
                 
                 <div style="background: var(--bg-elevated); padding: 20px; border-radius: 8px; border: 1px solid var(--border-ui); margin-bottom: 20px;">
                     <div id="resource-tags-container">
-                        <span class="resource-tag selected" onclick="this.classList.toggle('selected')">Coaching Modules</span>
-                        <span class="resource-tag selected" onclick="this.classList.toggle('selected')">NCERT</span>
-                        <span class="resource-tag selected" onclick="this.classList.toggle('selected')">PYQs</span>
-                        <span class="resource-tag" onclick="this.classList.toggle('selected')">H.C. Verma</span>
-                        <span class="resource-tag" onclick="this.classList.toggle('selected')">Reference Books</span>
-                        <span class="resource-tag" onclick="this.classList.toggle('selected')">Lecture Notes</span>
-                        <span class="resource-tag" onclick="this.classList.toggle('selected')">YouTube</span>
-                        <span class="resource-tag" onclick="this.classList.toggle('selected')">Test Series</span>
+                        <!-- Populated via JS -->
                     </div>
                     <input type="text" id="custom-resource-input" placeholder="+ Add Custom Resource" style="margin-top: 15px; background: var(--bg-deep);" onkeydown="if(event.key === 'Enter') Logic.Onboarding.addCustomResource(this)">
                 </div>
 
                 <button class="btn btn-primary btn-block" onclick="Logic.Onboarding.finish()">INITIALIZE SYSTEM</button>
                 <div style="margin-top: 15px; font-size: 0.7rem; color: var(--text-muted); text-align: center;">
-                    Disclaimer: You can add custom subjects and modify resources later in the System Map.
+                    Dates and additional data can be added in the System Map later.
                 </div>
             </div>
         </div>
@@ -833,7 +820,7 @@
             <div class="tut-slide active" id="tut-step-1">
                 <div class="tut-img">🚀</div>
                 <h2 class="modal-title">System Online</h2>
-                <p class="modal-desc">RankLock v9.4 Initialized. Welcome to the discipline protocol.</p>
+                <p class="modal-desc">RankLock v9.5 Initialized. Welcome to the discipline protocol.</p>
                 <button class="btn btn-primary btn-block" style="margin-top: 30px;" onclick="Logic.Tutorial.next(2)">NEXT: INTEGRITY</button>
             </div>
             <div class="tut-slide" id="tut-step-2">
@@ -883,6 +870,7 @@
             <div class="modal-header" style="justify-content: center;"><h2 class="modal-title">System Settings</h2></div>
             
             <div style="border-top: 1px solid var(--border-ui); margin: 20px 0; padding-top: 20px;">
+                <button class="btn btn-primary" onclick="Logic.System.openResourceEditor()" style="width: 100%; margin-bottom: 10px;">MANAGE ARSENAL (RESOURCES)</button>
                 <div style="font-size:0.7rem; color:var(--text-muted); margin-bottom:10px; font-weight:700;">DATA PERSISTENCE</div>
                 <button class="btn btn-outline" onclick="Logic.System.exportData()" style="width: 100%; margin-bottom: 10px;">BACKUP DATA (JSON)</button>
                 <button class="btn btn-outline" onclick="document.getElementById('import-file').click()" style="width: 100%; margin-bottom: 10px;">RESTORE DATA</button>
@@ -901,6 +889,21 @@
             <button class="btn btn-outline" onclick="UI.closeOverlays()" style="width: 100%; margin-top: 20px;">CLOSE</button>
         </div>
     </div>
+    
+    <!-- RESOURCE EDITOR OVERLAY (NEW) -->
+    <div id="overlay-resources" class="overlay" style="z-index: 2250;">
+        <div class="modal">
+            <div class="modal-header">
+                <div><h2 class="modal-title">Manage Arsenal</h2><p class="modal-desc">Add or remove study resources.</p></div>
+                <button class="close-btn" onclick="UI.closeResourceEditor()">×</button>
+            </div>
+            <div style="background: var(--bg-elevated); padding: 20px; border-radius: 8px; border: 1px solid var(--border-ui); margin-bottom: 20px; flex:1; overflow-y:auto;">
+                <div id="settings-resource-container"></div>
+                <input type="text" id="settings-resource-input" placeholder="+ Add Resource" style="margin-top: 15px; background: var(--bg-deep);" onkeydown="if(event.key === 'Enter') Logic.System.addResource(this)">
+            </div>
+            <button class="btn btn-primary" onclick="Logic.System.saveResources()">SAVE CONFIGURATION</button>
+        </div>
+    </div>
 
     <div id="integrity-toast">INTEGRITY BREACH DETECTED</div>
     
@@ -909,8 +912,8 @@
         window.submitted = false;
 
         const CONSTANTS = {
-            VERSION: 9.4,
-            APP_ID: "RANKLOCK_JEE_V9_4", 
+            VERSION: 9.5,
+            APP_ID: "RANKLOCK_JEE_V9_5", 
             RANKS: [
                 {t:0, title:"UNINITIATED", perk:"None"},
                 {t:500, title:"ASPIRANT", perk:"Hard Focus Unlocked"},
@@ -931,6 +934,14 @@
                 MATH: { id: 'math', name: 'MATHEMATICS', chapters: ['Sets & Relations', 'Trigonometry', 'Quadratic Eq', 'Complex Numbers', 'P&C', 'Binomial', 'Sequences', 'Straight Lines', 'Circles', 'Conics', 'Limits & Continuity', 'Derivatives', 'Indefinite Integral', 'Definite Integral', 'Diff Equations', 'Vectors & 3D', 'Probability'] },
                 BIOLOGY: { id: 'bio', name: 'BIOLOGY', chapters: ['Living World', 'Biological Classification', 'Plant Kingdom', 'Animal Kingdom', 'Morphology', 'Anatomy', 'Structural Org', 'Cell Unit', 'Biomolecules', 'Cell Cycle', 'Transport', 'Mineral Nutrition', 'Photosynthesis', 'Respiration', 'Plant Growth', 'Digestion', 'Breathing', 'Body Fluids', 'Excretory', 'Locomotion', 'Neural Control', 'Chemical Coord', 'Reproduction', 'Genetics', 'Evolution', 'Human Health', 'Microbes', 'Biotech', 'Ecology'] }
             },
+            
+            EXAM_OPTIONS: [
+                {id: "JEE Main", icon: "📐"},
+                {id: "JEE Advanced", icon: "⚛️"},
+                {id: "NEET", icon: "🧬"},
+                {id: "Boards", icon: "📜"},
+                {id: "Other", icon: "🎯"}
+            ],
 
             LINKS: {
                 "JEE Main": { main: "https://jeemain.nta.ac.in", backup: "https://nta.ac.in" },
@@ -970,13 +981,12 @@
                     State = { ...State, ...loaded }; 
                     return true; 
                 }
-                const v93 = localStorage.getItem("RANKLOCK_JEE_V9_3");
-                if(v93) {
+                const v94 = localStorage.getItem("RANKLOCK_JEE_V9_4");
+                if(v94) {
                     try {
-                        const v9Data = JSON.parse(v93);
-                        State = { ...State, ...v9Data };
-                        State.dailyXP = 0;
-                        console.log("Migrated from v9.3 to v9.4");
+                        const vOld = JSON.parse(v94);
+                        State = { ...State, ...vOld };
+                        console.log("Migrated from v9.4 to v9.5");
                         Storage.save();
                         return true;
                     } catch(e) { console.error("Migration failed"); }
@@ -1100,31 +1110,59 @@
                         } catch(err) { alert("Parse Error."); }
                     };
                     reader.readAsText(file);
+                },
+                openResourceEditor() {
+                    UI.closeOverlays();
+                    const container = document.getElementById('settings-resource-container');
+                    container.innerHTML = '';
+                    let resources = State.userProfile.resources || [];
+                    if(resources.length === 0) resources = ["Notes", "NCERT", "PYQs"];
+                    
+                    resources.forEach(r => {
+                        const tag = document.createElement('span'); 
+                        tag.className = 'resource-tag selected'; 
+                        tag.textContent = r;
+                        tag.onclick = function(){ this.remove(); };
+                        container.appendChild(tag);
+                    });
+                    document.getElementById('overlay-resources').style.display = 'flex';
+                },
+                addResource(input) {
+                    const val = input.value.trim();
+                    if(val) {
+                        const container = document.getElementById('settings-resource-container');
+                        const tag = document.createElement('span'); 
+                        tag.className = 'resource-tag selected'; 
+                        tag.textContent = val;
+                        tag.onclick = function(){ this.remove(); };
+                        container.appendChild(tag);
+                        input.value = '';
+                    }
+                },
+                saveResources() {
+                    const tags = document.querySelectorAll('#settings-resource-container .resource-tag');
+                    const res = Array.from(tags).map(t => t.textContent);
+                    State.userProfile.resources = res;
+                    Storage.save();
+                    UI.closeResourceEditor();
+                    UI.showToast("ARSENAL UPDATED");
                 }
             },
             
-            // --- NEW: ECONOMY LOGIC ---
             Economy: {
                 earn(amount, reason) {
                     if(amount <= 0) return;
-                    
-                    // Check for Active Debt (Global Tax)
                     const totalDebt = Logic.Debt.getTotalMinutes();
                     let multiplier = 1.0;
-                    
                     if(totalDebt > 0 && State.session.mode !== 'debt') {
                          multiplier = 0.5;
                          UI.showToast("ACTIVE DEBT TAX APPLIED (50%)");
                     }
-                    
-                    // Daily Cap Logic
                     let actualEarn = amount * multiplier;
-                    
                     if(State.dailyXP >= CONSTANTS.DAILY_XP_CAP) {
                         actualEarn = actualEarn * 0.1; // 90% Tax
                         UI.showToast("DAILY CAP REACHED. 90% TAX.");
                     }
-                    
                     State.dailyXP += actualEarn;
                     State.rank += Math.floor(actualEarn);
                     UI.renderStats();
@@ -1141,10 +1179,8 @@
                 },
                 buy(item) {
                     if(item === 'freeze') {
-                        if(this.spend(1000, "Streak Freeze")) {
-                             alert("STREAK FROZEN FOR 24 HOURS.");
-                             // Logic for streak freeze implementation would go here (timestamp)
-                        } else alert("INSUFFICIENT FUNDS");
+                        if(this.spend(1000, "Streak Freeze")) alert("STREAK FROZEN FOR 24 HOURS.");
+                        else alert("INSUFFICIENT FUNDS");
                     } else if (item === 'repair') {
                         if(State.systemIntegrity >= 100) { alert("Integrity Maximum."); return; }
                         if(this.spend(500, "System Repair")) {
@@ -1156,14 +1192,12 @@
                 }
             },
             
-            // --- NEW: DEBT LOGIC (TIME BASED) ---
             Debt: {
                 add(subId, chapter, minutes) {
                     if(minutes <= 0) return;
                     const key = `${subId}|${chapter}`;
                     if(!State.chapterStats[key]) State.chapterStats[key] = {xp:0, debtMinutes: 0};
                     if(!State.chapterStats[key].debtMinutes) State.chapterStats[key].debtMinutes = 0;
-                    
                     State.chapterStats[key].debtMinutes += minutes;
                     Storage.save();
                     UI.renderDebts();
@@ -1182,7 +1216,6 @@
                     if(!State.chapterStats) return 0;
                     Object.values(State.chapterStats).forEach(s => {
                         if(s.debtMinutes) total += s.debtMinutes;
-                        // Legacy support (count based)
                         if(s.debt) total += (s.debt * 20); 
                     });
                     return total;
@@ -1190,39 +1223,93 @@
             },
 
             Onboarding: {
-                tempData: { exams: [] },
-                start() { document.getElementById('overlay-onboarding').style.display = 'flex'; this.showStep(0); },
-                showStep(n) { document.querySelectorAll('#overlay-onboarding .tut-slide').forEach(s => s.classList.remove('active')); document.getElementById('onboard-step-'+n).classList.add('active'); },
-                next(n) { if(n === 3) this.renderDateInputs(); this.showStep(n); },
-                validateExam() {
-                    const checks = document.querySelectorAll('#onboard-step-1 .checkbox-custom:checked');
-                    const primary = document.querySelector('input[name="primary_exam"]:checked');
-                    if(checks.length === 0) { alert("PROTOCOL HALTED: Select at least one exam target."); return; }
-                    if(!primary) { alert("PROTOCOL HALTED: Mark one exam as Primary."); return; }
-                    
-                    let validPrimary = false;
-                    checks.forEach(c => { if(c.value === primary.value) validPrimary = true; });
-                    if(!validPrimary) { alert("Logic Error: Primary exam must be one of your selected targets."); return; }
-                    
-                    this.tempData.exams = [];
-                    checks.forEach(c => {
-                        this.tempData.exams.push({ id: c.value, name: c.value, primary: c.value === primary.value, date: null });
-                    });
-                    this.next(2);
+                tempData: { selectedExams: [], primary: null },
+                
+                start() { 
+                    document.getElementById('overlay-onboarding').style.display = 'flex'; 
+                    this.renderExamGrid();
+                    this.showStep(0); 
                 },
-                renderDateInputs() {
-                    const c = document.getElementById('onboard-date-container');
-                    c.innerHTML = '';
-                    this.tempData.exams.forEach(ex => {
-                        const row = document.createElement('div');
-                        row.style.marginBottom = '15px';
-                        row.innerHTML = `
-                            <div style="font-size:0.8rem; font-weight:700; color:var(--text-secondary); margin-bottom:5px;">${ex.name} ${ex.primary ? '<span style="color:var(--accent-lock)">(PRIMARY)</span>' : ''}</div>
-                            <input type="date" class="exam-date-input" data-exam="${ex.name}" style="background:var(--bg-elevated);">
+                
+                showStep(n) { 
+                    document.querySelectorAll('#overlay-onboarding .tut-slide').forEach(s => s.classList.remove('active')); 
+                    document.getElementById('onboard-step-'+n).classList.add('active'); 
+                },
+                
+                next(n) { 
+                    if(n === 2) { 
+                        // SKIP STEP 2 (Temporal Data removed as per user request)
+                        this.next(3);
+                        return;
+                    }
+                    if(n === 3) this.initResourcesStep();
+                    this.showStep(n); 
+                },
+
+                renderExamGrid() {
+                    const grid = document.getElementById('onboard-exam-grid');
+                    grid.innerHTML = '';
+                    CONSTANTS.EXAM_OPTIONS.forEach(opt => {
+                        const card = document.createElement('div');
+                        card.className = 'exam-card';
+                        card.dataset.id = opt.id;
+                        card.onclick = (e) => this.toggleExam(opt.id, e);
+                        
+                        card.innerHTML = `
+                            <div class="check-circle"></div>
+                            <div class="exam-icon">${opt.icon}</div>
+                            <div class="exam-name">${opt.id}</div>
+                            <button class="primary-badge-btn" onclick="event.stopPropagation(); Logic.Onboarding.setPrimary('${opt.id}')">MAKE PRIMARY</button>
                         `;
-                        c.appendChild(row);
+                        grid.appendChild(card);
                     });
                 },
+
+                toggleExam(id, e) {
+                    const card = document.querySelector(`.exam-card[data-id="${id}"]`);
+                    const idx = this.tempData.selectedExams.indexOf(id);
+                    if(idx > -1) {
+                        this.tempData.selectedExams.splice(idx, 1);
+                        card.classList.remove('selected');
+                        if(this.tempData.primary === id) {
+                             this.tempData.primary = null;
+                             card.querySelector('.primary-badge-btn').classList.remove('active');
+                        }
+                    } else {
+                        this.tempData.selectedExams.push(id);
+                        card.classList.add('selected');
+                    }
+                },
+
+                setPrimary(id) {
+                    if(!this.tempData.selectedExams.includes(id)) {
+                        // Select it first if not selected
+                        this.toggleExam(id);
+                    }
+                    this.tempData.primary = id;
+                    document.querySelectorAll('.primary-badge-btn').forEach(b => b.classList.remove('active'));
+                    const card = document.querySelector(`.exam-card[data-id="${id}"]`);
+                    card.querySelector('.primary-badge-btn').classList.add('active');
+                },
+
+                validateExam() {
+                    if(this.tempData.selectedExams.length === 0) { alert("Select at least one target."); return; }
+                    if(!this.tempData.primary) { alert("Select a PRIMARY target (Click button inside card)."); return; }
+                    this.next(3);
+                },
+
+                initResourcesStep() {
+                    const cont = document.getElementById('resource-tags-container');
+                    cont.innerHTML = '';
+                    ["Coaching Modules", "NCERT", "PYQs", "Reference Books", "Lecture Notes", "YouTube", "Test Series"].forEach(r => {
+                        const tag = document.createElement('span'); 
+                        tag.className = 'resource-tag selected'; 
+                        tag.textContent = r;
+                        tag.onclick = function(){ this.classList.toggle('selected'); };
+                        cont.appendChild(tag);
+                    });
+                },
+
                 addCustomResource(input) {
                     const val = input.value.trim();
                     if(val) {
@@ -1233,19 +1320,56 @@
                         input.value = '';
                     }
                 },
+                
                 addCustomEvent() {
                      const name = document.getElementById('new-event-name').value.trim();
                      const date = document.getElementById('new-event-date').value;
-                     if(name && date) {
+                     const editId = document.getElementById('event-edit-id').value;
+                     
+                     if(name) {
                          if(!State.userProfile.exams) State.userProfile.exams = [];
-                         State.userProfile.exams.push({id: 'custom-'+Date.now(), name: name, primary: false, date: date});
+                         
+                         if(editId) {
+                             // Edit Mode
+                             const idx = State.userProfile.exams.findIndex(e => e.id === editId);
+                             if(idx > -1) {
+                                 State.userProfile.exams[idx].name = name;
+                                 State.userProfile.exams[idx].date = date;
+                                 UI.showToast("INTEL UPDATED");
+                             }
+                         } else {
+                             // Create Mode
+                             State.userProfile.exams.push({id: 'custom-'+Date.now(), name: name, primary: false, date: date});
+                             UI.showToast("EVENT ADDED");
+                         }
+                         
                          Storage.save();
                          UI.renderUrgency(); 
-                         document.getElementById('new-event-name').value = '';
-                         document.getElementById('new-event-date').value = '';
-                         UI.showToast("EVENT ADDED");
+                         this.clearEventInput();
                      }
                 },
+                
+                editEvent(id) {
+                    const ev = State.userProfile.exams.find(e => e.id === id);
+                    if(ev) {
+                        document.getElementById('new-event-name').value = ev.name;
+                        document.getElementById('new-event-date').value = ev.date || '';
+                        document.getElementById('event-edit-id').value = id;
+                        document.getElementById('btn-add-event').textContent = "UPDATE INTEL";
+                        document.getElementById('btn-add-event').classList.remove('btn-primary');
+                        document.getElementById('btn-add-event').classList.add('btn-crit'); // Visual cue for edit mode
+                    }
+                },
+                
+                clearEventInput() {
+                    document.getElementById('new-event-name').value = '';
+                    document.getElementById('new-event-date').value = '';
+                    document.getElementById('event-edit-id').value = '';
+                    document.getElementById('btn-add-event').textContent = "ADD";
+                    document.getElementById('btn-add-event').classList.add('btn-primary');
+                    document.getElementById('btn-add-event').classList.remove('btn-crit');
+                },
+
                 deleteEvent(id) {
                     if(confirm("Delete this event?")) {
                         State.userProfile.exams = State.userProfile.exams.filter(e => e.id !== id);
@@ -1253,21 +1377,22 @@
                         UI.renderUrgency();
                     }
                 },
+                
                 finish() {
-                    const dateInputs = document.querySelectorAll('.exam-date-input');
-                    dateInputs.forEach(inp => {
-                        const name = inp.dataset.exam;
-                        const val = inp.value;
-                        const ex = this.tempData.exams.find(e => e.name === name);
-                        if(ex && val) ex.date = val;
-                    });
-                    const resTags = document.querySelectorAll('.resource-tag.selected');
+                    const finalExams = this.tempData.selectedExams.map(id => ({
+                        id: id,
+                        name: id,
+                        primary: id === this.tempData.primary,
+                        date: null // Set later in events
+                    }));
+                    
+                    const resTags = document.querySelectorAll('#resource-tags-container .resource-tag.selected');
                     const resources = Array.from(resTags).map(t => t.textContent);
                     if(resources.length === 0) resources.push("Notes", "Books"); 
                     
                     let newSubjects = [];
-                    const hasJEE = this.tempData.exams.some(e => e.name.includes("JEE") || e.name.includes("Boards"));
-                    const hasNEET = this.tempData.exams.some(e => e.name === "NEET");
+                    const hasJEE = finalExams.some(e => e.name.includes("JEE") || e.name.includes("Boards"));
+                    const hasNEET = finalExams.some(e => e.name === "NEET");
                     
                     newSubjects.push(CONSTANTS.PRESETS.PHYSICS);
                     newSubjects.push(CONSTANTS.PRESETS.CHEMISTRY);
@@ -1276,7 +1401,7 @@
                     else if (hasJEE && hasNEET) { newSubjects.push(CONSTANTS.PRESETS.MATH); newSubjects.push(CONSTANTS.PRESETS.BIOLOGY); }
                     else newSubjects.push(CONSTANTS.PRESETS.MATH);
                     
-                    State.userProfile.exams = this.tempData.exams;
+                    State.userProfile.exams = finalExams;
                     State.userProfile.resources = resources;
                     State.subjects = newSubjects;
                     State.onboardingComplete = true;
@@ -1615,9 +1740,13 @@
                     const linkData = CONSTANTS.LINKS[ex.name] || CONSTANTS.LINKS["Other"];
                     const mainLink = linkData.main;
                     
-                    const isCustom = ex.id && ex.id.startsWith('custom-');
-                    const actions = isCustom ? 
-                        `<button class="btn btn-outline" style="padding:4px 8px; font-size:0.6rem;" onclick="Logic.Onboarding.deleteEvent('${ex.id}')">DELETE</button>` : '';
+                    // NEW EDIT ACTIONS
+                    const actions = `
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn btn-outline" style="padding:4px 8px; font-size:0.6rem;" onclick="Logic.Onboarding.editEvent('${ex.id}')">EDIT</button>
+                            <button class="btn btn-outline" style="padding:4px 8px; font-size:0.6rem; color:var(--accent-crit); border-color:var(--accent-crit);" onclick="Logic.Onboarding.deleteEvent('${ex.id}')">DELETE</button>
+                        </div>
+                    `;
 
                     card.innerHTML = `
                         <div style="display:flex; justify-content:space-between; align-items:flex-start;">
@@ -1637,7 +1766,6 @@
                         <div style="margin-top:12px; padding-top:10px; border-top:1px solid var(--border-ui); display:flex; gap:10px;">
                             <a href="${mainLink}" target="_blank" class="btn btn-outline" style="flex:1; padding:8px; font-size:0.7rem; text-decoration:none;">VERIFY INTEL ↗</a>
                         </div>
-                        <div style="font-size:0.6rem; color:var(--text-muted); margin-top:8px; font-style:italic;">Disclaimer: Dates subject to change. Verify on official site.</div>
                     `;
                     container.appendChild(card);
                 });
@@ -1668,10 +1796,8 @@
                 for(let r of CONSTANTS.RANKS) { if(r.t > State.rank){ next = r.t; perkBadge.textContent = `NEXT: ${r.perk.toUpperCase()}`; break; } }
                 if(State.rank >= 100000) perkBadge.textContent = "AUTHORITY ABSOLUTE";
 
-                const prev = CONSTANTS.RANKS.find(r => r.t <= State.rank).t; 
-                // Fix for rank bar calculation
                 const prevRank = CONSTANTS.RANKS.reduce((acc, curr) => (curr.t <= State.rank ? curr : acc), CONSTANTS.RANKS[0]);
-                const nextRank = CONSTANTS.RANKS.find(r => r.t > State.rank) || {t: 200000}; // Arbitrary max
+                const nextRank = CONSTANTS.RANKS.find(r => r.t > State.rank) || {t: 200000}; 
                 const perc = ((State.rank - prevRank.t) / (nextRank.t - prevRank.t)) * 100;
                 
                 const rankBarFill = document.getElementById('rank-bar-fill');
@@ -1918,10 +2044,7 @@
                     
                     let pts = Math.floor((durSecs/60)*10*qMod*mMod);
                     
-                    const xpDisplay = document.getElementById('auto-xp-display');
-                    
                     if(State.session.mode === 'debt') {
-                        // In Debt Mode, XP is negligible, focus is repayment
                         pts = Math.floor(pts * 0.1); 
                         xpDisplay.textContent = `+${pts} (REPAYMENT MODE)`;
                         xpDisplay.style.color = "var(--text-muted)";
@@ -1960,8 +2083,9 @@
             },
             
             closeOverlays() { document.querySelectorAll('.overlay').forEach(o => o.style.display='none'); },
+            closeResourceEditor() { document.getElementById('overlay-resources').style.display='none'; },
             openMap() { this.renderMap(); this.openOverlay('overlay-map'); },
-            openEvents() { this.renderUrgency(); this.openOverlay('overlay-events'); if(window.innerWidth <= 1024) this.switchMobileTab('events'); },
+            openEvents() { this.renderUrgency(); this.openOverlay('overlay-events'); Logic.Onboarding.clearEventInput(); if(window.innerWidth <= 1024) this.switchMobileTab('events'); },
             openSettings() { this.openOverlay('overlay-settings'); },
             openAutopsy() { this.openOverlay('overlay-autopsy'); },
             openComms() { this.openOverlay('overlay-comms'); },
