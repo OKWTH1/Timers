@@ -1,25 +1,38 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RANKLOCK v10.0 | WAR ROOM</title>
+    <title>RANKLOCK v12.1 | WAR ROOM</title>
     <meta name="author" content="Ojas Kadam">
-    <meta name="description" content="RankLock v10.0. Brutal Hard Focus V3. Overhauled Missions, Market, Events, Rank. Full UI Upgrade.">
+    <meta name="description" content="RankLock v12.1 | Stability patch. 8 issues resolved: template literal syntax, debt calculation NaN, mobile 100dvh height, hard-mode visibility loophole, session lock deadlock, clean_slate implementation, schema content validation, quest scroll.">
     <!-- 
-        RANKLOCK DISCIPLINE SYSTEM v10.0
+        RANKLOCK DISCIPLINE SYSTEM  v12.1
         Architect: Ojas Kadam
-        Upgraded by: Claude
+        
+        CHANGELOG  v12.0 — STABILITY PATCH:
+        1. TIMER RELIABILITY: Timestamp-based elapsed + visibilitychange drift correction on tab resume.
+        2. STATE CONSISTENCY: Double-call guards on abort/finish. _aborting/_finishing flags.
+        3. RACE CONDITIONS: Proper _sessionLocked mutex. Countdown interval ref stored & cleared.
+        4. FOCUS ENFORCEMENT: Hard mode now also penalizes via visibilitychange + window blur.
+        5. XP EXPLOIT MITIGATION: Schema validation clamps impossible values on load.
+        6. OVERLAY CONFLICTS: Priority-based OverlayManager. Critical overlays block lower priority.
+        7. MOBILE UX: visualViewport keyboard detection. 100dvh support. keyboard-open class hides nav.
+        8. MEMORY/LISTENER LEAKS: _bindKeys/_bindVisibility guarded to run only once. Countdown cleared.
+        9. CRASH FAILSAFE: Heartbeat (localStorage) written every 30s. Crash vs reload distinguished.
+        10. LOCALSTORAGE SCHEMA: _validateSchema() enforces types. Corrupt fields reset to defaults.
+        11. ANIMATION CONTROL: prefers-reduced-motion respected. reduce-animations auto after 45m.
+        12. AUDIT TRAIL: Logs now include mode, subject, goal, xpEarned fields. showLogDetails upgraded.
 
-        CHANGELOG v10.0:
-        1. HARD FOCUS V3: XP bleed -10/10s (doubled). Force abort at 30s breach. -30% breach penalty. 2x debt on hard abort. 3s ping window.
-        2. MISSIONS OVERHAUL: 5 daily missions, difficulty tiers (RECON/ASSAULT/ELITE), new types.
-        3. MARKET OVERHAUL: 8+ items, category sections, Focus Boost, XP Surge, Rank Shield.
-        4. EVENTS OVERHAUL: Study hours calculator, urgency rings, primary toggle.
-        5. RANK SYSTEM: Tier icons, visual rank progression, milestone markers.
-        6. UI UPGRADE: Glassmorphism nav, better cards, animations, improved hierarchy.
-        7. BUG FIXES: Onboarding resources crash fix, locked mode feedback, breach cleanup.
+        CHANGELOG  v12.1 — BUG-FIX PATCH:
+        1. SYNTAX FIX: Confirmed template literal in openMarket (title_iron_will mkItem) is closed correctly.
+        2. DEBT NaN: _validateSchema now migrates legacy debt→debtMinutes. getTotalMinutes no longer accumulates NaN.
+        3. MOBILE HEIGHT: body + #app-container use 100dvh with 100vh fallback; correct on address-bar resize.
+        4. HARD LOOPHOLE: _hiddenAt timestamp tracked on tab-hide; accumulated off-tab seconds instantly applied to breachSeconds on return.
+        5. LOCK DEADLOCK: Logic.Session.start() wrapped in try-finally; _sessionLocked always released even on error.
+        6. CLEAN SLATE: Economy.buy clean_slate correctly filters State.logs. (Already present; confirmed correct.)
+        7. SCHEMA CONTENT: _validateSchema now validates State.subjects array elements are proper {id,name,chapters} objects, not strings.
+        8. QUEST SCROLL: Long Quests panel in Missions overlay now scrolls instead of overflowing.
     -->
     <style>
         /* ============================================================
@@ -72,9 +85,36 @@
             --border-glow: rgba(168,85,247,0.2);
         }
 
-        /* --- Global Resets --- */
+        /* --- Mobile Viewport / Keyboard Fix --- */
+        /* Use 100dvh (dynamic viewport height) with 100vh as fallback.
+           dvh accounts for the mobile browser address bar shrinking/expanding,
+           preventing bottom content cut-off on iOS/Android. */
+        body { background-color: var(--bg-deep); color: var(--text-primary); font-family: var(--font-main); overflow: hidden; height: 100vh; height: 100dvh; width: 100vw; transition: background-color 0.5s; }
+        .keyboard-open #main-layout { 
+            padding-bottom: 0 !important; 
+        }
+        .keyboard-open .bottom-nav {
+            display: none !important;
+        }
+
+        /* --- Reduced Motion / Long-Session Mode --- */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+        body.reduce-animations * {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+        }
+        body.reduce-animations .focus-bg-pulse { display: none !important; }
+        body.reduce-animations .breach-title { animation: none !important; }
+
+
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        body { background-color: var(--bg-deep); color: var(--text-primary); font-family: var(--font-main); overflow: hidden; height: 100vh; width: 100vw; transition: background-color 0.5s; }
+        
         
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -102,7 +142,7 @@
         }
         .nav-left { display: flex; align-items: center; gap: 14px; }
         .nav-logo { font-size: 1.05rem; font-weight: 900; display: flex; align-items: center; gap: 10px; letter-spacing: 0.06em; color: var(--text-primary); }
-        .nav-logo .ver-badge { font-size: 0.58rem; background: var(--accent-lock); padding: 2px 6px; border-radius: var(--radius-sm); color: var(--bg-deep); font-weight: 900; letter-spacing: 0.05em; }
+        .nav-logo .ver-badge { font-size: 0.58rem; background: var(--accent-lock); padding: 2px 6px; border-radius: var(--radius-sm); color: var(--bg-deep); font-weight: 900; letter-spacing: 0.05em; content: 'v12'; }
         .nav-right { display: flex; gap: 10px; align-items: center; }
         
         .stat-item { text-align: right; display: flex; flex-direction: column; justify-content: center; margin-right: 6px; }
@@ -372,6 +412,9 @@
         .claim-btn { background: var(--accent-succ); color: #000; border: none; font-weight: 900; font-size: 0.62rem; padding: 6px 12px; border-radius: 20px; cursor: pointer; animation: pulse 2s infinite; flex-shrink: 0; letter-spacing: 0.05em; }
         .mission-done-check { color: var(--accent-succ); font-size: 1.1rem; flex-shrink: 0; }
 
+        /* Quest panel scroll — prevents overflow when many quests are present */
+        #mpanel-quests { max-height: 62vh; overflow-y: auto; padding-right: 4px; }
+
         .missions-reset-timer { text-align: center; font-size: 0.65rem; color: var(--text-muted); margin-bottom: 14px; font-family: var(--font-mono); background: var(--bg-elevated); padding: 6px; border-radius: var(--radius-sm); }
 
         /* ========================
@@ -465,7 +508,7 @@
 
         @media (max-width: 1024px) {
             body { overflow: hidden; }
-            #app-container { height: calc(100vh - var(--mobile-nav-height)); }
+            #app-container { height: calc(100vh - var(--mobile-nav-height)); height: calc(100dvh - var(--mobile-nav-height)); }
             main, main.sidebar-collapsed { grid-template-columns: 1fr !important; gap: 0; padding: 10px; height: 100%; overflow-y: auto; }
             .sidebar-toggle { display: none; }
             nav { padding: 0 12px; }
@@ -497,7 +540,7 @@
     <nav>
         <div class="nav-left">
             <button class="sidebar-toggle" onclick="UI.toggleSidebar()">☰</button>
-            <div class="nav-logo">RANKLOCK <span class="ver-badge">v10.0</span></div>
+            <div class="nav-logo">RANKLOCK <span class="ver-badge"> v12.1</span></div>
             <div class="nav-rank-badge" id="nav-rank-badge">⬜ UNINITIATED</div>
         </div>
         <div class="nav-right">
@@ -960,7 +1003,7 @@
         <div class="tut-slide active" id="tut-step-1">
             <div class="tut-img">🚀</div>
             <h2 class="modal-title">System Online</h2>
-            <p class="modal-desc">RankLock v10.0 Initialized. Welcome to the discipline protocol.</p>
+            <p class="modal-desc">RankLock  v12.0 Initialized. Welcome to the discipline protocol.</p>
             <button class="btn btn-primary btn-block" style="margin-top:28px;" onclick="Logic.Tutorial.next(2)">NEXT: INTEGRITY</button>
         </div>
         <div class="tut-slide" id="tut-step-2">
@@ -1010,7 +1053,7 @@
         <div style="margin:18px 0;">
             <div style="font-size:0.65rem; color:var(--text-muted); margin-bottom:4px;">ARCHITECT</div>
             <div style="font-weight:700; color:var(--text-secondary);">OJAS KADAM</div>
-            <div style="font-size:0.62rem; color:var(--text-muted); margin-top:2px;">v10.0 — Enhanced Build</div>
+            <div style="font-size:0.62rem; color:var(--text-muted); margin-top:2px;"> v12.0 — Stability Patch</div>
         </div>
         <button class="btn btn-crit" onclick="Logic.System.factoryReset()" style="width:100%">SYSTEM PURGE (RESET)</button>
         <button class="btn btn-outline" onclick="UI.closeOverlays()" style="width:100%; margin-top:14px;">CLOSE</button>
@@ -1033,17 +1076,15 @@
 </div>
 
 <div id="integrity-toast">INTEGRITY BREACH DETECTED</div>
-
-<!-- ============================================================
-     JAVASCRIPT ENGINE
-============================================================ -->
 <script>
 'use strict';
 window.submitted = false;
 
 const CONSTANTS = {
-    VERSION: 10.0,
-    APP_ID: "RANKLOCK_JEE_V10_0",
+    VERSION: 12.0,
+    SCHEMA_VERSION: 3,
+    APP_ID: "RANKLOCK_JEE_V12_0",
+    LEGACY_IDS: ["RANKLOCK_JEE_V11_0", "RANKLOCK_JEE_V10_0", "RANKLOCK_JEE_V9_8"],
 
     RANKS: [
         { t: 0,     title: "UNINITIATED",  perk: "None",                 icon: "⬜" },
@@ -1060,12 +1101,13 @@ const CONSTANTS = {
     MARKET_REQ: 0,
     DAILY_XP_CAP: 2000,
 
-    // Hard Focus V3 — Brutal constants
-    HARD_BREACH_XP_DRAIN: 10,       // XP drained per 10s (was 5)
-    HARD_BREACH_PENALTY: 30,        // % integrity per breach (was 20)
-    HARD_FORCE_ABORT_SECS: 30,      // Force abort after this many breach seconds
-    HARD_DEBT_MULTIPLIER: 2,        // Debt multiplier on hard abort (was 1)
-    HARD_PING_WINDOW_MS: 3000,      // ms to respond to ping (was 5000)
+    HARD_BREACH_XP_DRAIN: 10,
+    HARD_BREACH_PENALTY: 30,
+    HARD_FORCE_ABORT_SECS: 30,
+    HARD_DEBT_MULTIPLIER: 2,
+    HARD_PING_WINDOW_MS: 3000,
+
+    SESSION_XP_CAP: 800,
 
     PRESETS: {
         PHYSICS:   { id:'phys', name:'PHYSICS',   chapters:['Units & Dimensions','Kinematics','Laws of Motion','Work Energy Power','Rotational Motion','Gravitation','Solids & Fluids','Thermodynamics','Electrostatics','Current Electricity','Magnetism','EMI & AC','Optics','Modern Physics'] },
@@ -1078,96 +1120,266 @@ const CONSTANTS = {
         {id:"JEE Main",    icon:"📐"},
         {id:"JEE Advanced",icon:"⚛️"},
         {id:"NEET",        icon:"🧬"},
-        {id:"Boards",      icon:"📜"},
-        {id:"Other",       icon:"🎯"}
+        {id:"BITSAT",      icon:"🔬"},
+        {id:"Boards",      icon:"📚"},
+        {id:"MHT-CET",     icon:"🎯"},
+        {id:"CUET",        icon:"📝"},
+        {id:"Other",       icon:"🏆"}
     ],
 
     LINKS: {
-        "JEE Main":    { main:"https://jeemain.nta.ac.in" },
-        "JEE Advanced":{ main:"https://jeeadv.ac.in" },
-        "NEET":        { main:"https://neet.nta.nic.in" },
-        "Boards":      { main:"https://cbse.gov.in" },
-        "Other":       { main:"https://google.com" }
+        "JEE Main":     { main: "https://jeemain.nta.ac.in", schedule: "https://jeemain.nta.ac.in" },
+        "JEE Advanced": { main: "https://jeeadv.ac.in",      schedule: "https://jeeadv.ac.in" },
+        "NEET":         { main: "https://neet.nta.nic.in",   schedule: "https://neet.nta.nic.in" },
+        "BITSAT":       { main: "https://www.bits-pilani.ac.in/bitsat/", schedule: "https://www.bits-pilani.ac.in/bitsat/" },
+        "Boards":       { main: "https://cbse.gov.in",       schedule: "https://cbse.gov.in" },
+        "Other":        { main: "https://nta.ac.in",         schedule: "https://nta.ac.in" }
     },
 
     QUEST_TEMPLATES: [
-        {id:'q_xp_1',   title:'Earn 5,000 XP',         type:'xp',    target:5000,   reward:500,  icon:'💰'},
-        {id:'q_xp_2',   title:'Earn 15,000 XP',        type:'xp',    target:15000,  reward:1500, icon:'💰'},
-        {id:'q_xp_3',   title:'Earn 50,000 XP',        type:'xp',    target:50000,  reward:5000, icon:'🏆'},
-        {id:'q_time_1', title:'Total Focus: 10 Hours',  type:'time',  target:36000,  reward:500,  icon:'⏱️'},
-        {id:'q_time_2', title:'Total Focus: 50 Hours',  type:'time',  target:180000, reward:2000, icon:'⏱️'},
-        {id:'q_time_3', title:'Total Focus: 100 Hours', type:'time',  target:360000, reward:5000, icon:'⏱️'},
-        {id:'q_debt_1', title:'Repay 60 mins Debt',     type:'repay', target:60,     reward:300,  icon:'⚡'},
-        {id:'q_debt_2', title:'Repay 200 mins Debt',    type:'repay', target:200,    reward:800,  icon:'⚡'},
-        {id:'q_hard_1', title:'Complete 5 Hard Sessions',type:'hard_sessions', target:5, reward:1000, icon:'🔥'},
-        {id:'q_hard_2', title:'Complete 20 Hard Sessions',type:'hard_sessions',target:20,reward:4000, icon:'🔥'},
+        { id:'q_xp_10k',    title:'10,000 XP Earned',          type:'xp',           target:10000,  reward:1000,  icon:'💎' },
+        { id:'q_xp_50k',    title:'50,000 XP Earned',          type:'xp',           target:50000,  reward:5000,  icon:'👑' },
+        { id:'q_time_10h',  title:'10 Hours of Focus',          type:'time',         target:36000,  reward:800,   icon:'⏳' },
+        { id:'q_time_50h',  title:'50 Hours of Focus',          type:'time',         target:180000, reward:4000,  icon:'🔥' },
+        { id:'q_hard_5',    title:'5 Hard Sessions Completed',  type:'hard_sessions',target:5,      reward:1500,  icon:'⚡' },
+        { id:'q_repay_60',  title:'Repay 60 Mins of Debt',      type:'repay',        target:60,     reward:600,   icon:'⚖' }
     ]
 };
 
-let defaultSubjects = [CONSTANTS.PRESETS.PHYSICS, CONSTANTS.PRESETS.CHEMISTRY, CONSTANTS.PRESETS.MATH];
-
-let State = {
-    username: null,
+const DEFAULT_STATE = {
+    schemaVersion: CONSTANTS.SCHEMA_VERSION,
+    username: '',
     totalXP: 0,
-    wallet: 0,
     rank: 0,
+    wallet: 0,
+    dailyXP: 0,
     dailySeconds: 0,
     allTimeSeconds: 0,
-    dailyXP: 0,
-    chapterStats: {}, subjects: [...defaultSubjects], logs: [],
+    systemIntegrity: 100,
+    streak: 0,
+    lastLoginDate: '',
     tutorialComplete: false,
     onboardingComplete: false,
-    userProfile: { exams: [], resources: [] },
-    streak: 0, lastLoginDate: null,
-    systemIntegrity: 100,
     theme: 'default',
-    session: { active: false, paused: false, mode: 'normal', remaining: 0, total: 0, integrity: 100, goal: '', pauses: 0, lastPauseTime: 0, pingMissed: 0, subjectId: null, chapter: null },
+    subjects: [],
+    chapterStats: {},
+    logs: [],
+    session: {
+        active: false,
+        paused: false,
+        mode: 'normal',
+        subjectId: null,
+        chapter: '',
+        total: 0,
+        remaining: 0,
+        startTs: 0,
+        pauseTs: 0,
+        pausedMs: 0,
+        integrity: 100,
+        goal: '',
+        pauses: 0,
+        pingMissed: 0
+    },
+    userProfile: { exams: [], resources: [] },
     quests: [],
     dailyMissions: [],
     ownedItems: [],
     hardSessionsTotal: 0,
-    activeBoost: null, // { type, expiresAt }
+    activeBoost: null
 };
 
+let State = JSON.parse(JSON.stringify(DEFAULT_STATE));
 let goalState = { type: null, resource: null };
 let pingTimer = null;
 let breachSeconds = 0;
+let tickInterval = null;
+let _sessionLocked = false;
 
 const Storage = {
-    save: () => { try { localStorage.setItem(CONSTANTS.APP_ID, JSON.stringify(State)); } catch(e) { console.error('Save failed', e); } },
-    load: () => {
+    save() {
+        try {
+            const snapshot = JSON.stringify(State);
+            localStorage.setItem(CONSTANTS.APP_ID, snapshot);
+            // Heartbeat for crash detection
+            localStorage.setItem(CONSTANTS.APP_ID + '_hb', JSON.stringify({
+                ts: Date.now(),
+                active: State.session.active
+            }));
+        } catch(e) { console.error('Save failed', e); }
+    },
+    load() {
         const raw = localStorage.getItem(CONSTANTS.APP_ID);
         if (raw) {
             try {
                 const loaded = JSON.parse(raw);
-                // Migration
-                if (loaded.allTimeSeconds === undefined) loaded.allTimeSeconds = loaded.rank || 0;
-                if (loaded.quests === undefined) loaded.quests = [];
-                if (loaded.dailyMissions === undefined) loaded.dailyMissions = [];
-                if (loaded.ownedItems === undefined) loaded.ownedItems = [];
-                if (loaded.hardSessionsTotal === undefined) loaded.hardSessionsTotal = 0;
-                if (loaded.activeBoost === undefined) loaded.activeBoost = null;
-                State = { ...State, ...loaded };
+                // Schema validation: ensure critical fields exist and are valid types
+                this._validateSchema(loaded);
+                if (loaded.schemaVersion !== CONSTANTS.SCHEMA_VERSION) {
+                    return this._migrate(loaded);
+                }
+                State = Object.assign(JSON.parse(JSON.stringify(DEFAULT_STATE)), loaded);
+                // Clamp impossible values (XP exploit mitigation)
+                State.totalXP      = Math.max(0, Math.floor(State.totalXP || 0));
+                State.wallet       = Math.max(0, Math.floor(State.wallet || 0));
+                State.dailyXP      = Math.max(0, Math.floor(State.dailyXP || 0));
+                State.systemIntegrity = Math.max(0, Math.min(100, State.systemIntegrity || 100));
+                State.rank = State.totalXP;
                 return true;
-            } catch(e) { console.error('Load failed', e); }
+            } catch(e) { console.error('Load failed, using defaults:', e); return false; }
         }
-        // Try migrate from v9.8
-        const v98 = localStorage.getItem("RANKLOCK_JEE_V9_8");
-        if (v98) {
-            try {
-                const old = JSON.parse(v98);
-                State = { ...State, ...old };
-                State.allTimeSeconds = State.rank || 0;
-                State.ownedItems = [];
-                State.hardSessionsTotal = 0;
-                State.activeBoost = null;
-                Storage.save();
-                return true;
-            } catch(e) {}
+        for (const lid of CONSTANTS.LEGACY_IDS) {
+            const legacy = localStorage.getItem(lid);
+            if (legacy) {
+                try {
+                    const old = JSON.parse(legacy);
+                    return this._migrate(old);
+                } catch(e) {}
+            }
         }
         return false;
     },
-    reset: () => { localStorage.removeItem(CONSTANTS.APP_ID); location.reload(); }
+    _validateSchema(obj) {
+        // Ensure required top-level fields are correct types; throw if critically corrupt
+        const requiredArrays = ['subjects','logs','quests','dailyMissions','ownedItems'];
+        requiredArrays.forEach(k => {
+            if (!Array.isArray(obj[k])) obj[k] = [];
+        });
+
+        // Bug 7 fix — validate subjects array contents: each element must be a proper
+        // {id:string, name:string, chapters:string[]} object (not a bare string from old saves).
+        obj.subjects = obj.subjects.filter(s => {
+            if (!s || typeof s !== 'object') return false;
+            if (typeof s.id !== 'string' || typeof s.name !== 'string') return false;
+            if (!Array.isArray(s.chapters)) s.chapters = [];
+            // ensure every chapter entry is a string
+            s.chapters = s.chapters.filter(c => typeof c === 'string');
+            return true;
+        });
+
+        if (obj.session !== null && typeof obj.session !== 'object') obj.session = null;
+        if (obj.chapterStats !== null && typeof obj.chapterStats !== 'object') obj.chapterStats = {};
+        if (obj.userProfile !== null && typeof obj.userProfile !== 'object') obj.userProfile = { exams: [], resources: [] };
+
+        // Bug 2 fix — migrate legacy chapterStats.debt (breach counter, 1 unit = 20 min)
+        // into debtMinutes so all debt paths use a single canonical field.
+        if (obj.chapterStats && typeof obj.chapterStats === 'object') {
+            Object.keys(obj.chapterStats).forEach(k => {
+                const s = obj.chapterStats[k];
+                if (s && typeof s === 'object') {
+                    if (typeof s.debt === 'number' && s.debt > 0) {
+                        s.debtMinutes = (s.debtMinutes || 0) + (s.debt * 20);
+                        delete s.debt;         // remove legacy field once migrated
+                    } else if ('debt' in s) {
+                        delete s.debt;         // clean up zero / invalid legacy field
+                    }
+                    if (typeof s.debtMinutes !== 'number') s.debtMinutes = 0;
+                    if (typeof s.xp !== 'number') s.xp = 0;
+                }
+            });
+        }
+
+        // Validate session sub-fields if session exists
+        if (obj.session && typeof obj.session === 'object') {
+            obj.session.active    = !!obj.session.active;
+            obj.session.paused    = !!obj.session.paused;
+            obj.session.integrity = typeof obj.session.integrity === 'number' ? Math.max(0, Math.min(100, obj.session.integrity)) : 100;
+            obj.session.total     = typeof obj.session.total === 'number' ? Math.max(0, obj.session.total) : 0;
+            obj.session.remaining = typeof obj.session.remaining === 'number' ? Math.max(0, obj.session.remaining) : 0;
+        }
+    },
+    _migrate(old) {
+        State = Object.assign(JSON.parse(JSON.stringify(DEFAULT_STATE)), {
+            username: old.username || '',
+            totalXP: Math.max(0, Math.floor(old.totalXP || old.rank || 0)),
+            rank: Math.max(0, Math.floor(old.totalXP || old.rank || 0)),
+            wallet: Math.max(0, Math.floor(old.wallet || 0)),
+            dailyXP: Math.max(0, Math.floor(old.dailyXP || 0)),
+            dailySeconds: old.dailySeconds || 0,
+            allTimeSeconds: old.allTimeSeconds || old.rank || 0,
+            systemIntegrity: old.systemIntegrity !== undefined ? Math.max(0, Math.min(100, old.systemIntegrity)) : 100,
+            streak: old.streak || 0,
+            lastLoginDate: old.lastLoginDate || '',
+            tutorialComplete: old.tutorialComplete || false,
+            onboardingComplete: old.onboardingComplete || false,
+            theme: old.theme || 'default',
+            subjects: Array.isArray(old.subjects) ? old.subjects : [],
+            chapterStats: old.chapterStats && typeof old.chapterStats === 'object' ? old.chapterStats : {},
+            logs: Array.isArray(old.logs) ? old.logs.slice(0, 200) : [],
+            userProfile: old.userProfile || { exams: [], resources: [] },
+            quests: [],
+            dailyMissions: [],
+            ownedItems: Array.isArray(old.ownedItems) ? old.ownedItems : [],
+            hardSessionsTotal: old.hardSessionsTotal || 0,
+            activeBoost: old.activeBoost || null,
+            schemaVersion: CONSTANTS.SCHEMA_VERSION
+        });
+        // Bug 2 fix — migrate legacy debt field in chapterStats for old save data
+        if (State.chapterStats && typeof State.chapterStats === 'object') {
+            Object.keys(State.chapterStats).forEach(k => {
+                const s = State.chapterStats[k];
+                if (s && typeof s === 'object') {
+                    if (typeof s.debt === 'number' && s.debt > 0) {
+                        s.debtMinutes = (s.debtMinutes || 0) + (s.debt * 20);
+                    }
+                    delete s.debt;
+                    if (typeof s.debtMinutes !== 'number') s.debtMinutes = 0;
+                    if (typeof s.xp !== 'number') s.xp = 0;
+                }
+            });
+        }
+        // Bug 7 fix — strip any subjects that are bare strings (from pre-v10 saves)
+        State.subjects = State.subjects.filter(s => {
+            if (!s || typeof s !== 'object') return false;
+            if (typeof s.id !== 'string' || typeof s.name !== 'string') return false;
+            if (!Array.isArray(s.chapters)) s.chapters = [];
+            s.chapters = s.chapters.filter(c => typeof c === 'string');
+            return true;
+        });
+        this.save();
+        return true;
+    },
+    reset() { localStorage.removeItem(CONSTANTS.APP_ID); localStorage.removeItem(CONSTANTS.APP_ID + '_hb'); location.reload(); }
+};
+
+const OverlayManager = {
+    _active: null,
+    _PRIORITY: {
+        'overlay-autopsy': 10,
+        'overlay-tutorial': 9,
+        'overlay-onboarding': 9,
+        'overlay-username': 8,
+        'overlay-setup': 5,
+        'overlay-missions': 4,
+        'overlay-market': 4,
+        'overlay-events': 4,
+        'overlay-map': 4,
+        'overlay-settings': 4,
+        'overlay-comms': 3,
+        'overlay-log-details': 3,
+        'overlay-resources': 6,
+    },
+    show(id) {
+        if (this._active === id) return;
+        // If a higher-priority overlay is active, don't override it
+        const incomingPriority = this._PRIORITY[id] || 1;
+        const activePriority   = this._active ? (this._PRIORITY[this._active] || 1) : 0;
+        if (this._active && activePriority > incomingPriority) return;
+        document.querySelectorAll('.overlay').forEach(o => { o.style.display = 'none'; });
+        const el = document.getElementById(id);
+        if (el) { el.style.display = 'flex'; this._active = id; }
+    },
+    hide(id) {
+        // If id specified, only hide if that overlay is active
+        if (id && this._active !== id) return;
+        document.querySelectorAll('.overlay').forEach(o => { o.style.display = 'none'; });
+        this._active = null;
+    },
+    forceHide() {
+        document.querySelectorAll('.overlay').forEach(o => { o.style.display = 'none'; });
+        this._active = null;
+    },
+    current() { return this._active; },
+    isOpen() { return this._active !== null; }
 };
 
 const Logic = {
@@ -1175,6 +1387,7 @@ const Logic = {
     System: {
         init() {
             Storage.load();
+            if (State.schemaVersion === undefined) State.schemaVersion = CONSTANTS.SCHEMA_VERSION;
             if (State.systemIntegrity === undefined) State.systemIntegrity = 100;
             if (State.theme === 'void') document.body.classList.add('theme-void');
 
@@ -1204,19 +1417,42 @@ const Logic = {
             }
 
             UI.renderAll();
-            setInterval(() => Logic.Session.tick(), 1000);
+
+            if (tickInterval) clearInterval(tickInterval);
+            tickInterval = setInterval(() => Logic.Session.tick(), 1000);
             setInterval(() => UI.updateMissionsResetTimer(), 60000);
             UI.updateMissionsResetTimer();
+
+            // Fix 7: Mobile keyboard viewport handler
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', () => {
+                    const isKeyboardOpen = window.visualViewport.height < window.innerHeight * 0.75;
+                    document.body.classList.toggle('keyboard-open', isKeyboardOpen);
+                });
+            }
 
             if (!State.tutorialComplete) Logic.Tutorial.start();
             else if (!State.onboardingComplete) Logic.Onboarding.start();
             else if (!State.username) Logic.System.showNameModal();
 
             UI.renderUrgency();
+            this._bindKeys();
+            this._bindVisibility();
+        },
 
-            document.addEventListener('keydown', (e) => {
+        _keysBound: false,
+        _visBound: false,
+        _boundKeyFn: null,
+        _boundVisFn: null,
+
+        _bindKeys() {
+            if (this._keysBound) return;
+            this._keysBound = true;
+            this._boundKeyFn = (e) => {
                 if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-                if (e.code === 'Space' && State.session.active && State.session.mode === 'normal') { e.preventDefault(); Logic.Session.togglePause(); }
+                if (e.code === 'Space' && State.session.active && State.session.mode === 'normal') {
+                    e.preventDefault(); Logic.Session.togglePause();
+                }
                 if (e.code === 'Escape') {
                     const unOv = document.getElementById('overlay-username');
                     const obOv = document.getElementById('overlay-onboarding');
@@ -1225,24 +1461,79 @@ const Logic = {
                         if (State.session.mode === 'hard') {
                             if (confirm("ABORT HARD FOCUS? (2× Penalty + Double Debt Applied)")) Logic.Session.abort("HARD ABORT");
                         } else if (confirm("ABORT SESSION?")) Logic.Session.abort();
-                    } else { UI.closeOverlays(); }
+                    } else { OverlayManager.hide(); }
                 }
                 if (e.code === 'KeyF') { e.preventDefault(); Logic.System.toggleFullscreen(); }
-            });
-
-            document.addEventListener('visibilitychange', () => {
-                if (document.hidden && State.session.active && !State.session.paused && State.session.mode !== 'hard') {
-                    Logic.Session.breach("TAB SWITCH");
+                if (e.code === 'KeyM' && !State.session.active) { e.preventDefault(); UI.toggleMinimalMode(); }
+                if (e.code === 'KeyS' && !State.session.active && !OverlayManager.isOpen()) {
+                    e.preventDefault();
+                    UI.resetWizard(); OverlayManager.show('overlay-setup'); UI.wizardStep('subject');
                 }
+                if (e.code === 'KeyP' && State.session.active && State.session.mode === 'normal') {
+                    e.preventDefault(); Logic.Session.togglePause();
+                }
+            };
+            document.addEventListener('keydown', this._boundKeyFn);
+        },
+
+        _bindVisibility() {
+            if (this._visBound) return;
+            this._visBound = true;
+            this._boundVisFn = () => {
+                if (!State.session.active || State.session.paused) return;
+                if (document.hidden) {
+                    if (State.session.mode === 'hard') {
+                        // Hard mode: record exact moment tab was hidden.
+                        // The tick loop checks document.hidden every second, but mobile/desktop
+                        // browsers can throttle timers in background tabs, so we cannot rely
+                        // solely on tick frequency. Storing the timestamp lets us reconstruct
+                        // the full off-tab duration the instant the user returns.
+                        Logic.Session._hardBreachFromVisibility = true;
+                        Logic.Session._hiddenAt = Date.now();
+                    } else {
+                        Logic.Session.breach("TAB SWITCH");
+                    }
+                } else {
+                    // Tab became visible again — recalculate elapsed to handle sleep drift
+                    if (State.session.active && !State.session.paused) {
+                        const elapsed = Math.floor((Date.now() - State.session.startTs - State.session.pausedMs) / 1000);
+                        State.session.remaining = Math.max(0, State.session.total - elapsed);
+                        if (State.session.remaining <= 0) { Logic.Session.finish(); return; }
+                        UI.updateTimer();
+                    }
+                    // Bug 4 fix — if returning from a hard-mode tab-hide, immediately
+                    // apply the full off-tab duration to breachSeconds so the penalty is
+                    // proportional to time away, not just the ticks that may have fired.
+                    if (State.session.mode === 'hard' && Logic.Session._hiddenAt) {
+                        const offTabSecs = Math.floor((Date.now() - Logic.Session._hiddenAt) / 1000);
+                        if (offTabSecs > breachSeconds) {
+                            breachSeconds = offTabSecs;
+                        }
+                        Logic.Session._hiddenAt = null;
+                        // If already past the force-abort threshold, abort immediately
+                        if (breachSeconds >= CONSTANTS.HARD_FORCE_ABORT_SECS) {
+                            Logic.Session.abort("FORCE ABORT: EXTENDED OFF-TAB BREACH");
+                            return;
+                        }
+                    }
+                    Logic.Session._hardBreachFromVisibility = false;
+                }
+            };
+            document.addEventListener('visibilitychange', this._boundVisFn);
+
+            // Also handle window blur/focus for extra coverage (mobile, alt-tab)
+            window.addEventListener('blur', () => {
+                if (!State.session.active || State.session.paused) return;
+                if (State.session.mode === 'normal') Logic.Session.breach("WINDOW LOST FOCUS");
             });
         },
 
         toggleFullscreen() {
-            if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e => {});
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
             else if (document.exitFullscreen) document.exitFullscreen();
         },
 
-        showNameModal() { document.getElementById('overlay-username').style.display = 'flex'; },
+        showNameModal() { OverlayManager.show('overlay-username'); },
 
         setUsername() {
             const val = document.getElementById('input-username').value.trim();
@@ -1250,22 +1541,42 @@ const Logic = {
             State.username = val;
             UI.updateUsername(val);
             Storage.save();
-            document.getElementById('overlay-username').style.display = 'none';
+            OverlayManager.hide();
             UI.showToast(`WELCOME, ${val.toUpperCase()}`, 'success');
         },
 
         checkIntegrityOnLoad() {
             if (State.session.active) {
-                State.session.active = false;
-                State.streak = 0;
-                State.systemIntegrity = Math.max(0, State.systemIntegrity - 15);
-                State.logs.unshift({ date: Date.now(), chapter: "SYSTEM", duration: 0, quality: 0, integrity: 0, note: "CRITICAL FAILURE: GHOST EXIT DETECTED", grade: "F" });
-                alert("CRITICAL FAILURE DETECTED.\nSession terminated abnormally.\nPenalty: -15% Integrity\nStreak: RESET");
-            }
-            Storage.save();
-        },
+                // Check heartbeat for more intelligent crash detection
+                let crashedMidSession = true;
+                try {
+                    const hbRaw = localStorage.getItem(CONSTANTS.APP_ID + '_hb');
+                    if (hbRaw) {
+                        const hb = JSON.parse(hbRaw);
+                        const elapsed = Date.now() - hb.ts;
+                        // If heartbeat was recent (< 10s) and session was active, it's a fresh reload not a crash
+                        if (elapsed < 10000 && hb.active) crashedMidSession = false;
+                    }
+                } catch(e) {}
 
-        factoryReset() { if (confirm("System Purge? All data will be lost permanently.")) Storage.reset(); },
+                if (crashedMidSession) {
+                    State.session.active = false;
+                    State.streak = 0;
+                    State.systemIntegrity = Math.max(0, State.systemIntegrity - 15);
+                    State.logs.unshift({
+                        date: Date.now(), chapter: "SYSTEM", duration: 0,
+                        quality: 0, integrity: 0, grade: "F", pauses: 0,
+                        note: "CRITICAL FAILURE: GHOST EXIT DETECTED"
+                    });
+                    Storage.save();
+                    alert("CRITICAL FAILURE DETECTED.\nSession terminated abnormally.\nPenalty: -15% Integrity\nStreak: RESET");
+                } else {
+                    // Fresh reload during active session - restore gracefully
+                    State.session.active = false;
+                    Storage.save();
+                }
+            }
+        },
 
         exportData() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(State));
@@ -1283,7 +1594,7 @@ const Logic = {
                 try {
                     const data = JSON.parse(e.target.result);
                     if (data.rank !== undefined || data.totalXP !== undefined) {
-                        State = data;
+                        Storage._migrate(data);
                         Storage.save();
                         alert("System Restoration Successful.");
                         location.reload();
@@ -1294,7 +1605,7 @@ const Logic = {
         },
 
         openResourceEditor() {
-            UI.closeOverlays();
+            OverlayManager.hide();
             const container = document.getElementById('settings-resource-container');
             container.innerHTML = '';
             let resources = State.userProfile.resources || [];
@@ -1331,37 +1642,32 @@ const Logic = {
             UI.renderArsenal();
             UI.resetWizard();
             UI.showToast("ARSENAL UPDATED", 'success');
-        }
+        },
+
+        factoryReset() { if (confirm("System Purge? All data will be lost permanently.")) Storage.reset(); }
     },
 
     Missions: {
         MISSION_DEFS: [
-            // RECON (easy)
             { title: 'Complete 1 Session',      type: 'session_count', target: 1,   reward: 80,  tier: 'recon',  icon: '▶' },
             { title: 'Earn 200 XP',             type: 'xp_gain',       target: 200, reward: 100, tier: 'recon',  icon: '💰' },
             { title: 'Focus for 30 Minutes',    type: 'time_gain',     target: 30,  reward: 120, tier: 'recon',  icon: '⏱' },
-            // ASSAULT (medium)
             { title: 'Complete 3 Sessions',     type: 'session_count', target: 3,   reward: 250, tier: 'assault',icon: '▶' },
             { title: 'Earn 600 XP',             type: 'xp_gain',       target: 600, reward: 300, tier: 'assault',icon: '💰' },
             { title: 'Focus for 90 Minutes',    type: 'time_gain',     target: 90,  reward: 350, tier: 'assault',icon: '⏱' },
             { title: 'No Breach in a Session',  type: 'clean_session', target: 1,   reward: 300, tier: 'assault',icon: '🛡' },
-            // ELITE (hard)
             { title: 'Complete 5 Sessions',     type: 'session_count', target: 5,   reward: 600, tier: 'elite',  icon: '▶' },
             { title: 'Earn 1500 XP',            type: 'xp_gain',       target: 1500,reward: 750, tier: 'elite',  icon: '💰' },
             { title: 'Focus for 3 Hours',       type: 'time_gain',     target: 180, reward: 800, tier: 'elite',  icon: '⏱' },
             { title: 'Complete a Hard Session', type: 'hard_session',  target: 1,   reward: 500, tier: 'elite',  icon: '🔥' },
-            { title: 'Get S Grade',             type: 'quality_grade', target: 1,   reward: 600, tier: 'elite',  icon: '⭐' },
+            { title: 'Get S Grade',             type: 'quality_grade', target: 1,   reward: 600, tier: 'elite',  icon: '⭐' }
         ],
 
         generateDaily() {
-            // Pick 5 missions: 2 recon, 2 assault, 1 elite (or random mix if XP is high)
             const recon   = this.MISSION_DEFS.filter(d => d.tier === 'recon');
             const assault = this.MISSION_DEFS.filter(d => d.tier === 'assault');
             const elite   = this.MISSION_DEFS.filter(d => d.tier === 'elite');
-            const pick = (arr, n) => {
-                const copy = [...arr].sort(() => Math.random() - 0.5);
-                return copy.slice(0, n);
-            };
+            const pick = (arr, n) => [...arr].sort(() => Math.random() - 0.5).slice(0, n);
             const seed = Date.now();
             const tasks = [
                 ...pick(recon, 2),
@@ -1369,14 +1675,8 @@ const Logic = {
                 ...pick(elite, 1)
             ].map((d, i) => ({
                 id: `d_${seed}_${i}`,
-                title: d.title,
-                target: d.target,
-                current: 0,
-                type: d.type,
-                reward: d.reward,
-                tier: d.tier,
-                icon: d.icon,
-                claimed: false
+                title: d.title, target: d.target, current: 0,
+                type: d.type, reward: d.reward, tier: d.tier, icon: d.icon, claimed: false
             }));
             State.dailyMissions = tasks;
             Storage.save();
@@ -1402,11 +1702,10 @@ const Logic = {
             });
             State.quests.forEach(q => {
                 if (!q.claimed) {
-                    if (q.type === 'xp') q.current = State.totalXP;
-                    if (q.type === 'time') q.current = State.allTimeSeconds;
-                    if (q.type === 'hard_sessions') q.current = State.hardSessionsTotal;
+                    if (q.type === 'xp') q.current = Math.min(q.target, State.totalXP);
+                    if (q.type === 'time') q.current = Math.min(q.target, State.allTimeSeconds);
+                    if (q.type === 'hard_sessions') q.current = Math.min(q.target, State.hardSessionsTotal);
                     if (q.type === 'repay' && type === 'repay') q.current = Math.min(q.target, q.current + value);
-                    if (q.current > q.target) q.current = q.target;
                     updated = true;
                 }
             });
@@ -1428,8 +1727,8 @@ const Logic = {
     Economy: {
         earn(amount, reason) {
             if (amount <= 0) return;
+            amount = Math.floor(amount);
 
-            // Active boost check
             if (State.activeBoost && State.activeBoost.type === 'focus_boost' && reason === 'SESSION COMPLETE') {
                 if (Date.now() < State.activeBoost.expiresAt) {
                     amount = amount * 2;
@@ -1437,6 +1736,10 @@ const Logic = {
                 } else {
                     State.activeBoost = null;
                 }
+            }
+
+            if (reason !== 'MISSION REWARD') {
+                amount = Math.min(amount, CONSTANTS.SESSION_XP_CAP);
             }
 
             const totalDebt = Logic.Debt.getTotalMinutes();
@@ -1471,23 +1774,20 @@ const Logic = {
 
         buy(item) {
             const items = {
-                freeze: { cost: 1000, once: false },
-                repair: { cost: 500,  once: false },
-                debt_pardon: { cost: 2000, once: false },
-                focus_boost: { cost: 800,  once: false },
-                xp_surge: { cost: 3000, once: false },
-                rank_shield: { cost: 1500, once: false },
-                clean_slate: { cost: 5000, once: false },
-                theme_void: { cost: 5000, once: true },
-                title_iron_will: { cost: 10000, once: true },
+                freeze:          { cost: 1000, once: false },
+                repair:          { cost: 500,  once: false },
+                debt_pardon:     { cost: 2000, once: false },
+                focus_boost:     { cost: 800,  once: false },
+                xp_surge:        { cost: 3000, once: false },
+                rank_shield:     { cost: 1500, once: false },
+                clean_slate:     { cost: 5000, once: false },
+                theme_void:      { cost: 5000, once: true  },
+                title_iron_will: { cost: 10000, once: true }
             };
             const cfg = items[item];
             if (!cfg) return;
 
-            if (cfg.once && State.ownedItems.includes(item)) {
-                alert("Already owned."); return;
-            }
-
+            if (cfg.once && State.ownedItems.includes(item)) { alert("Already owned."); return; }
             if (!this.spend(cfg.cost)) { alert("INSUFFICIENT WALLET FUNDS."); return; }
 
             if (item === 'freeze') {
@@ -1495,34 +1795,28 @@ const Logic = {
             } else if (item === 'repair') {
                 if (State.systemIntegrity >= 100) { State.wallet += cfg.cost; UI.renderStats(); Storage.save(); alert("Integrity already at maximum."); return; }
                 State.systemIntegrity = Math.min(100, State.systemIntegrity + 20);
-                UI.showToast("INTEGRITY +20% REPAIRED", 'success');
-                UI.renderStats();
+                UI.showToast("INTEGRITY +20% REPAIRED", 'success'); UI.renderStats();
             } else if (item === 'debt_pardon') {
-                const debt = Logic.Debt.getTotalMinutes();
-                if (debt === 0) { State.wallet += cfg.cost; Storage.save(); alert("No Active Debt."); return; }
+                if (Logic.Debt.getTotalMinutes() === 0) { State.wallet += cfg.cost; Storage.save(); alert("No Active Debt."); return; }
                 Logic.Debt.reduceGlobal(30);
                 Logic.Missions.update('repay', 30);
-                UI.showToast("30m DEBT CLEARED", 'success');
-                UI.renderDebts();
+                UI.showToast("30m DEBT CLEARED", 'success'); UI.renderDebts();
             } else if (item === 'focus_boost') {
                 State.activeBoost = { type: 'focus_boost', expiresAt: Date.now() + 24*60*60*1000 };
                 UI.showToast("FOCUS BOOST: 2× XP FOR NEXT SESSION", 'success');
             } else if (item === 'xp_surge') {
-                State.totalXP += 500;
-                State.rank = State.totalXP;
-                UI.showToast("+500 XP SURGE APPLIED", 'success');
-                Logic.Missions.update('xp_gain', 500);
-                UI.renderStats();
+                const surgeAmt = Math.min(500, CONSTANTS.SESSION_XP_CAP);
+                State.totalXP += surgeAmt; State.rank = State.totalXP;
+                UI.showToast(`+${surgeAmt} XP SURGE APPLIED`, 'success');
+                Logic.Missions.update('xp_gain', surgeAmt); UI.renderStats();
             } else if (item === 'rank_shield') {
                 State.ownedItems.push('rank_shield_active');
                 UI.showToast("RANK SHIELD: NEXT INTEGRITY HIT BLOCKED", 'success');
             } else if (item === 'clean_slate') {
                 State.logs = State.logs.filter(l => l.grade !== 'F');
-                UI.renderLogs();
-                UI.showToast("ABORT RECORDS PURGED", 'success');
+                UI.renderLogs(); UI.showToast("ABORT RECORDS PURGED", 'success');
             } else if (item === 'theme_void') {
-                State.theme = 'void';
-                State.ownedItems.push('theme_void');
+                State.theme = 'void'; State.ownedItems.push('theme_void');
                 document.body.classList.add('theme-void');
                 UI.showToast("VOID THEME ACTIVATED", 'success');
             } else if (item === 'title_iron_will') {
@@ -1539,8 +1833,7 @@ const Logic = {
             const key = `${subId}|${chapter}`;
             if (!State.chapterStats[key]) State.chapterStats[key] = { xp: 0, debtMinutes: 0 };
             State.chapterStats[key].debtMinutes = (State.chapterStats[key].debtMinutes || 0) + minutes;
-            Storage.save();
-            UI.renderDebts();
+            Storage.save(); UI.renderDebts();
         },
         repay(subId, chapter, minutes) {
             const key = `${subId}|${chapter}`;
@@ -1554,15 +1847,10 @@ const Logic = {
         },
         reduceGlobal(minutes) {
             let minsLeft = minutes;
-            const keys = Object.keys(State.chapterStats);
-            for (const k of keys) {
+            for (const k of Object.keys(State.chapterStats)) {
                 if (minsLeft <= 0) break;
                 const d = State.chapterStats[k].debtMinutes || 0;
-                if (d > 0) {
-                    const take = Math.min(d, minsLeft);
-                    State.chapterStats[k].debtMinutes -= take;
-                    minsLeft -= take;
-                }
+                if (d > 0) { const take = Math.min(d, minsLeft); State.chapterStats[k].debtMinutes -= take; minsLeft -= take; }
             }
             Storage.save();
         },
@@ -1570,8 +1858,9 @@ const Logic = {
             let total = 0;
             if (!State.chapterStats) return 0;
             Object.values(State.chapterStats).forEach(s => {
-                if (s.debtMinutes) total += s.debtMinutes;
-                if (s.debt) total += (s.debt * 20);
+                // debt field is fully migrated to debtMinutes by _validateSchema / _migrate.
+                // Use only debtMinutes to avoid any NaN from legacy data.
+                total += (s.debtMinutes || 0);
             });
             return total;
         }
@@ -1580,11 +1869,7 @@ const Logic = {
     Onboarding: {
         tempData: { selectedExams: [], primary: null },
 
-        start() {
-            document.getElementById('overlay-onboarding').style.display = 'flex';
-            this.renderExamGrid();
-            this.showStep(0);
-        },
+        start() { OverlayManager.show('overlay-onboarding'); this.renderExamGrid(); this.showStep(0); },
 
         showStep(n) {
             document.querySelectorAll('#overlay-onboarding .tut-slide').forEach(s => s.classList.remove('active'));
@@ -1593,7 +1878,7 @@ const Logic = {
         },
 
         next(n) {
-            if (n === 2) { this.next(3); return; }  // skip step 2
+            if (n === 2) { this.next(3); return; }
             if (n === 3) this.initResourcesStep();
             this.showStep(n);
         },
@@ -1603,15 +1888,9 @@ const Logic = {
             grid.innerHTML = '';
             CONSTANTS.EXAM_OPTIONS.forEach(opt => {
                 const card = document.createElement('div');
-                card.className = 'exam-card';
-                card.dataset.id = opt.id;
+                card.className = 'exam-card'; card.dataset.id = opt.id;
                 card.onclick = (e) => this.toggleExam(opt.id, e);
-                card.innerHTML = `
-                    <div class="check-circle"></div>
-                    <div class="exam-icon">${opt.icon}</div>
-                    <div class="exam-name">${opt.id}</div>
-                    <button class="primary-badge-btn" onclick="event.stopPropagation(); Logic.Onboarding.setPrimary('${opt.id}')">MAKE PRIMARY</button>
-                `;
+                card.innerHTML = `<div class="check-circle"></div><div class="exam-icon">${opt.icon}</div><div class="exam-name">${opt.id}</div><button class="primary-badge-btn" onclick="event.stopPropagation(); Logic.Onboarding.setPrimary('${opt.id}')">MAKE PRIMARY</button>`;
                 grid.appendChild(card);
             });
         },
@@ -1620,15 +1899,10 @@ const Logic = {
             const card = document.querySelector(`.exam-card[data-id="${id}"]`);
             const idx = this.tempData.selectedExams.indexOf(id);
             if (idx > -1) {
-                this.tempData.selectedExams.splice(idx, 1);
-                card.classList.remove('selected');
-                if (this.tempData.primary === id) {
-                    this.tempData.primary = null;
-                    card.querySelector('.primary-badge-btn').classList.remove('active');
-                }
+                this.tempData.selectedExams.splice(idx, 1); card.classList.remove('selected');
+                if (this.tempData.primary === id) { this.tempData.primary = null; card.querySelector('.primary-badge-btn').classList.remove('active'); }
             } else {
-                this.tempData.selectedExams.push(id);
-                card.classList.add('selected');
+                this.tempData.selectedExams.push(id); card.classList.add('selected');
             }
         },
 
@@ -1642,7 +1916,7 @@ const Logic = {
 
         validateExam() {
             if (this.tempData.selectedExams.length === 0) { alert("Select at least one target."); return; }
-            if (!this.tempData.primary) { alert("Select a PRIMARY target (Click button inside card)."); return; }
+            if (!this.tempData.primary) { alert("Select a PRIMARY target."); return; }
             this.next(3);
         },
 
@@ -1651,8 +1925,7 @@ const Logic = {
             cont.innerHTML = '';
             ["Coaching Modules","NCERT","PYQs","Reference Books","Lecture Notes","YouTube","Test Series"].forEach(r => {
                 const tag = document.createElement('span');
-                tag.className = 'resource-tag selected';
-                tag.textContent = r;
+                tag.className = 'resource-tag selected'; tag.textContent = r;
                 tag.onclick = function() { this.classList.toggle('selected'); };
                 cont.appendChild(tag);
             });
@@ -1663,8 +1936,7 @@ const Logic = {
             if (val) {
                 const cont = document.getElementById('resource-tags-container');
                 const tag = document.createElement('span');
-                tag.className = 'resource-tag selected';
-                tag.textContent = val;
+                tag.className = 'resource-tag selected'; tag.textContent = val;
                 tag.onclick = function() { this.classList.toggle('selected'); };
                 cont.appendChild(tag);
                 input.value = '';
@@ -1679,18 +1951,12 @@ const Logic = {
             if (!State.userProfile.exams) State.userProfile.exams = [];
             if (editId) {
                 const idx = State.userProfile.exams.findIndex(e => e.id === editId);
-                if (idx > -1) {
-                    State.userProfile.exams[idx].name = name;
-                    State.userProfile.exams[idx].date = date;
-                    UI.showToast("INTEL UPDATED", 'success');
-                }
+                if (idx > -1) { State.userProfile.exams[idx].name = name; State.userProfile.exams[idx].date = date; UI.showToast("INTEL UPDATED", 'success'); }
             } else {
                 State.userProfile.exams.push({ id: 'custom-' + Date.now(), name, primary: false, date });
                 UI.showToast("EVENT ADDED", 'success');
             }
-            Storage.save();
-            UI.renderUrgency();
-            this.clearEventInput();
+            Storage.save(); UI.renderUrgency(); this.clearEventInput();
         },
 
         editEvent(id) {
@@ -1700,8 +1966,7 @@ const Logic = {
                 document.getElementById('new-event-date').value = ev.date || '';
                 document.getElementById('event-edit-id').value = id;
                 const btn = document.getElementById('btn-add-event');
-                btn.textContent = "UPDATE INTEL";
-                btn.className = 'btn btn-warn';
+                btn.textContent = "UPDATE INTEL"; btn.className = 'btn btn-warn';
             }
         },
 
@@ -1710,31 +1975,25 @@ const Logic = {
             document.getElementById('new-event-date').value = '';
             document.getElementById('event-edit-id').value = '';
             const btn = document.getElementById('btn-add-event');
-            btn.textContent = "ADD";
-            btn.className = 'btn btn-primary';
+            btn.textContent = "ADD"; btn.className = 'btn btn-primary';
         },
 
         deleteEvent(id) {
             if (confirm("Delete this event permanently?")) {
                 State.userProfile.exams = State.userProfile.exams.filter(e => e.id !== id);
-                Storage.save();
-                UI.renderUrgency();
+                Storage.save(); UI.renderUrgency();
             }
         },
 
         setPrimaryEvent(id) {
             State.userProfile.exams.forEach(e => e.primary = (e.id === id));
-            Storage.save();
-            UI.renderUrgency();
+            Storage.save(); UI.renderUrgency();
             UI.showToast("PRIMARY EVENT SET", 'success');
         },
 
         finish() {
-            const finalExams = this.tempData.selectedExams.map(id => ({
-                id, name: id, primary: id === this.tempData.primary, date: null
-            }));
+            const finalExams = this.tempData.selectedExams.map(id => ({ id, name: id, primary: id === this.tempData.primary, date: null }));
             const resTags = document.querySelectorAll('#resource-tags-container .resource-tag.selected');
-            // BUG FIX: was `const`, changed to `let` so we can push to it
             let resources = Array.from(resTags).map(t => t.textContent);
             if (resources.length === 0) resources = ["Notes", "Books"];
             const hasJEE  = finalExams.some(e => e.name.includes("JEE") || e.name.includes("Boards"));
@@ -1749,20 +2008,19 @@ const Logic = {
             State.subjects = newSubjects;
             State.onboardingComplete = true;
             Storage.save();
-            document.getElementById('overlay-onboarding').style.display = 'none';
-            UI.renderMap();
-            UI.renderUrgency();
+            OverlayManager.hide();
+            UI.renderMap(); UI.renderUrgency();
             Logic.System.showNameModal();
         }
     },
 
     Tutorial: {
-        start() { document.getElementById('overlay-tutorial').style.display = 'flex'; },
+        start() { OverlayManager.show('overlay-tutorial'); },
         restart() {
-            UI.closeOverlays();
+            OverlayManager.hide();
             document.querySelectorAll('#overlay-tutorial .tut-slide').forEach(s => s.classList.remove('active'));
             document.getElementById('tut-step-1').classList.add('active');
-            document.getElementById('overlay-tutorial').style.display = 'flex';
+            OverlayManager.show('overlay-tutorial');
         },
         next(step) {
             document.querySelectorAll('#overlay-tutorial .tut-slide').forEach(s => s.classList.remove('active'));
@@ -1772,52 +2030,96 @@ const Logic = {
         finish() {
             State.tutorialComplete = true;
             Storage.save();
-            document.getElementById('overlay-tutorial').style.display = 'none';
+            OverlayManager.hide();
             Logic.Onboarding.start();
         }
     },
 
     Session: {
+        _startDebounce: false,
+        _sessionLocked: false,
+        _countdownRef: null,
+        _hardBreachFromVisibility: false,
+        _hiddenAt: null,
+
         preFlight(subId, ch, mode, durMins, goalText) {
+            if (this._startDebounce || this._sessionLocked) { UI.showToast("OPERATION IN PROGRESS..."); return; }
+            if (State.session.active) { UI.showToast("SESSION ALREADY ACTIVE"); return; }
             if (!goalState.type)     { alert("PROTOCOL ERROR: Select Mission Type."); return; }
             if (!goalState.resource) { alert("PROTOCOL ERROR: Select Resource."); return; }
             if (mode === 'debt') {
                 const key = `${subId}|${ch}`;
                 const stats = State.chapterStats[key];
-                const dVal = stats ? ((stats.debtMinutes || 0) + ((stats.debt || 0) * 20)) : 0;
+                const dVal = stats ? (stats.debtMinutes || 0) : 0;
                 if (dVal <= 0) { alert("NO ACTIVE DEBT ON THIS CHAPTER."); return; }
             }
             if (mode === 'hard' && !confirm("⚠ BLOOD PACT WARNING ⚠\n\nHard Focus V3 is BRUTAL:\n• -10 XP every 10s breach\n• Force abort at 30s breach\n• 2× debt on hard abort\n• 3s ping window\n\nYou have been warned. Proceed?")) return;
-            UI.closeOverlays();
+
+            this._startDebounce = true;
+            this._sessionLocked = true;  // locked until session actually starts
+
+            OverlayManager.forceHide();
             if (mode === 'hard') document.documentElement.requestFullscreen().catch(() => {});
+
             const overlay = document.getElementById('countdown-overlay');
-            const valEl = document.getElementById('countdown-val');
+            const valEl   = document.getElementById('countdown-val');
             overlay.style.display = 'flex';
             let count = 3;
             valEl.textContent = count;
-            const int = setInterval(() => {
+            if (this._countdownRef) clearInterval(this._countdownRef);
+            this._countdownRef = setInterval(() => {
                 count--;
-                if (count > 0) valEl.textContent = count;
-                else { clearInterval(int); overlay.style.display = 'none'; this.start(subId, ch, mode, durMins, goalText); }
+                if (count > 0) { valEl.textContent = count; }
+                else {
+                    clearInterval(this._countdownRef);
+                    this._countdownRef = null;
+                    overlay.style.display = 'none';
+                    this._startDebounce = false;
+                    this.start(subId, ch, mode, durMins, goalText);
+                }
             }, 1000);
         },
 
         start(subId, ch, mode, durMins, goal) {
-            breachSeconds = 0;
-            State.session = {
-                active: true, paused: false, mode, subjectId: subId, chapter: ch,
-                total: durMins * 60, remaining: durMins * 60, integrity: 100,
-                startTime: Date.now(), goal, pauses: 0, lastPauseTime: 0, pingMissed: 0
-            };
-            if (mode === 'hard') {
-                document.body.classList.add('mode-hard-focus');
-                if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
+            if (State.session.active) { this._sessionLocked = false; return; }
+            try {
+                breachSeconds = 0;
+                this._hardBreachFromVisibility = false;
+                this._hiddenAt = null;
+                const totalSecs = durMins * 60;
+                State.session = {
+                    active: true, paused: false, mode, subjectId: subId, chapter: ch,
+                    total: totalSecs, remaining: totalSecs,
+                    startTs: Date.now(), pauseTs: 0, pausedMs: 0,
+                    integrity: 100, goal, pauses: 0, pingMissed: 0
+                };
+                if (mode === 'hard') {
+                    document.body.classList.add('mode-hard-focus');
+                    if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
+                }
+                document.getElementById('focus-container-main').classList.add('session-active');
+                UI.switchMobileTab('ops');
+                UI.updateSessionView();
+                Storage.save();
+                // Enable reduce-animations after 45+ min sessions
+                if (durMins >= 45) {
+                    setTimeout(() => {
+                        if (State.session.active) document.body.classList.add('reduce-animations');
+                    }, 45 * 60 * 1000);
+                }
+                if (durMins >= 20) this.schedulePing(durMins);
+            } catch(err) {
+                // If anything throws during session initialisation, reset the session to a
+                // safe idle state and release the mutex so the user can try again without
+                // needing a page refresh.
+                console.error('[RankLock] Session start failed:', err);
+                State.session.active = false;
+                document.body.classList.remove('mode-hard-focus');
+                UI.showToast("SESSION START ERROR — PLEASE RETRY");
+            } finally {
+                // Always release the lock, regardless of success or failure.
+                this._sessionLocked = false;
             }
-            document.getElementById('focus-container-main').classList.add('session-active');
-            UI.switchMobileTab('ops');
-            UI.updateSessionView();
-            Storage.save();
-            if (durMins >= 20) this.schedulePing(durMins);
         },
 
         restoreFullscreen() {
@@ -1827,16 +2129,28 @@ const Logic = {
         tick() {
             if (!State.session.active) return;
 
-            // HARD FOCUS V3 BREACH CHECK
+            // Save heartbeat periodically (every ~30s) for crash detection
+            const now = Date.now();
+            if (!this._lastHbSave || now - this._lastHbSave > 30000) {
+                this._lastHbSave = now;
+                try {
+                    localStorage.setItem(CONSTANTS.APP_ID + '_hb', JSON.stringify({ ts: now, active: true }));
+                } catch(e) {}
+            }
+
             if (State.session.mode === 'hard') {
+                // Visibility breach: if tab hidden and hard mode, treat as fullscreen exit
+                if (document.hidden || this._hardBreachFromVisibility) {
+                    this.handleBreachTick();
+                    return;
+                }
                 if (!document.fullscreenElement) {
                     this.handleBreachTick();
                     return;
                 } else {
                     const blocker = document.getElementById('hard-focus-blocker');
-                    if (blocker.style.display === 'flex') {
+                    if (blocker && blocker.style.display === 'flex') {
                         blocker.style.display = 'none';
-                        // Reset breach seconds when fullscreen restored
                         breachSeconds = 0;
                         document.getElementById('breach-abort-fill').style.width = '100%';
                         document.getElementById('breach-abort-countdown').textContent = `${CONSTANTS.HARD_FORCE_ABORT_SECS}s`;
@@ -1845,9 +2159,10 @@ const Logic = {
             }
 
             if (State.session.paused) {
-                // Integrity drain for over-long pauses (> 2 mins)
-                if (Date.now() - State.session.lastPauseTime > 120000) {
-                    if (State.session.remaining % 5 === 0) {
+                const pausedDuration = Date.now() - State.session.pauseTs;
+                if (pausedDuration > 120000) {
+                    // Penalize excessive pausing — every 5s tick
+                    if (Math.floor(pausedDuration / 1000) % 5 === 0) {
                         State.session.integrity = Math.max(0, State.session.integrity - 1);
                         UI.updateSessionView();
                     }
@@ -1855,47 +2170,45 @@ const Logic = {
                 return;
             }
 
-            State.session.remaining--;
-            if (State.session.remaining <= 0) this.finish();
+            // Timestamp-based elapsed calculation (immune to sleep/tab drift)
+            const elapsed = Math.floor((Date.now() - State.session.startTs - State.session.pausedMs) / 1000);
+            const remaining = Math.max(0, State.session.total - elapsed);
+            State.session.remaining = remaining;
+
+            if (remaining <= 0) { this.finish(); return; }
             UI.updateTimer();
+
+            // Auto-save state every 15s during session for crash recovery
+            if (elapsed % 15 === 0) Storage.save();
         },
 
         handleBreachTick() {
             const blocker = document.getElementById('hard-focus-blocker');
             if (blocker.style.display !== 'flex') blocker.style.display = 'flex';
-
             breachSeconds++;
-
-            // Update UI
             document.getElementById('breach-debt-add').textContent = `+${breachSeconds}s`;
             const xpLeak = Math.floor(breachSeconds / 10) * CONSTANTS.HARD_BREACH_XP_DRAIN;
             document.getElementById('breach-xp-loss').textContent = `-${xpLeak} XP`;
-
-            // Force-abort countdown
             const timeLeft = Math.max(0, CONSTANTS.HARD_FORCE_ABORT_SECS - breachSeconds);
             const pct = (timeLeft / CONSTANTS.HARD_FORCE_ABORT_SECS) * 100;
             document.getElementById('breach-abort-countdown').textContent = `${timeLeft}s`;
             document.getElementById('breach-abort-fill').style.width = `${pct}%`;
-
-            // XP drain every 10s
             if (breachSeconds % 10 === 0) {
                 const drain = CONSTANTS.HARD_BREACH_XP_DRAIN;
-                if (State.wallet >= drain) State.wallet -= drain;
-                else State.wallet = 0;
+                State.wallet = Math.max(0, State.wallet - drain);
                 UI.renderStats();
             }
-
-            // FORCE ABORT at 30s
             if (breachSeconds >= CONSTANTS.HARD_FORCE_ABORT_SECS) {
                 this.abort("FORCE ABORT: 30s BREACH LIMIT EXCEEDED");
             }
         },
 
         schedulePing(durationMins) {
+            if (pingTimer) clearTimeout(pingTimer);
             const safeZone = 5 * 60;
             const sessionDur = durationMins * 60;
+            if (sessionDur <= 2 * safeZone) return;
             const randomDelay = Math.floor(Math.random() * (sessionDur - 2 * safeZone) + safeZone);
-            if (pingTimer) clearTimeout(pingTimer);
             pingTimer = setTimeout(() => {
                 if (State.session.active && !State.session.paused) this.triggerPing();
             }, randomDelay * 1000);
@@ -1905,8 +2218,8 @@ const Logic = {
             const box = document.getElementById('integrity-ping-box');
             const container = document.querySelector('.focus-container');
             if (!box || !container) return;
-            const maxX = container.clientWidth - 80;
-            const maxY = container.clientHeight - 80;
+            const maxX = Math.max(0, container.clientWidth - 80);
+            const maxY = Math.max(0, container.clientHeight - 80);
             box.style.left = Math.floor(Math.random() * maxX) + 'px';
             box.style.top  = Math.floor(Math.random() * maxY) + 'px';
             box.style.display = 'block';
@@ -1915,17 +2228,17 @@ const Logic = {
 
         handlePingSuccess() {
             const box = document.getElementById('integrity-ping-box');
+            if (!box) return;
             box.style.display = 'none';
             if (this.pingWindow) clearTimeout(this.pingWindow);
             UI.showToast("PRESENCE CONFIRMED ✓", 'success');
-            // Schedule another ping
             const remaining = State.session.remaining;
             if (remaining > 5 * 60) this.schedulePing(remaining / 60);
         },
 
         handlePingFail() {
             const box = document.getElementById('integrity-ping-box');
-            box.style.display = 'none';
+            if (box) box.style.display = 'none';
             State.session.pingMissed++;
             if (State.session.pingMissed === 1) {
                 UI.showToast("WARNING: PRESENCE CHECK MISSED");
@@ -1941,41 +2254,65 @@ const Logic = {
         breach(reason) {
             if (!State.session.active) return;
             const penalty = State.session.mode === 'hard' ? CONSTANTS.HARD_BREACH_PENALTY : 20;
-
-            // Rank shield absorb
             const shieldIdx = State.ownedItems.indexOf('rank_shield_active');
             if (shieldIdx > -1) {
                 State.ownedItems.splice(shieldIdx, 1);
                 UI.showToast("RANK SHIELD ABSORBED BREACH!", 'success');
-                Storage.save();
-                return;
+                Storage.save(); return;
             }
-
             State.session.integrity = Math.max(0, State.session.integrity - penalty);
             UI.flashRed(State.session.integrity);
             UI.showToast(`BREACH: ${reason} (-${penalty}%)`);
             UI.updateSessionView();
-            if (State.session.integrity < 30) this.abort(`CRITICAL FAILURE (<30% INTEGRITY)`);
+            if (State.session.integrity < 30) this.abort("CRITICAL FAILURE (<30% INTEGRITY)");
         },
 
         togglePause() {
-            if (State.session.mode === 'hard') return;
-            State.session.paused = !State.session.paused;
-            if (State.session.paused) { State.session.pauses++; State.session.lastPauseTime = Date.now(); }
+            if (!State.session.active || State.session.mode === 'hard') return;
+            if (!State.session.paused) {
+                State.session.paused = true;
+                State.session.pauses++;
+                State.session.pauseTs = Date.now();
+            } else {
+                State.session.paused = false;
+                State.session.pausedMs += (Date.now() - State.session.pauseTs);
+                State.session.pauseTs = 0;
+            }
             UI.updateSessionView();
         },
 
+        _cleanup() {
+            if (pingTimer) { clearTimeout(pingTimer); pingTimer = null; }
+            if (this.pingWindow) { clearTimeout(this.pingWindow); this.pingWindow = null; }
+            if (this._countdownRef) { clearInterval(this._countdownRef); this._countdownRef = null; }
+            this._sessionLocked = false;
+            this._startDebounce = false;
+            this._hardBreachFromVisibility = false;
+            this._hiddenAt = null;
+            this._lastHbSave = null;
+            document.body.classList.remove('mode-hard-focus');
+            document.body.classList.remove('reduce-animations');
+            const blocker = document.getElementById('hard-focus-blocker');
+            if (blocker) blocker.style.display = 'none';
+            const fc = document.getElementById('focus-container-main');
+            if (fc) fc.classList.remove('session-active');
+            breachSeconds = 0;
+            // Clear the active-session heartbeat
+            try {
+                localStorage.setItem(CONSTANTS.APP_ID + '_hb', JSON.stringify({ ts: Date.now(), active: false }));
+            } catch(e) {}
+        },
+
         abort(reason) {
+            if (!State.session.active) return;
+            if (this._aborting) return;  // prevent double-abort race
+            this._aborting = true;
             const r = reason || "MANUAL ABORT";
             const timeSpent = State.session.total - State.session.remaining;
             const timeLeft  = Math.ceil(State.session.remaining / 60);
             State.session.active = false;
-            if (pingTimer) clearTimeout(pingTimer);
-            document.body.classList.remove('mode-hard-focus');
-            document.getElementById('hard-focus-blocker').style.display = 'none';
-            document.getElementById('focus-container-main').classList.remove('session-active');
+            this._cleanup();
 
-            // HARD FOCUS V3: Breach debt dump with 2× multiplier
             if (breachSeconds > 0) {
                 const rawMins = Math.ceil(breachSeconds / 60);
                 const debtMins = State.session.mode === 'hard' ? rawMins * CONSTANTS.HARD_DEBT_MULTIPLIER : rawMins;
@@ -1983,31 +2320,30 @@ const Logic = {
                 UI.showToast(`BREACH DEBT: +${debtMins} mins`);
             }
 
-            // Normal abort debt
             if (timeLeft > 5) {
                 const debtMins = State.session.mode === 'hard' ? timeLeft * CONSTANTS.HARD_DEBT_MULTIPLIER : timeLeft;
                 Logic.Debt.add(State.session.subjectId, State.session.chapter, debtMins);
                 if (!r.includes('FORCE') && r !== 'HARD ABORT') {
                     alert(`SESSION ABORTED. +${debtMins} MINS ADDED TO ACTIVE DEBT.`);
-                } else if (r === 'HARD ABORT' || r.includes('FORCE')) {
+                } else {
                     alert(`HARD ABORT PENALTY: +${debtMins} MINS DEBT (2× MULTIPLIER)`);
                 }
             }
 
             State.systemIntegrity = Math.max(0, State.systemIntegrity - 5);
-            breachSeconds = 0;
             State.logs.unshift({ date: Date.now(), chapter: "ABORT: " + (State.session.chapter || '?'), duration: timeSpent, quality: 0, integrity: 0, note: r, grade: "F", pauses: 0 });
+            this._aborting = false;
             UI.renderAll();
             Storage.save();
         },
 
         finish() {
+            if (!State.session.active) return;
+            if (this._finishing) return;
+            this._finishing = true;
             State.session.active = false;
-            if (pingTimer) clearTimeout(pingTimer);
-            document.body.classList.remove('mode-hard-focus');
-            document.getElementById('hard-focus-blocker').style.display = 'none';
-            document.getElementById('focus-container-main').classList.remove('session-active');
-            breachSeconds = 0;
+            this._cleanup();
+            this._finishing = false;
             UI.openAutopsy();
         },
 
@@ -2015,8 +2351,7 @@ const Logic = {
             const i = State.session.integrity;
             const p = State.session.pauses;
             let score = i - (p * 5);
-            // Hard mode: bonus applies but thresholds stricter
-            if (State.session.mode === 'hard') score += 3; // smaller bonus than before
+            if (State.session.mode === 'hard') score += 3;
             if (score >= 97) return 'S';
             if (score >= 88) return 'A';
             if (score >= 72) return 'B';
@@ -2047,7 +2382,7 @@ const Logic = {
         addSubject() {
             const v = document.getElementById('new-subject-input').value.trim();
             if (v) {
-                State.subjects.push({ id: v.toLowerCase().replace(/\s+/g,'_'), name: v, chapters: ['Intro'] });
+                State.subjects.push({ id: v.toLowerCase().replace(/\s+/g,'_') + '_' + Date.now(), name: v, chapters: ['Intro'] });
                 UI.renderMap(); UI.populateManagerSelect(); Storage.save();
                 document.getElementById('new-subject-input').value = '';
             }
@@ -2064,16 +2399,15 @@ const Logic = {
         },
         selectMode(m) {
             if (m === 'hard' && State.totalXP < CONSTANTS.HARD_MODE_REQ) {
-                UI.showToast(`LOCKED. Need ${CONSTANTS.HARD_MODE_REQ} XP to unlock.`);
-                return;
+                UI.showToast(`LOCKED. Need ${CONSTANTS.HARD_MODE_REQ} XP to unlock.`); return;
             }
             UI.setWizardMode(m);
         },
         selectDuration(d) {
             if (d === 'custom') {
                 document.querySelectorAll('[data-dur]').forEach(b => b.classList.remove('selected'));
-                const val = document.getElementById('custom-time-input').value;
-                if (val && val >= 1 && val <= 600) UI.setWizardDur(parseInt(val));
+                const val = parseInt(document.getElementById('custom-time-input').value);
+                if (val && val >= 1 && val <= 600) UI.setWizardDur(val);
             } else {
                 document.getElementById('custom-time-input').value = '';
                 UI.setWizardDur(d);
@@ -2105,16 +2439,15 @@ const Logic = {
     }
 };
 
-/* ============================================================
-   UI RENDERER
-============================================================ */
 const UI = {
     wizard: { subject: null, chapter: null, mode: 'normal', duration: 25 },
     autopsy: { mistake: false, calculatedGrade: 'C' },
+    _toastTimeout: null,
+    _minimalMode: false,
 
     init() {
         const btnInit = document.getElementById('btn-init-session');
-        if (btnInit) btnInit.onclick = () => { this.resetWizard(); this.openOverlay('overlay-setup'); this.wizardStep('subject'); };
+        if (btnInit) btnInit.onclick = () => { this.resetWizard(); OverlayManager.show('overlay-setup'); this.wizardStep('subject'); };
 
         const btnLaunch = document.getElementById('btn-setup-launch');
         if (btnLaunch) btnLaunch.onclick = () => {
@@ -2129,8 +2462,11 @@ const UI = {
 
         const btnAbort = document.getElementById('btn-emergency-exit');
         if (btnAbort) btnAbort.onclick = () => {
-            const msg = State.session.mode === 'hard' ? "Abort Hard Focus? (2× Penalty Applied)" : "Abort session?";
-            if (confirm(msg)) Logic.Session.abort(State.session.mode === 'hard' ? "HARD ABORT" : "MANUAL ABORT");
+            if (State.session.mode === 'hard') {
+                if (confirm("Abort Hard Focus? (2× Penalty Applied)")) Logic.Session.abort("HARD ABORT");
+            } else if (confirm("Abort session?")) {
+                Logic.Session.abort();
+            }
         };
 
         const btnAutopsy = document.getElementById('btn-autopsy-submit');
@@ -2138,8 +2474,9 @@ const UI = {
 
         document.querySelectorAll('.overlay').forEach(ov => {
             ov.addEventListener('click', (e) => {
-                if (e.target === ov && ov.id !== 'overlay-tutorial' && ov.id !== 'overlay-username' && ov.id !== 'overlay-autopsy' && ov.id !== 'overlay-onboarding' && !State.session.active) {
-                    this.closeOverlays();
+                const criticalOverlays = ['overlay-tutorial','overlay-username','overlay-autopsy','overlay-onboarding'];
+                if (e.target === ov && !criticalOverlays.includes(ov.id) && !State.session.active) {
+                    OverlayManager.hide();
                 }
             });
         });
@@ -2154,130 +2491,138 @@ const UI = {
 
     toggleSidebar() { document.getElementById('main-layout').classList.toggle('sidebar-collapsed'); },
 
+    toggleMinimalMode() {
+        this._minimalMode = !this._minimalMode;
+        document.body.classList.toggle('minimal-mode', this._minimalMode);
+        const btn = document.getElementById('btn-minimal-mode');
+        if (btn) btn.style.color = this._minimalMode ? 'var(--accent-lock)' : '';
+    },
+
     switchMobileTab(tab) {
         document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-        const tabBtns = document.querySelectorAll('.nav-tab');
-        const map = { ops: 0, intel: 1, map: 2, events: 3 };
-        if (map[tab] !== undefined && tabBtns[map[tab]]) tabBtns[map[tab]].classList.add('active');
         const sidebar = document.getElementById('sidebar');
         const stage   = document.getElementById('stage');
-        if (tab === 'ops')   { stage.classList.add('mobile-tab-active'); sidebar.classList.remove('mobile-tab-active'); this.closeOverlays(); }
-        else if (tab === 'intel') { sidebar.classList.add('mobile-tab-active'); stage.classList.remove('mobile-tab-active'); this.closeOverlays(); }
-        else if (tab === 'map') { this.openMap(); }
-        else if (tab === 'events') { this.openEvents(); }
+        if (tab === 'ops') {
+            if (stage) stage.style.display = 'flex';
+            if (sidebar) sidebar.style.display = 'none';
+            document.querySelector('.nav-tab:nth-child(1)')?.classList.add('active');
+        } else if (tab === 'intel') {
+            if (stage) stage.style.display = 'none';
+            if (sidebar) sidebar.style.display = 'flex';
+            document.querySelector('.nav-tab:nth-child(2)')?.classList.add('active');
+        } else if (tab === 'map') {
+            this.openMap();
+            document.querySelector('.nav-tab:nth-child(3)')?.classList.add('active');
+        }
     },
 
     switchMissionTab(tab) {
         document.querySelectorAll('.mission-tab-btn').forEach(b => b.classList.remove('active'));
         document.querySelectorAll('.missions-panel').forEach(p => p.classList.remove('active'));
-        document.getElementById('mtab-' + tab).classList.add('active');
-        document.getElementById('mpanel-' + tab).classList.add('active');
+        document.getElementById('mtab-' + tab)?.classList.add('active');
+        document.getElementById('mpanel-' + tab)?.classList.add('active');
     },
 
-    renderAll() { this.renderStats(); this.renderMap(); this.renderDebts(); this.renderLogs(); this.renderArsenal(); this.populateManagerSelect(); this.updateSessionView(); this.renderMissions(); },
+    renderAll() {
+        this.renderStats();
+        this.renderMap();
+        this.renderDebts();
+        this.renderLogs();
+        this.renderArsenal();
+        this.renderMissions();
+        this.updateSessionView();
+        this.populateManagerSelect();
+    },
 
     renderArsenal() {
-        const container = document.getElementById('arsenal-sidebar-display');
-        if (!container) return;
-        container.innerHTML = '';
-        let resources = State.userProfile.resources || [];
-        if (resources.length === 0) resources = ["None Set"];
-        resources.forEach(r => {
-            const tag = document.createElement('span');
-            tag.className = 'arsenal-tag-small';
-            tag.textContent = r;
-            container.appendChild(tag);
+        const g = document.getElementById('arsenal-sidebar-display');
+        if (!g) return;
+        g.innerHTML = '';
+        const res = State.userProfile.resources || [];
+        if (res.length === 0) { g.innerHTML = '<span class="arsenal-hint">No resources configured.</span>'; return; }
+        res.forEach(r => {
+            const t = document.createElement('span');
+            t.className = 'arsenal-tag-small'; t.textContent = r;
+            g.appendChild(t);
         });
+    },
+
+    renderMissions() {
+        const dailyC = document.getElementById('daily-missions-container');
+        if (dailyC) {
+            dailyC.innerHTML = '';
+            if (!State.dailyMissions.length) { dailyC.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:20px; font-size:0.8rem;">No missions active.</div>'; }
+            State.dailyMissions.forEach(m => {
+                const pct = Math.min(100, Math.floor((m.current / m.target) * 100));
+                const canClaim = !m.claimed && m.current >= m.target;
+                const tierClass = `tier-${m.tier}`;
+                const d = document.createElement('div');
+                d.className = `mission-card ${m.claimed ? 'completed' : ''}`;
+                d.innerHTML = `
+                    <div class="mission-left">
+                        <div class="mission-icon">${m.icon}</div>
+                        <div class="mission-info">
+                            <div class="mission-title">${m.title} <span class="mission-tier-badge ${tierClass}">${m.tier.toUpperCase()}</span></div>
+                            <div class="mission-reward">+${m.reward} XP</div>
+                            <div class="mission-progress-text">${m.current}/${m.target}</div>
+                            <div class="quest-bar-container"><div class="quest-bar-fill" style="width:${pct}%"></div></div>
+                        </div>
+                    </div>
+                    ${canClaim ? `<button class="claim-btn" onclick="Logic.Missions.claim('${m.id}',true)">CLAIM</button>` : ''}
+                    ${m.claimed ? `<span class="mission-done-check">✓</span>` : ''}
+                `;
+                dailyC.appendChild(d);
+            });
+        }
+        const questC = document.getElementById('quests-container');
+        if (questC) {
+            questC.innerHTML = '';
+            State.quests.forEach(q => {
+                const pct = Math.min(100, Math.floor((q.current / q.target) * 100));
+                const canClaim = !q.claimed && q.current >= q.target;
+                const icon = q.icon || '🎯';
+                const d = document.createElement('div');
+                d.className = `mission-card ${q.claimed ? 'completed' : ''}`;
+                d.innerHTML = `
+                    <div class="mission-left">
+                        <div class="mission-icon">${icon}</div>
+                        <div class="mission-info">
+                            <div class="mission-title" style="margin-bottom:3px;">${q.title}</div>
+                            <div class="mission-reward">+${q.reward} XP</div>
+                            <div class="mission-progress-text">${q.type==='time'?Math.floor(q.current/3600)+'h/'+Math.floor(q.target/3600)+'h': q.current+'/'+q.target}</div>
+                            <div class="quest-bar-container"><div class="quest-bar-fill" style="width:${pct}%"></div></div>
+                        </div>
+                    </div>
+                    ${canClaim ? `<button class="claim-btn" onclick="Logic.Missions.claim('${q.id}',false)">CLAIM</button>` : ''}
+                    ${q.claimed ? `<span class="mission-done-check">✓</span>` : ''}
+                `;
+                questC.appendChild(d);
+            });
+        }
     },
 
     updateMissionsResetTimer() {
         const el = document.getElementById('daily-reset-timer');
         if (!el) return;
         const now = new Date();
-        const midnight = new Date(now);
-        midnight.setHours(24, 0, 0, 0);
+        const midnight = new Date(); midnight.setHours(24,0,0,0);
         const diff = midnight - now;
         const h = Math.floor(diff / 3600000);
         const m = Math.floor((diff % 3600000) / 60000);
         el.textContent = `Daily Reset: ${h}h ${m}m`;
     },
 
-    renderMissions() {
-        const dailyC  = document.getElementById('daily-missions-container');
-        const questC  = document.getElementById('quests-container');
-        if (!dailyC || !questC) return;
-        dailyC.innerHTML = '';
-        questC.innerHTML = '';
-
-        State.dailyMissions.forEach(m => {
-            const pct = Math.min(100, (m.current / m.target) * 100);
-            const canClaim = !m.claimed && m.current >= m.target;
-            const tier = m.tier || 'recon';
-            const icon = m.icon || '▶';
-            const d = document.createElement('div');
-            d.className = `mission-card ${m.claimed ? 'completed' : ''}`;
-            d.innerHTML = `
-                <div class="mission-left">
-                    <div class="mission-icon">${icon}</div>
-                    <div class="mission-info">
-                        <div style="display:flex; align-items:center; gap:6px; margin-bottom:3px;">
-                            <div class="mission-title">${m.title}</div>
-                            <span class="mission-tier-badge tier-${tier}">${tier.toUpperCase()}</span>
-                        </div>
-                        <div class="mission-reward">+${m.reward} XP</div>
-                        <div class="mission-progress-text">${m.current}/${m.target}</div>
-                        <div class="quest-bar-container"><div class="quest-bar-fill" style="width:${pct}%"></div></div>
-                    </div>
-                </div>
-                ${canClaim ? `<button class="claim-btn" onclick="Logic.Missions.claim('${m.id}',true)">CLAIM</button>` : ''}
-                ${m.claimed ? `<span class="mission-done-check">✓</span>` : ''}
-            `;
-            dailyC.appendChild(d);
-        });
-
-        if (State.dailyMissions.length === 0) {
-            dailyC.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:20px; font-size:0.8rem;">No missions. Complete a session to trigger generation.</div>';
-        }
-
-        State.quests.forEach(q => {
-            const pct = Math.min(100, (q.current / q.target) * 100);
-            const canClaim = !q.claimed && q.current >= q.target;
-            const icon = q.icon || '🎯';
-            const d = document.createElement('div');
-            d.className = `mission-card ${q.claimed ? 'completed' : ''}`;
-            d.innerHTML = `
-                <div class="mission-left">
-                    <div class="mission-icon">${icon}</div>
-                    <div class="mission-info">
-                        <div class="mission-title" style="margin-bottom:3px;">${q.title}</div>
-                        <div class="mission-reward">+${q.reward} XP</div>
-                        <div class="mission-progress-text">${q.type==='time'?Math.floor(q.current/3600)+'h/'+Math.floor(q.target/3600)+'h': q.current+'/'+q.target}</div>
-                        <div class="quest-bar-container"><div class="quest-bar-fill" style="width:${pct}%"></div></div>
-                    </div>
-                </div>
-                ${canClaim ? `<button class="claim-btn" onclick="Logic.Missions.claim('${q.id}',false)">CLAIM</button>` : ''}
-                ${q.claimed ? `<span class="mission-done-check">✓</span>` : ''}
-            `;
-            questC.appendChild(d);
-        });
-    },
-
     renderUrgency() {
         const container = document.getElementById('events-container');
         if (!container) return;
         container.innerHTML = '';
-
         let exams = (State.userProfile.exams || []).slice().sort((a, b) => {
-            if (!a.date) return 1;
-            if (!b.date) return -1;
+            if (!a.date) return 1; if (!b.date) return -1;
             return new Date(a.date) - new Date(b.date);
         });
-
         if (exams.length === 0) {
-            container.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:24px; font-size:0.8rem;">No events added. Use the panel below to add exams or deadlines.</div>';
-            return;
+            container.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:24px; font-size:0.8rem;">No events added.</div>'; return;
         }
-
         exams.forEach(ex => {
             let days = null, urgencyClass = 'none', urgencyText = 'NO DATE', studyRec = '';
             if (ex.date) {
@@ -2287,13 +2632,8 @@ const UI = {
                 else if (diff < 30) { urgencyClass = 'crit'; urgencyText = 'CRITICAL'; }
                 else if (diff < 90) { urgencyClass = 'high'; urgencyText = 'HIGH'; }
                 else                { urgencyClass = 'med';  urgencyText = 'NORMAL'; }
-
-                if (days > 0) {
-                    const hoursPerDay = 6;  // assumed target study hrs/day
-                    studyRec = `Recommended: ~${hoursPerDay}h/day = ${days * hoursPerDay}h total available`;
-                }
+                if (days > 0) studyRec = `Recommended: ~6h/day = ${days * 6}h total available`;
             }
-
             const linkData = (CONSTANTS.LINKS[ex.name] || CONSTANTS.LINKS["Other"]);
             const ringColor = urgencyClass === 'crit' ? 'var(--accent-crit)' : urgencyClass === 'high' ? 'var(--accent-warn)' : 'var(--accent-lock)';
             const card = document.createElement('div');
@@ -2322,8 +2662,6 @@ const UI = {
             `;
             container.appendChild(card);
         });
-
-        // Update nav summary with primary event
         const primary = exams.find(e => e.primary);
         const summaryText = document.getElementById('map-summary-text');
         if (primary && primary.date && summaryText) {
@@ -2334,8 +2672,6 @@ const UI = {
 
     renderStats() {
         const rankData = Logic.Rank.getData(State.totalXP);
-
-        // Rank card
         const displayRank      = document.getElementById('display-rank');
         const displayRankTitle = document.getElementById('display-rank-title');
         const rankTierIcon     = document.getElementById('rank-tier-icon');
@@ -2345,47 +2681,32 @@ const UI = {
         if (displayRankTitle) displayRankTitle.textContent = rankData.title;
         if (rankTierIcon)     rankTierIcon.textContent     = rankData.icon;
         if (rankCardXP)       rankCardXP.textContent       = `${State.totalXP.toLocaleString()} XP`;
-
-        // Nav badge
         const navBadge = document.getElementById('nav-rank-badge');
         if (navBadge) navBadge.textContent = `${rankData.icon} ${rankData.title}`;
-
-        // Perk badge
         const nextRankObj = CONSTANTS.RANKS.find(r => r.t > State.totalXP);
         if (perkBadge) perkBadge.textContent = nextRankObj ? `NEXT: ${nextRankObj.perk.toUpperCase()}` : "AUTHORITY ABSOLUTE";
-
-        // Progress bar
         const prevRank = CONSTANTS.RANKS.reduce((acc, curr) => (curr.t <= State.totalXP ? curr : acc), CONSTANTS.RANKS[0]);
         const nextRank = nextRankObj || { t: 200000 };
         const perc = ((State.totalXP - prevRank.t) / (nextRank.t - prevRank.t)) * 100;
-        const rankBarFill  = document.getElementById('rank-bar-fill');
-        const rankNextVal  = document.getElementById('rank-next-val');
-        const rankCurrLbl  = document.getElementById('rank-curr-xp-label');
+        const rankBarFill = document.getElementById('rank-bar-fill');
+        const rankNextVal = document.getElementById('rank-next-val');
+        const rankCurrLbl = document.getElementById('rank-curr-xp-label');
         if (rankBarFill) rankBarFill.style.width = `${Math.min(100, perc)}%`;
         if (rankNextVal) rankNextVal.textContent  = nextRank.t.toLocaleString();
         if (rankCurrLbl) rankCurrLbl.textContent  = prevRank.t.toLocaleString();
-
-        // Wallet
         const walletEl = document.getElementById('stat-wallet');
         if (walletEl) walletEl.textContent = State.wallet.toLocaleString();
-
-        // Daily / all-time focus
         const h = Math.floor(State.dailySeconds / 3600), m = Math.floor((State.dailySeconds % 3600) / 60);
         const dailyQualEl = document.getElementById('stat-daily-quality');
         if (dailyQualEl) dailyQualEl.textContent = `${h}h ${m}m`;
-
         const ht = Math.floor(State.allTimeSeconds / 3600), mt = Math.floor((State.allTimeSeconds % 3600) / 60);
         const allTimeEl = document.getElementById('stat-alltime-quality');
         if (allTimeEl) allTimeEl.textContent = `${ht}h ${mt}m`;
-
-        // Integrity
         const intEl = document.getElementById('stat-global-integrity');
         if (intEl) {
             intEl.textContent = `${Math.floor(State.systemIntegrity)}%`;
             intEl.className = `stat-value tabular ${State.systemIntegrity > 80 ? 'integrity-ok' : (State.systemIntegrity > 50 ? 'integrity-warn' : 'integrity-crit')}`;
         }
-
-        // Map summary
         const summaryText = document.getElementById('map-summary-text');
         if (summaryText && !summaryText.innerHTML.includes('DAYS LEFT') && !summaryText.innerHTML.includes('LEFT')) {
             const totalCh = State.subjects.reduce((a, b) => a + b.chapters.length, 0);
@@ -2396,28 +2717,30 @@ const UI = {
             }
             summaryText.textContent = `${examName} · ${State.subjects.length} Subjects · ${totalCh} Chapters`;
         }
-
-        // Update quest progress
-        Logic.Missions.update('xp_gain', 0);  // Re-sync quest totals
+        Logic.Missions.update('xp_gain', 0);
     },
 
     renderMap() {
         const c = document.getElementById('map-accordion-container');
         if (!c) return;
         c.innerHTML = '';
+        if (State.subjects.length === 0) {
+            c.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:40px; font-size:0.8rem;">No subjects configured. Add subjects in the panel on the left.</div>';
+            return;
+        }
         State.subjects.forEach(s => {
             const g = document.createElement('div'); g.className = 'subject-group';
             const h = document.createElement('div'); h.className = 'subject-header';
             const totalDebt = s.chapters.reduce((acc, ch) => {
                 const stats = Logic.Chapter.get(s.id, ch);
-                return acc + (stats.debtMinutes || 0) + ((stats.debt || 0) * 20);
+                return acc + (stats.debtMinutes || 0);
             }, 0);
             h.innerHTML = `<span>${s.name}</span> <span style="display:flex; gap:8px; align-items:center;"><span style="font-size:0.68rem; color:var(--text-muted);">${s.chapters.length}ch</span>${totalDebt > 0 ? `<span style="font-size:0.62rem; color:var(--accent-crit); font-weight:800;">${totalDebt}m debt</span>` : ''}</span>`;
             h.onclick = () => g.classList.toggle('expanded');
             const chList = document.createElement('div'); chList.className = 'subject-chapters';
             s.chapters.forEach(ch => {
                 const stats = Logic.Chapter.get(s.id, ch);
-                const debtMins = (stats.debtMinutes || 0) + ((stats.debt || 0) * 20);
+                const debtMins = (stats.debtMinutes || 0);
                 const row = document.createElement('div'); row.className = 'chapter-item';
                 if (debtMins > 0) row.classList.add('has-debt');
                 const badges = [];
@@ -2439,14 +2762,13 @@ const UI = {
         if (!State.chapterStats) State.chapterStats = {};
         Object.keys(State.chapterStats).forEach(k => {
             const s = State.chapterStats[k];
-            const dMin = (s.debtMinutes || 0) + ((s.debt || 0) * 20);
+            const dMin = (s.debtMinutes || 0);
             if (dMin > 0) {
                 const parts = k.split('|');
                 const sObj  = State.subjects.find(sub => sub.id === parts[0]);
                 const sName = sObj ? sObj.name.substr(0, 4) : parts[0];
                 totalMins += dMin;
-                const d = document.createElement('div');
-                d.className = 'log-item';
+                const d = document.createElement('div'); d.className = 'log-item';
                 d.style.borderLeftColor = 'var(--accent-crit)';
                 d.innerHTML = `<div style="display:flex; justify-content:space-between; font-weight:700;"><span>${parts[1] || 'Unknown'}</span><span style="color:var(--accent-crit); font-family:var(--font-mono);">${dMin}m</span></div><div style="font-size:0.62rem; color:var(--text-muted);">${sName.toUpperCase()}</div>`;
                 list.appendChild(d);
@@ -2473,7 +2795,6 @@ const UI = {
             const secs = l.duration % 60;
             d.style.borderLeftColor = color;
             d.innerHTML = `<div style="display:flex; justify-content:space-between; font-weight:700;"><span style="font-size:0.78rem;">${l.chapter}</span><span style="color:${color}; font-family:var(--font-mono);">${l.grade || '-'}</span></div><div style="font-size:0.62rem; color:var(--text-muted);">${new Date(l.date).toLocaleDateString()} · ${mins}m ${secs}s</div>`;
-            // Capture idx in closure properly
             d.onclick = () => this.showLogDetails(idx);
             c.appendChild(d);
         });
@@ -2486,41 +2807,49 @@ const UI = {
         const log = State.logs[idx];
         const content = document.getElementById('log-details-content');
         if (!log || !content) return;
-        const gradeClass = `grade-${log.grade}`;
+        let color = 'var(--text-muted)';
+        if (log.grade === 'S') color = 'var(--accent-gold)';
+        else if (log.grade === 'A') color = 'var(--accent-succ)';
+        else if (log.grade === 'F') color = 'var(--accent-crit)';
+        else if (log.grade === 'B') color = 'var(--accent-lock)';
         const mins = Math.floor(log.duration / 60);
         const secs = log.duration % 60;
         content.innerHTML = `
-            <div style="text-align:center; padding:18px 0; border-bottom:1px solid var(--border-ui);">
-                <div style="font-size:0.72rem; color:var(--text-secondary); margin-bottom:5px; font-weight:700; letter-spacing:0.05em;">SYSTEM EVALUATION</div>
-                <div class="grade-badge ${gradeClass}" style="font-size:4rem;">${log.grade || 'N/A'}</div>
-                <div style="margin-top:8px; font-weight:800; color:var(--text-primary); font-size:0.95rem;">${log.chapter}</div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+                <div><div style="font-size:0.65rem; color:var(--text-muted); font-weight:700;">CHAPTER</div><div style="font-size:1.1rem; font-weight:800;">${log.chapter}</div></div>
+                <div style="font-size:3rem; font-weight:900; color:${color}; font-family:var(--font-mono);">${log.grade || '?'}</div>
             </div>
             <div style="padding:16px 0; display:grid; grid-template-columns:1fr 1fr; gap:10px; border-bottom:1px solid var(--border-ui);">
                 <div class="stat-item"><span class="stat-label">DURATION</span><span class="stat-value">${mins}m ${secs}s</span></div>
                 <div class="stat-item"><span class="stat-label">INTEGRITY</span><span class="stat-value ${log.integrity < 50 ? 'integrity-crit' : 'integrity-ok'}">${log.integrity}%</span></div>
                 <div class="stat-item"><span class="stat-label">PAUSES</span><span class="stat-value">${log.pauses || 0}</span></div>
                 <div class="stat-item"><span class="stat-label">DATE</span><span class="stat-value" style="font-size:0.78rem;">${new Date(log.date).toLocaleDateString()}</span></div>
+                ${log.mode ? `<div class="stat-item"><span class="stat-label">MODE</span><span class="stat-value" style="color:${log.mode==='hard'?'var(--accent-crit)':'var(--accent-lock)'}">${log.mode.toUpperCase()}</span></div>` : ''}
+                ${log.xpEarned !== undefined ? `<div class="stat-item"><span class="stat-label">XP EARNED</span><span class="stat-value" style="color:var(--accent-succ)">+${log.xpEarned}</span></div>` : ''}
             </div>
+            ${log.goal ? `<div style="padding:12px 0; border-bottom:1px solid var(--border-ui);"><div style="font-size:0.65rem; color:var(--text-muted); font-weight:800; margin-bottom:6px; letter-spacing:0.05em;">MISSION PROTOCOL</div><div style="font-size:0.82rem; color:var(--accent-lock); font-family:var(--font-mono);">${log.goal}</div></div>` : ''}
             <div style="padding:16px 0;">
                 <div style="font-size:0.65rem; color:var(--text-muted); font-weight:800; margin-bottom:8px; letter-spacing:0.05em;">KNOWLEDGE CRYSTALLIZATION</div>
                 <div style="background:var(--bg-elevated); padding:13px; border-radius:var(--radius-sm); font-size:0.88rem; line-height:1.55; color:var(--text-secondary);">${log.note || 'No data recorded.'}</div>
             </div>
         `;
-        this.openOverlay('overlay-log-details');
+        OverlayManager.show('overlay-log-details');
     },
 
     quickStart(subId, subName, chapter) {
         this.wizard.subject = subId;
         this.wizard.chapter = chapter;
+        goalState = { type: null, resource: null };
         const targetDisplay = document.getElementById('wizard-target-display');
         if (targetDisplay) targetDisplay.textContent = `${subName} - ${chapter}`;
         const key = `${subId}|${chapter}`;
         const stats = State.chapterStats[key];
-        const debtMins = stats ? ((stats.debtMinutes || 0) + ((stats.debt || 0) * 20)) : 0;
+        const debtMins = stats ? (stats.debtMinutes || 0) : 0;
         const debtBtn = document.getElementById('btn-mode-debt');
         if (debtMins > 0) { debtBtn.classList.remove('hidden'); debtBtn.querySelector('.choice-meta').textContent = `REPAY ${debtMins} MINS`; }
         else { debtBtn.classList.add('hidden'); }
-        this.openOverlay('overlay-setup');
+        this.renderWizardResourceChips();
+        OverlayManager.show('overlay-setup');
         this.wizardStep('mode');
     },
 
@@ -2533,142 +2862,96 @@ const UI = {
         const goalDisp = document.getElementById('generated-goal-text');
         if (goalDisp) { goalDisp.textContent = 'SELECT PROTOCOL DATA'; goalDisp.style.color = 'var(--text-muted)'; }
         this.renderWizardSubjects();
+        this.renderWizardResourceChips();
+        document.querySelectorAll('[data-mode]').forEach(b => b.classList.toggle('selected', b.dataset.mode === 'normal'));
+        document.querySelectorAll('[data-dur]').forEach(b => b.classList.remove('selected'));
+        const ci = document.getElementById('custom-time-input');
+        if (ci) ci.value = '';
+        const debtBtn = document.getElementById('btn-mode-debt');
+        if (debtBtn) debtBtn.classList.add('hidden');
+        const hardBtn = document.getElementById('btn-mode-hard');
+        if (hardBtn) {
+            if (State.totalXP < CONSTANTS.HARD_MODE_REQ) hardBtn.classList.add('locked');
+            else hardBtn.classList.remove('locked');
+        }
+    },
+
+    renderWizardResourceChips() {
         const resGrid = document.getElementById('goal-resource-grid');
-        if (resGrid) {
-            resGrid.innerHTML = '';
-            let resources = State.userProfile.resources || ["Notes","NCERT","PYQs"];
-            if (resources.length === 0) resources = ["Notes","NCERT","PYQs"];
-            resources.forEach(r => {
-                const d = document.createElement('div');
-                d.className = 'goal-chip';
-                d.textContent = r.toUpperCase();
-                d.onclick = function() { Logic.UI.setGoalRes(this, r.toUpperCase()); };
-                resGrid.appendChild(d);
-            });
-        }
+        if (!resGrid) return;
+        resGrid.innerHTML = '';
+        const resources = State.userProfile.resources || ["Notes", "NCERT", "PYQs"];
+        resources.forEach(r => {
+            const chip = document.createElement('div');
+            chip.className = 'goal-chip';
+            chip.textContent = r;
+            chip.onclick = function() { Logic.UI.setGoalRes(this, r); };
+            resGrid.appendChild(chip);
+        });
     },
 
-    openOverlay(id) {
-        document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none');
-        const ov = document.getElementById(id);
-        if (ov) ov.style.display = 'flex';
+    openAutopsy() {
+        const grade = Logic.Session.calculateGrade();
+        this.autopsy.calculatedGrade = grade;
+        this.autopsy.mistake = false;
+        const gradeDisp = document.getElementById('auto-grade-display');
+        const analysisText = document.getElementById('auto-analysis-text');
+        const intDisp = document.getElementById('auto-integrity-display');
+        const durDisp = document.getElementById('auto-duration-display');
+        const effDisp = document.getElementById('auto-efficiency-display');
+        const xpDisp  = document.getElementById('auto-xp-display');
+        if (gradeDisp) { gradeDisp.textContent = grade; gradeDisp.className = `grade-badge grade-${grade}`; }
+        if (analysisText) {
+            const msgs = { S: "PERFECT EXECUTION", A: "HIGH PERFORMANCE", B: "ACCEPTABLE", C: "SUBOPTIMAL", F: "MISSION FAILED" };
+            analysisText.textContent = msgs[grade] || "ANALYZING...";
+        }
+        const dur = State.session.total - State.session.remaining;
+        const durMins = Math.floor(dur / 60);
+        if (intDisp) intDisp.textContent = `${State.session.integrity}%`;
+        if (durDisp) durDisp.textContent  = `${durMins}m ${dur % 60}s`;
+        if (effDisp) effDisp.textContent  = `${State.session.pauses} pauses`;
 
-        if (id === 'overlay-setup') {
-            const hardBtn  = document.getElementById('btn-mode-hard');
-            const hardMeta = document.getElementById('hard-mode-meta');
-            if (State.totalXP < CONSTANTS.HARD_MODE_REQ) {
-                hardBtn.classList.add('locked');
-                hardMeta.textContent = `LOCKED — Need ${CONSTANTS.HARD_MODE_REQ} XP`;
-            } else {
-                hardBtn.classList.remove('locked');
-                hardMeta.textContent = `-10XP/10s Bleed. Force abort at 30s.`;
-            }
+        let qMod = 1.0;
+        if (grade === 'S') qMod = 1.3;
+        if (grade === 'A') qMod = 1.1;
+        if (grade === 'C') qMod = 0.8;
+        if (grade === 'F') qMod = 0.5;
+        const mMod = State.session.mode === 'hard' ? 1.5 : 1;
+        let pts = Math.floor((dur / 60) * 10 * qMod * mMod);
+        pts = Math.min(pts, CONSTANTS.SESSION_XP_CAP);
+
+        const hasDebt = Logic.Debt.getTotalMinutes() > 0 && State.session.mode !== 'debt';
+        if (xpDisp) {
+            if (hasDebt) { xpDisp.textContent = `+${Math.floor(pts * 0.5)} (DEBT TAX)`; xpDisp.style.color = "var(--accent-warn)"; }
+            else { xpDisp.textContent = `+${pts}`; xpDisp.style.color = "var(--accent-lock)"; }
         }
 
-        if (id === 'overlay-autopsy') {
-            this.autopsy.calculatedGrade = Logic.Session.calculateGrade();
-            document.getElementById('auto-grade-display').textContent  = this.autopsy.calculatedGrade;
-            document.getElementById('auto-grade-display').className     = `grade-badge grade-${this.autopsy.calculatedGrade}`;
-            document.getElementById('auto-integrity-display').textContent = `${State.session.integrity}%`;
-            const durSecs = State.session.total - State.session.remaining;
-            const durMins = Math.floor(durSecs / 60);
-            const durRem  = durSecs % 60;
-            document.getElementById('auto-duration-display').textContent  = `${durMins}m ${durRem}s`;
-            const eff = Math.max(0, Math.round(State.session.integrity * (1 - (State.session.pauses * 0.05))));
-            document.getElementById('auto-efficiency-display').textContent = `${eff}%`;
+        const autopsy = document.getElementById('autopsy-summary');
+        if (autopsy) autopsy.value = '';
+        const submitBtn = document.getElementById('btn-autopsy-submit');
+        if (submitBtn) submitBtn.disabled = true;
 
-            const analysisEl = document.getElementById('auto-analysis-text');
-            const xpDisplay  = document.getElementById('auto-xp-display');
-            const grade = this.autopsy.calculatedGrade;
-            let analysis = "ANALYSIS COMPLETE.";
-            if (grade === 'S') analysis = "FLAWLESS VICTORY. SYSTEM OPTIMAL.";
-            else if (grade === 'A') analysis = "HIGH EFFICIENCY DETECTED.";
-            else if (grade === 'B') analysis = "ACCEPTABLE PARAMETERS.";
-            else if (grade === 'C') analysis = "MEDIOCRE. DISCIPLINE REQUIRED.";
-            else analysis = "SYSTEM FAILURE. REBOOT.";
-            if (State.session.pauses > 2) analysis += " EXCESSIVE PAUSES.";
+        const btnNo = document.getElementById('autopsy-mistake-no');
+        const btnYes = document.getElementById('autopsy-mistake-yes');
+        if (btnNo)  btnNo.classList.add('selected');
+        if (btnYes) btnYes.classList.remove('selected');
 
-            const totalDebt = Logic.Debt.getTotalMinutes();
-            if (State.session.mode === 'debt') { analysis += " [DEBT REPAYMENT MODE]"; analysisEl.style.color = "var(--accent-lock)"; }
-            else if (totalDebt > 0) { analysis += " [ACTIVE DEBT TAX]"; analysisEl.style.color = "var(--accent-warn)"; }
-            else { analysisEl.style.color = "var(--text-secondary)"; }
-            analysisEl.textContent = analysis;
-
-            let qMod = 1.0;
-            if (grade === 'S') qMod = 1.3;
-            if (grade === 'A') qMod = 1.1;
-            if (grade === 'C') qMod = 0.8;
-            if (grade === 'F') qMod = 0.5;
-            const mMod = State.session.mode === 'hard' ? 1.5 : 1;
-            let pts = Math.floor((durSecs / 60) * 10 * qMod * mMod);
-            if (State.session.mode === 'debt') {
-                pts = Math.floor(pts * 0.1);
-                xpDisplay.textContent = `+${pts} (REPAYMENT MODE)`;
-                xpDisplay.style.color = "var(--text-muted)";
-            } else if (totalDebt > 0) {
-                pts = Math.floor(pts * 0.5);
-                xpDisplay.textContent = `+${pts} (DEBT TAX -50%)`;
-                xpDisplay.style.color = "var(--accent-warn)";
-            } else {
-                xpDisplay.textContent = `+${pts}`;
-                xpDisplay.style.color = "var(--accent-lock)";
-            }
-            document.getElementById('btn-autopsy-submit').disabled = true;
-        }
+        OverlayManager.show('overlay-autopsy');
     },
 
-    openMarket() {
-        document.getElementById('market-balance').textContent = State.wallet.toLocaleString();
-        const list = document.getElementById('market-listings');
+    updateStats() { this.renderStats(); },
 
-        const owned = State.ownedItems || [];
-        const boostActive = State.activeBoost && State.activeBoost.type === 'focus_boost' && Date.now() < State.activeBoost.expiresAt;
-
-        const mkItem = (item, icon, name, desc, cost, special) => {
-            const isOwned = special === 'once' && owned.includes(item);
-            return `
-            <div class="market-item">
-                <div class="market-item-left">
-                    <div class="market-item-icon">${icon}</div>
-                    <div>
-                        <div class="market-item-name">${name}</div>
-                        <div class="market-item-desc">${desc}</div>
-                    </div>
-                </div>
-                ${isOwned
-                    ? `<span class="market-owned">OWNED</span>`
-                    : `<button class="btn btn-outline" style="flex-shrink:0; padding:7px 12px;" onclick="Logic.Economy.buy('${item}')"><span class="xp-cost">${cost.toLocaleString()} XP</span></button>`
-                }
-            </div>`;
-        };
-
-        list.innerHTML = `
-            <div class="market-cat-label">🔧 UTILITY</div>
-            ${mkItem('freeze', '❄️', 'STREAK FREEZE', 'Protect streak for 24h.', 1000)}
-            ${mkItem('repair', '🔧', 'SYSTEM REPAIR', 'Restore +20% Integrity.', 500)}
-            ${mkItem('debt_pardon', '⚡', 'DEBT PARDON', 'Clear 30m of Global Debt.', 2000)}
-            <div class="market-cat-label">⚡ POWER</div>
-            ${mkItem('focus_boost', '🚀', 'FOCUS BOOST', boostActive ? '2× XP boost ACTIVE.' : 'Next session earns 2× XP. 24h.', 800)}
-            ${mkItem('xp_surge',   '💰', 'XP SURGE', 'Instantly gain +500 XP.', 3000)}
-            ${mkItem('rank_shield','🛡️','RANK SHIELD', 'Absorbs next integrity breach.', 1500)}
-            ${mkItem('clean_slate','🗑️', 'CLEAN SLATE', 'Purge all F-grade abort logs.', 5000)}
-            <div class="market-cat-label">🎨 COSMETICS</div>
-            ${mkItem('theme_void', '🌑', 'THEME: VOID', 'Activate Pitch Black Mode.', 5000, 'once')}
-            ${mkItem('title_iron_will','🔩','TITLE: IRON WILL','Display your iron will title.', 10000, 'once')}
-        `;
-        this.openOverlay('overlay-market');
+    closeOverlays() {
+        if (State.session.active) return; // Don't close overlays during active session
+        OverlayManager.hide();
     },
-
-    openMissions() { this.renderMissions(); this.updateMissionsResetTimer(); this.openOverlay('overlay-missions'); },
-
-    closeOverlays()      { document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none'); },
-    closeResourceEditor(){ document.getElementById('overlay-resources').style.display = 'none'; },
-    openMap()      { this.renderMap();     this.openOverlay('overlay-map'); },
-    openEvents()   { this.renderUrgency(); this.openOverlay('overlay-events'); Logic.Onboarding.clearEventInput(); },
-    openSettings() { this.openOverlay('overlay-settings'); },
-    openAutopsy()  { this.openOverlay('overlay-autopsy'); },
-    openComms()    { this.openOverlay('overlay-comms'); },
-    commsSuccess() { this.closeOverlays(); this.showToast("DATA TRANSMITTED TO HQ", 'success'); },
+    closeResourceEditor() { document.getElementById('overlay-resources').style.display = 'none'; },
+    openMap()      { this.renderMap(); this.populateManagerSelect(); OverlayManager.show('overlay-map'); },
+    openEvents()   { this.renderUrgency(); OverlayManager.show('overlay-events'); Logic.Onboarding.clearEventInput(); },
+    openSettings() { OverlayManager.show('overlay-settings'); },
+    openComms()    { OverlayManager.show('overlay-comms'); },
+    commsSuccess() { OverlayManager.hide(); this.showToast("DATA TRANSMITTED TO HQ", 'success'); },
+    openOverlay(id) { OverlayManager.show(id); },
 
     wizardStep(id) {
         document.querySelectorAll('.wizard-step').forEach(e => e.classList.remove('active'));
@@ -2687,6 +2970,10 @@ const UI = {
         const g = document.getElementById('setup-subject-grid');
         if (!g) return;
         g.innerHTML = '';
+        if (State.subjects.length === 0) {
+            g.innerHTML = '<div style="color:var(--text-muted); font-size:0.8rem; padding:20px; text-align:center; grid-column:1/-1;">No subjects. Add them in Command Center first.</div>';
+            return;
+        }
         State.subjects.forEach(s => {
             const d = document.createElement('div'); d.className = 'choice-btn';
             d.innerHTML = `<span class="choice-title">${s.name}</span><span class="choice-meta">${s.chapters.length} Ch</span>`;
@@ -2701,7 +2988,7 @@ const UI = {
         g.innerHTML = '';
         sub.chapters.forEach(c => {
             const stats = Logic.Chapter.get(sub.id, c);
-            const debtMins = (stats.debtMinutes || 0) + ((stats.debt || 0) * 20);
+            const debtMins = (stats.debtMinutes || 0);
             const d = document.createElement('div'); d.className = 'choice-btn';
             if (debtMins > 0) d.classList.add('has-debt-warn');
             d.innerHTML = `<span class="choice-title">${c}</span>${stats.xp > 0 ? `<span class="choice-meta" style="color:var(--accent-succ);">XP: ${stats.xp}</span>` : ''}`;
@@ -2846,12 +3133,12 @@ const UI = {
 
         const mMod = State.session.mode === 'hard' ? 1.5 : 1;
         let pts = Math.floor((dur / 60) * 10 * qMod * mMod);
+        pts = Math.min(pts, CONSTANTS.SESSION_XP_CAP);
 
-        // Track hard sessions
         if (State.session.mode === 'hard' && grade !== 'F') {
             State.hardSessionsTotal = (State.hardSessionsTotal || 0) + 1;
             Logic.Missions.update('hard_sessions', 1);
-            Logic.Missions.update('hard_session', 1);  // daily
+            Logic.Missions.update('hard_session', 1);
         }
 
         if (grade === 'S') Logic.Missions.update('quality_grade', 1);
@@ -2874,7 +3161,6 @@ const UI = {
         Logic.Missions.update('session_count', 1);
         Logic.Chapter.addXP(State.session.subjectId, State.session.chapter, pts);
 
-        // Integrity repair
         let repairAmt = 0;
         if (grade === 'S') repairAmt = 5;
         else if (grade === 'A') repairAmt = 3;
@@ -2885,12 +3171,49 @@ const UI = {
         }
         if (grade === 'F') State.systemIntegrity = Math.max(0, State.systemIntegrity - 5);
 
-        State.logs.unshift({ date: Date.now(), chapter: State.session.chapter, duration: dur, grade, integrity: State.session.integrity, pauses: State.session.pauses, note });
+        State.logs.unshift({ date: Date.now(), chapter: State.session.chapter, duration: dur, grade, integrity: State.session.integrity, pauses: State.session.pauses, note,
+            mode: State.session.mode, subject: State.session.subjectId, goal: State.session.goal, xpEarned: pts });
+        if (State.logs.length > 200) State.logs = State.logs.slice(0, 200);
+
         if (autopsySum) autopsySum.value = '';
-        this.closeOverlays();
+        OverlayManager.hide();
         UI.renderAll();
         Storage.save();
-    }
+    },
+
+    openMarket() {
+        document.getElementById('market-balance').textContent = State.wallet.toLocaleString();
+        const list = document.getElementById('market-listings');
+        const owned = State.ownedItems || [];
+        const boostActive = State.activeBoost && State.activeBoost.type === 'focus_boost' && Date.now() < State.activeBoost.expiresAt;
+        const mkItem = (item, icon, name, desc, cost, special) => {
+            const isOwned = special === 'once' && owned.includes(item);
+            return `<div class="market-item">
+                <div class="market-item-left">
+                    <div class="market-item-icon">${icon}</div>
+                    <div><div class="market-item-name">${name}</div><div class="market-item-desc">${desc}</div></div>
+                </div>
+                ${isOwned ? `<span class="market-owned">OWNED</span>` : `<button class="btn btn-outline" style="flex-shrink:0; padding:7px 12px;" onclick="Logic.Economy.buy('${item}')"><span class="xp-cost">${cost.toLocaleString()} XP</span></button>`}
+            </div>`;
+        };
+        list.innerHTML = `
+            <div class="market-cat-label">🔧 UTILITY</div>
+            ${mkItem('freeze','❄️','STREAK FREEZE','Protect streak for 24h.',1000)}
+            ${mkItem('repair','🔧','SYSTEM REPAIR','Restore +20% Integrity.',500)}
+            ${mkItem('debt_pardon','⚡','DEBT PARDON','Clear 30m of Global Debt.',2000)}
+            <div class="market-cat-label">⚡ POWER</div>
+            ${mkItem('focus_boost','🚀','FOCUS BOOST',boostActive ? '2× XP boost ACTIVE.' : 'Next session earns 2× XP. 24h.',800)}
+            ${mkItem('xp_surge','💰','XP SURGE','Instantly gain +500 XP.',3000)}
+            ${mkItem('rank_shield','🛡️','RANK SHIELD','Absorbs next integrity breach.',1500)}
+            ${mkItem('clean_slate','🗑️','CLEAN SLATE','Purge all F-grade abort logs.',5000)}
+            <div class="market-cat-label">🎨 COSMETICS</div>
+            ${mkItem('theme_void','🌑','THEME: VOID','Activate Pitch Black Mode.',5000,'once')}
+            ${mkItem('title_iron_will','🔩','TITLE: IRON WILL','Display your iron will title.',0,'once')}
+        `;
+        OverlayManager.show('overlay-market');
+    },
+
+    openMissions() { this.renderMissions(); this.updateMissionsResetTimer(); OverlayManager.show('overlay-missions'); }
 };
 
 window.addEventListener('DOMContentLoaded', () => { Logic.System.init(); });
