@@ -1,43 +1,15 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RANKLOCK v12.1 | WAR ROOM</title>
+    <title>RANKLOCK v12.2 | WAR ROOM</title>
     <meta name="author" content="Ojas Kadam">
-    <meta name="description" content="RankLock v12.1 | Stability patch. 8 issues resolved: template literal syntax, debt calculation NaN, mobile 100dvh height, hard-mode visibility loophole, session lock deadlock, clean_slate implementation, schema content validation, quest scroll.">
-    <!-- 
-        RANKLOCK DISCIPLINE SYSTEM  v12.1
-        Architect: Ojas Kadam
-        
-        CHANGELOG  v12.0 — STABILITY PATCH:
-        1. TIMER RELIABILITY: Timestamp-based elapsed + visibilitychange drift correction on tab resume.
-        2. STATE CONSISTENCY: Double-call guards on abort/finish. _aborting/_finishing flags.
-        3. RACE CONDITIONS: Proper _sessionLocked mutex. Countdown interval ref stored & cleared.
-        4. FOCUS ENFORCEMENT: Hard mode now also penalizes via visibilitychange + window blur.
-        5. XP EXPLOIT MITIGATION: Schema validation clamps impossible values on load.
-        6. OVERLAY CONFLICTS: Priority-based OverlayManager. Critical overlays block lower priority.
-        7. MOBILE UX: visualViewport keyboard detection. 100dvh support. keyboard-open class hides nav.
-        8. MEMORY/LISTENER LEAKS: _bindKeys/_bindVisibility guarded to run only once. Countdown cleared.
-        9. CRASH FAILSAFE: Heartbeat (localStorage) written every 30s. Crash vs reload distinguished.
-        10. LOCALSTORAGE SCHEMA: _validateSchema() enforces types. Corrupt fields reset to defaults.
-        11. ANIMATION CONTROL: prefers-reduced-motion respected. reduce-animations auto after 45m.
-        12. AUDIT TRAIL: Logs now include mode, subject, goal, xpEarned fields. showLogDetails upgraded.
-
-        CHANGELOG  v12.1 — BUG-FIX PATCH:
-        1. SYNTAX FIX: Confirmed template literal in openMarket (title_iron_will mkItem) is closed correctly.
-        2. DEBT NaN: _validateSchema now migrates legacy debt→debtMinutes. getTotalMinutes no longer accumulates NaN.
-        3. MOBILE HEIGHT: body + #app-container use 100dvh with 100vh fallback; correct on address-bar resize.
-        4. HARD LOOPHOLE: _hiddenAt timestamp tracked on tab-hide; accumulated off-tab seconds instantly applied to breachSeconds on return.
-        5. LOCK DEADLOCK: Logic.Session.start() wrapped in try-finally; _sessionLocked always released even on error.
-        6. CLEAN SLATE: Economy.buy clean_slate correctly filters State.logs. (Already present; confirmed correct.)
-        7. SCHEMA CONTENT: _validateSchema now validates State.subjects array elements are proper {id,name,chapters} objects, not strings.
-        8. QUEST SCROLL: Long Quests panel in Missions overlay now scrolls instead of overflowing.
-    -->
+    <meta name="description" content="RankLock v12.2 | Stability patch. 8 issues resolved: template literal syntax, debt calculation NaN, mobile 100dvh height, hard-mode visibility loophole, session lock deadlock, clean_slate implementation, schema content validation, quest scroll.">
+    
     <style>
-        /* ============================================================
-           CSS ARCHITECTURE: RANKLOCK DESIGN LANGUAGE v10 (RDL-X)
-        ============================================================ */
+        
         :root {
             --bg-deep: #050508;
             --bg-surface: #0d0d14;
@@ -85,10 +57,8 @@
             --border-glow: rgba(168,85,247,0.2);
         }
 
-        /* --- Mobile Viewport / Keyboard Fix --- */
-        /* Use 100dvh (dynamic viewport height) with 100vh as fallback.
-           dvh accounts for the mobile browser address bar shrinking/expanding,
-           preventing bottom content cut-off on iOS/Android. */
+        
+        
         body { background-color: var(--bg-deep); color: var(--text-primary); font-family: var(--font-main); overflow: hidden; height: 100vh; height: 100dvh; width: 100vw; transition: background-color 0.5s; }
         .keyboard-open #main-layout { 
             padding-bottom: 0 !important; 
@@ -97,7 +67,7 @@
             display: none !important;
         }
 
-        /* --- Reduced Motion / Long-Session Mode --- */
+        
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
                 animation-duration: 0.01ms !important;
@@ -112,7 +82,6 @@
         body.reduce-animations .focus-bg-pulse { display: none !important; }
         body.reduce-animations .breach-title { animation: none !important; }
 
-
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         
         
@@ -126,10 +95,10 @@
         .tabular { font-variant-numeric: tabular-nums; }
         .hidden { display: none !important; }
 
-        /* --- Layout --- */
+        
         #app-container { display: flex; flex-direction: column; height: 100%; width: 100%; max-width: 1600px; margin: 0 auto; position: relative; }
 
-        /* --- Header (Glassmorphism) --- */
+        
         nav {
             height: 58px; padding: 0 16px;
             display: flex; align-items: center; justify-content: space-between;
@@ -153,7 +122,7 @@
         .stat-value.integrity-warn { color: var(--accent-warn); }
         .stat-value.integrity-crit { color: var(--accent-crit); animation: glitchText 0.5s infinite; }
 
-        /* Rank tier badge in nav */
+        
         .nav-rank-badge {
             display: flex; align-items: center; gap: 6px;
             background: var(--bg-elevated); border: 1px solid var(--border-ui);
@@ -173,12 +142,12 @@
         }
         .sidebar-toggle:hover { background: var(--bg-elevated); color: var(--text-primary); border-color: var(--text-muted); }
 
-        /* --- Main Content --- */
+        
         main { flex: 1; padding: 14px; display: grid; grid-template-columns: 310px 1fr; gap: 14px; overflow: hidden; transition: all 0.3s ease; }
         main.sidebar-collapsed { grid-template-columns: 0px 1fr; gap: 0; }
         main.sidebar-collapsed .sidebar { opacity: 0; pointer-events: none; }
 
-        /* --- Sidebar --- */
+        
         .sidebar { display: flex; flex-direction: column; gap: 12px; overflow-y: auto; padding-right: 2px; transition: opacity 0.2s; min-width: 310px; }
 
         .card {
@@ -195,7 +164,7 @@
         .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid var(--border-ui); padding-bottom: 8px; }
         .card-title { font-size: 0.72rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
 
-        /* RANK BOX - UPGRADED */
+        
         .rank-box { text-align: center; padding: 8px 0; }
         .rank-tier-icon { font-size: 2rem; margin-bottom: 4px; display: block; }
         .rank-value { font-size: 2.5rem; font-weight: 900; font-family: var(--font-mono); color: var(--accent-lock); line-height: 1; }
@@ -208,26 +177,26 @@
             border: 1px solid rgba(6,182,212,0.25); font-weight: 700;
         }
 
-        /* Rank tier milestones */
+        
         .rank-milestones { display: flex; justify-content: space-between; margin-top: 6px; }
         .rank-milestone-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border-ui); flex-shrink: 0; }
         .rank-milestone-dot.passed { background: var(--accent-lock); box-shadow: 0 0 4px var(--accent-lock); }
 
-        /* Rank action buttons */
+        
         .rank-actions { display: flex; gap: 6px; margin-top: 10px; }
         .rank-action-btn { flex: 1; font-size: 0.6rem; font-weight: 800; padding: 5px 6px; border-radius: var(--radius-sm); cursor: pointer; border: 1px solid var(--border-ui); background: var(--bg-elevated); color: var(--text-secondary); transition: 0.2s; letter-spacing: 0.04em; }
         .rank-action-btn:hover { border-color: var(--accent-lock); color: var(--accent-lock); background: rgba(6,182,212,0.06); }
 
         .architect-tag { text-align: center; font-size: 0.62rem; color: var(--text-muted); padding: 8px; opacity: 0.7; }
 
-        /* --- Central Stage --- */
+        
         .stage { display: flex; flex-direction: column; height: 100%; position: relative; }
         .focus-container {
             flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
             background: var(--bg-card); border: 1px solid var(--border-ui);
             border-radius: var(--radius-xl); position: relative; overflow: hidden; transition: border-color 0.5s, box-shadow 0.5s;
         }
-        .focus-container:has(#btn-init-session:not(.hidden)) { /* idle state glow */
+        .focus-container:has(#btn-init-session:not(.hidden)) { 
         }
 
         #timer-display { font-size: 9rem; font-weight: 800; font-family: var(--font-mono); z-index: 2; line-height: 1; color: var(--text-primary); text-shadow: 0 0 40px rgba(255,255,255,0.04); }
@@ -239,7 +208,7 @@
         .countdown-val { font-size: 8rem; font-weight: 900; color: var(--text-primary); animation: pulse 1s infinite; }
         .countdown-label { font-size: 1rem; color: var(--accent-lock); letter-spacing: 0.2em; text-transform: uppercase; margin-top: 10px; }
 
-        /* HARD FOCUS BLOCKER — MORE BRUTAL */
+        
         #hard-focus-blocker {
             position: fixed; inset: 0; background: #000;
             z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center;
@@ -263,7 +232,7 @@
 
         .controls { display: flex; gap: 14px; margin-top: 36px; z-index: 2; }
         
-        /* Buttons */
+        
         .btn { padding: 13px 28px; font-weight: 700; text-transform: uppercase; font-size: 0.82rem; border-radius: var(--radius-md); cursor: pointer; border: none; transition: all 0.18s; display: flex; align-items: center; justify-content: center; gap: 8px; letter-spacing: 0.04em; }
         .btn-primary { background: var(--accent-lock); color: var(--bg-deep); box-shadow: 0 4px 14px rgba(6,182,212,0.28); }
         .btn-primary:hover { filter: brightness(1.12); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(6,182,212,0.35); }
@@ -281,7 +250,7 @@
         .custom-time-input { background: var(--bg-deep); border: 1px solid var(--border-ui); color: var(--text-primary); border-radius: var(--radius-md); text-align: center; font-family: var(--font-mono); font-weight: 700; width: 100%; height: 100%; min-height: 52px; font-size: 1rem; transition: border-color 0.2s; }
         .custom-time-input:focus { border-color: var(--accent-lock); outline: none; }
 
-        /* --- Modals / Overlays --- */
+        
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); backdrop-filter: blur(10px); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px; }
         .modal { background: var(--bg-card); border: 1px solid var(--border-ui); border-radius: var(--radius-xl); width: 100%; max-width: 600px; padding: 28px; position: relative; box-shadow: 0 24px 60px rgba(0,0,0,0.6); animation: modalIn 0.25s ease; display: flex; flex-direction: column; max-height: 90vh; }
         .modal-body-scroll { flex: 1; overflow-y: auto; padding-right: 4px; }
@@ -299,7 +268,7 @@
         .close-btn { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; padding: 0 8px; line-height: 1; transition: 0.2s; }
         .close-btn:hover { color: var(--text-primary); }
 
-        /* Wizard */
+        
         .wizard-step { display: none; }
         .wizard-step.active { display: block; animation: fadeIn 0.25s; }
 
@@ -320,7 +289,7 @@
         
         .generated-goal-display { background: var(--bg-deep); padding: 11px; border: 1px dashed var(--border-ui); color: var(--accent-lock); font-family: var(--font-mono); font-size: 0.82rem; margin-bottom: 18px; border-radius: var(--radius-sm); text-align: center; }
 
-        /* Map Styles */
+        
         .map-layout { display: flex; height: 100%; }
         .map-sidebar { width: 250px; background: var(--bg-deep); border-right: 1px solid var(--border-ui); padding: 18px; display: flex; flex-direction: column; gap: 16px; }
         .map-content { flex: 1; padding: 18px; overflow-y: auto; background: var(--bg-card); }
@@ -337,7 +306,7 @@
         .log-item { background: var(--bg-elevated); padding: 9px 11px; border-radius: var(--radius-sm); border-left: 2px solid var(--border-ui); cursor: pointer; transition: 0.18s; color: var(--text-secondary); }
         .log-item:hover { background: #1d1d28; transform: translateX(2px); color: var(--text-primary); }
 
-        /* Grade Badges */
+        
         .grade-badge { font-family: var(--font-mono); font-weight: 900; font-size: 2rem; color: var(--text-primary); }
         .grade-S { color: var(--accent-gold); text-shadow: 0 0 14px rgba(255,215,0,0.4); }
         .grade-A { color: var(--accent-succ); text-shadow: 0 0 10px rgba(16,185,129,0.3); }
@@ -345,12 +314,12 @@
         .grade-C { color: var(--accent-warn); }
         .grade-F { color: var(--accent-crit); }
 
-        /* Tutorial */
+        
         .tut-slide { display: none; }
         .tut-slide.active { display: block; animation: fadeIn 0.3s; }
         .tut-img { width: 100%; height: 140px; background: var(--bg-elevated); border-radius: var(--radius-md); margin-bottom: 18px; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: var(--accent-lock); border: 1px dashed var(--border-ui); }
 
-        /* Onboarding */
+        
         .onboard-card { background: var(--bg-elevated); border: 1px solid var(--border-ui); border-radius: var(--radius-md); padding: 14px; margin-bottom: 14px; }
         .resource-tag { display: inline-block; padding: 7px 12px; border: 1px solid var(--border-ui); border-radius: 20px; font-size: 0.72rem; color: var(--text-secondary); margin: 3px; cursor: pointer; transition: 0.18s; background: var(--bg-deep); }
         .resource-tag.selected { background: var(--accent-lock); color: var(--bg-deep); border-color: var(--accent-lock); font-weight: 700; }
@@ -368,15 +337,13 @@
         .primary-badge-btn:hover { color: var(--text-primary); border-color: var(--text-secondary); }
         .primary-badge-btn.active { background: var(--accent-gold); color: black; border-color: var(--accent-gold); font-weight: 800; }
 
-        /* Toast */
+        
         #integrity-toast { position: fixed; bottom: 28px; right: 28px; background: var(--accent-crit); color: white; padding: 14px 20px; border-radius: var(--radius-md); font-weight: 800; font-size: 0.82rem; display: none; z-index: 10000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: slideUp 0.3s cubic-bezier(0.16,1,0.3,1); }
 
-        /* Integrity Ping */
+        
         #integrity-ping-box { position: absolute; width: 58px; height: 58px; background: rgba(6,182,212,0.15); border: 2px solid var(--accent-lock); border-radius: var(--radius-sm); z-index: 50; display: none; cursor: crosshair; box-shadow: 0 0 18px var(--accent-lock); animation: pingPulse 0.4s infinite; }
 
-        /* ========================
-           MISSIONS — OVERHAUL
-        ======================== */
+        
         .missions-tab-bar { display: flex; gap: 8px; margin-bottom: 18px; border-bottom: 1px solid var(--border-ui); padding-bottom: 12px; }
         .mission-tab-btn { background: none; border: none; color: var(--text-muted); font-size: 0.72rem; font-weight: 800; cursor: pointer; padding: 5px 12px; border-radius: 20px; letter-spacing: 0.05em; transition: 0.2s; }
         .mission-tab-btn.active { background: var(--bg-elevated); color: var(--text-primary); }
@@ -412,14 +379,12 @@
         .claim-btn { background: var(--accent-succ); color: #000; border: none; font-weight: 900; font-size: 0.62rem; padding: 6px 12px; border-radius: 20px; cursor: pointer; animation: pulse 2s infinite; flex-shrink: 0; letter-spacing: 0.05em; }
         .mission-done-check { color: var(--accent-succ); font-size: 1.1rem; flex-shrink: 0; }
 
-        /* Quest panel scroll — prevents overflow when many quests are present */
+        
         #mpanel-quests { max-height: 62vh; overflow-y: auto; padding-right: 4px; }
 
         .missions-reset-timer { text-align: center; font-size: 0.65rem; color: var(--text-muted); margin-bottom: 14px; font-family: var(--font-mono); background: var(--bg-elevated); padding: 6px; border-radius: var(--radius-sm); }
 
-        /* ========================
-           MARKET — OVERHAUL
-        ======================== */
+        
         .market-balance-bar {
             display: flex; align-items: center; justify-content: space-between;
             background: var(--bg-elevated); border-radius: var(--radius-md); padding: 12px 16px;
@@ -443,9 +408,7 @@
         .xp-cost { font-family: var(--font-mono); font-weight: 800; color: var(--accent-gold); font-size: 0.78rem; }
         .market-owned { font-size: 0.62rem; color: var(--accent-succ); font-weight: 700; padding: 4px 8px; border: 1px solid rgba(16,185,129,0.3); border-radius: 12px; }
 
-        /* ========================
-           EVENTS — OVERHAUL
-        ======================== */
+        
         .event-card {
             background: var(--bg-elevated); border: 1px solid var(--border-ui);
             border-radius: var(--radius-md); padding: 14px; margin-bottom: 10px;
@@ -480,30 +443,30 @@
         .urgency-high.event-card { border-left: 3px solid var(--accent-warn); }
         .urgency-med.event-card { border-left: 3px solid var(--accent-lock); }
 
-        /* Arsenal */
+        
         .arsenal-sidebar-grid { display: flex; flex-wrap: wrap; gap: 4px; }
         .arsenal-tag-small { font-size: 0.6rem; background: var(--bg-deep); border: 1px solid var(--border-ui); color: var(--text-secondary); padding: 3px 8px; border-radius: 10px; }
         .arsenal-hint { font-size: 0.58rem; color: var(--text-muted); margin-bottom: 7px; font-style: italic; }
 
-        /* Hard Focus Mode */
+        
         body.mode-hard-focus .focus-container { border-color: var(--accent-crit) !important; background: #060303 !important; box-shadow: inset 0 0 60px rgba(239,68,68,0.05); }
         body.mode-hard-focus #timer-display { color: var(--accent-crit) !important; text-shadow: 0 0 40px rgba(239,68,68,0.3) !important; }
         body.mode-hard-focus .sidebar, body.mode-hard-focus nav, body.mode-hard-focus .bottom-nav { opacity: 0 !important; pointer-events: none !important; transition: opacity 0.5s; }
         body.mode-hard-focus main { grid-template-columns: 1fr !important; }
         body.mode-hard-focus .sidebar { display: none !important; }
 
-        /* Inputs */
+        
         input, select, textarea { width: 100%; background: var(--bg-deep); border: 1px solid var(--border-ui); color: var(--text-primary); padding: 10px; border-radius: var(--radius-sm); margin-bottom: 10px; font-family: inherit; font-size: 0.88rem; }
         textarea:focus, input:focus, select:focus { outline: 1px solid var(--accent-lock); border-color: transparent; }
         input::placeholder { color: var(--text-muted); }
 
-        /* MOBILE BOTTOM NAV */
+        
         .bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; height: var(--mobile-nav-height); background: rgba(5,5,8,0.9); backdrop-filter: blur(10px); border-top: 1px solid var(--border-ui); z-index: 900; justify-content: space-around; align-items: center; padding-bottom: env(safe-area-inset-bottom); }
         .nav-tab { display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.62rem; font-weight: 700; background: none; border: none; width: 100%; height: 100%; transition: color 0.2s; }
         .nav-tab.active { color: var(--accent-lock); }
         .nav-tab svg { margin-bottom: 3px; }
 
-        /* Session active pulse on focus container */
+        
         .focus-container.session-active { border-color: rgba(6,182,212,0.3); box-shadow: 0 0 30px rgba(6,182,212,0.06); }
 
         @media (max-width: 1024px) {
@@ -536,11 +499,11 @@
 <body>
 
 <div id="app-container">
-    <!-- HEADER -->
+    
     <nav>
         <div class="nav-left">
             <button class="sidebar-toggle" onclick="UI.toggleSidebar()">☰</button>
-            <div class="nav-logo">RANKLOCK <span class="ver-badge"> v12.1</span></div>
+            <div class="nav-logo">RANKLOCK <span class="ver-badge"> v12.2</span></div>
             <div class="nav-rank-badge" id="nav-rank-badge">⬜ UNINITIATED</div>
         </div>
         <div class="nav-right">
@@ -560,10 +523,10 @@
     </nav>
 
     <main id="main-layout" class="sidebar-collapsed"> 
-        <!-- SIDEBAR -->
+        
         <aside class="sidebar" id="sidebar">
 
-            <!-- RANK CARD -->
+            
             <div class="card">
                 <div class="card-header">
                     <span class="card-title">System Rank</span>
@@ -587,7 +550,7 @@
                 </div>
             </div>
             
-            <!-- STATS CARD -->
+            
             <div class="card" id="desktop-map-card">
                 <div class="card-header"><span class="card-title">Operational Intel</span></div>
                 <div style="padding: 2px 0;">
@@ -606,7 +569,7 @@
                 </div>
             </div>
             
-            <!-- ARSENAL CARD -->
+            
             <div class="card" id="card-arsenal">
                 <div class="card-header">
                     <span class="card-title">Arsenal</span>
@@ -616,12 +579,12 @@
                 <div class="arsenal-sidebar-grid" id="arsenal-sidebar-display"></div>
             </div>
 
-            <!-- DESKTOP EVENTS BUTTON -->
+            
             <div class="card hidden" id="desktop-events-card">
                 <button class="btn btn-primary btn-block" onclick="UI.openEvents()">📅 MANAGE EVENTS</button>
             </div>
 
-            <!-- DEBTS CARD -->
+            
             <div class="card" style="flex:1; max-height: 280px;">
                 <div class="card-header">
                     <span class="card-title">Active Debts</span>
@@ -630,7 +593,7 @@
                 <div class="log-list" id="debt-list" style="overflow-y: auto;"></div>
             </div>
 
-            <!-- RECENT LOGS -->
+            
             <div class="card">
                 <div class="card-header"><span class="card-title">Recent Logs</span></div>
                 <div class="log-list" id="recent-logs-container"></div>
@@ -638,7 +601,7 @@
             <div class="architect-tag">DESIGNED BY OJAS KADAM</div>
         </aside>
 
-        <!-- STAGE -->
+        
         <section class="stage" id="stage">
             <div class="focus-container" id="focus-container-main">
                 <div class="focus-bg-pulse"></div>
@@ -670,7 +633,7 @@
         </section>
     </main>
     
-    <!-- MOBILE BOTTOM NAV -->
+    
     <div class="bottom-nav">
         <button class="nav-tab active" onclick="UI.switchMobileTab('ops')">
             <svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
@@ -691,7 +654,6 @@
     </div>
 </div>
 
-<!-- HARD FOCUS BLOCKER -->
 <div id="hard-focus-blocker">
     <div class="breach-title">⛔ BREACH DETECTED</div>
     <div class="breach-sub">EXIT FULLSCREEN DETECTED — TIMER HALTED — PENALTIES ACTIVE</div>
@@ -719,7 +681,6 @@
     <button class="btn btn-primary" onclick="Logic.Session.restoreFullscreen()">RESUME PROTOCOL — ENTER FULLSCREEN</button>
 </div>
 
-<!-- OVERLAY: SETUP WIZARD -->
 <div id="overlay-setup" class="overlay">
     <div class="modal">
         <div class="modal-header">
@@ -790,7 +751,6 @@
     </div>
 </div>
 
-<!-- OVERLAY: MAP -->
 <div id="overlay-map" class="overlay">
     <div class="modal modal-xl">
         <div class="map-layout">
@@ -813,7 +773,6 @@
     </div>
 </div>
 
-<!-- OVERLAY: EVENTS (TEMPORAL ENGINE) -->
 <div id="overlay-events" class="overlay">
     <div class="modal" style="max-width:650px;">
         <div class="modal-header">
@@ -837,7 +796,6 @@
     </div>
 </div>
 
-<!-- OVERLAY: MARKET -->
 <div id="overlay-market" class="overlay">
     <div class="modal" style="max-width:560px;">
         <div class="modal-header">
@@ -858,7 +816,6 @@
     </div>
 </div>
 
-<!-- OVERLAY: MISSIONS -->
 <div id="overlay-missions" class="overlay">
     <div class="modal" style="max-width:580px;">
         <div class="modal-header">
@@ -881,7 +838,6 @@
     </div>
 </div>
 
-<!-- OVERLAY: ONBOARDING -->
 <div id="overlay-onboarding" class="overlay" style="z-index:2200;">
     <div class="modal" style="max-width:600px;">
         <div class="tut-slide active" id="onboard-step-0">
@@ -911,7 +867,6 @@
     </div>
 </div>
 
-<!-- OVERLAY: COMMS -->
 <div id="overlay-comms" class="overlay">
     <div class="modal">
         <div class="modal-header">
@@ -941,7 +896,6 @@
     </div>
 </div>
 
-<!-- OVERLAY: AUTOPSY -->
 <div id="overlay-autopsy" class="overlay">
     <div class="modal">
         <div class="modal-header"><h2 class="modal-title">System Evaluation</h2></div>
@@ -974,7 +928,6 @@
     </div>
 </div>
 
-<!-- OVERLAY: LOG DETAILS -->
 <div id="overlay-log-details" class="overlay">
     <div class="modal">
         <div class="modal-header">
@@ -985,7 +938,6 @@
     </div>
 </div>
 
-<!-- OVERLAY: USERNAME -->
 <div id="overlay-username" class="overlay" style="z-index:2100; pointer-events:auto;">
     <div class="modal" style="max-width:440px; text-align:center;">
         <div class="modal-header" style="justify-content:center;">
@@ -997,7 +949,6 @@
     </div>
 </div>
 
-<!-- OVERLAY: TUTORIAL -->
 <div id="overlay-tutorial" class="overlay" style="z-index:2300;">
     <div class="modal" style="max-width:500px; text-align:center;">
         <div class="tut-slide active" id="tut-step-1">
@@ -1038,7 +989,6 @@
     </div>
 </div>
 
-<!-- SETTINGS -->
 <div id="overlay-settings" class="overlay">
     <div class="modal" style="max-width:400px; text-align:center;">
         <div class="modal-header" style="justify-content:center;"><h2 class="modal-title">System Settings</h2></div>
@@ -1060,7 +1010,6 @@
     </div>
 </div>
 
-<!-- RESOURCE EDITOR -->
 <div id="overlay-resources" class="overlay" style="z-index:2250;">
     <div class="modal">
         <div class="modal-header">
@@ -1081,10 +1030,10 @@
 window.submitted = false;
 
 const CONSTANTS = {
-    VERSION: 12.0,
+    VERSION: 12.2,
     SCHEMA_VERSION: 3,
-    APP_ID: "RANKLOCK_JEE_V12_0",
-    LEGACY_IDS: ["RANKLOCK_JEE_V11_0", "RANKLOCK_JEE_V10_0", "RANKLOCK_JEE_V9_8"],
+    APP_ID: "RANKLOCK_JEE_V12_2",
+    LEGACY_IDS: ["RANKLOCK_JEE_V12_0","RANKLOCK_JEE_V11_0","RANKLOCK_JEE_V10_0","RANKLOCK_JEE_V9_8"],
 
     RANKS: [
         { t: 0,     title: "UNINITIATED",  perk: "None",                 icon: "⬜" },
@@ -1200,7 +1149,7 @@ const Storage = {
         try {
             const snapshot = JSON.stringify(State);
             localStorage.setItem(CONSTANTS.APP_ID, snapshot);
-            // Heartbeat for crash detection
+            
             localStorage.setItem(CONSTANTS.APP_ID + '_hb', JSON.stringify({
                 ts: Date.now(),
                 active: State.session.active
@@ -1212,16 +1161,16 @@ const Storage = {
         if (raw) {
             try {
                 const loaded = JSON.parse(raw);
-                // Schema validation: ensure critical fields exist and are valid types
+                
                 this._validateSchema(loaded);
                 if (loaded.schemaVersion !== CONSTANTS.SCHEMA_VERSION) {
                     return this._migrate(loaded);
                 }
                 State = Object.assign(JSON.parse(JSON.stringify(DEFAULT_STATE)), loaded);
-                // Clamp impossible values (XP exploit mitigation)
-                State.totalXP      = Math.max(0, Math.floor(State.totalXP || 0));
-                State.wallet       = Math.max(0, Math.floor(State.wallet || 0));
-                State.dailyXP      = Math.max(0, Math.floor(State.dailyXP || 0));
+                
+                State.totalXP      = Math.min(9999999, Math.max(0, Math.floor(State.totalXP || 0)));
+                State.wallet       = Math.min(9999999, Math.max(0, Math.floor(State.wallet || 0)));
+                State.dailyXP      = Math.min(CONSTANTS.DAILY_XP_CAP * 3, Math.max(0, Math.floor(State.dailyXP || 0)));
                 State.systemIntegrity = Math.max(0, Math.min(100, State.systemIntegrity || 100));
                 State.rank = State.totalXP;
                 return true;
@@ -1239,19 +1188,19 @@ const Storage = {
         return false;
     },
     _validateSchema(obj) {
-        // Ensure required top-level fields are correct types; throw if critically corrupt
+        
         const requiredArrays = ['subjects','logs','quests','dailyMissions','ownedItems'];
         requiredArrays.forEach(k => {
             if (!Array.isArray(obj[k])) obj[k] = [];
         });
 
-        // Bug 7 fix — validate subjects array contents: each element must be a proper
-        // {id:string, name:string, chapters:string[]} object (not a bare string from old saves).
+        
+        
         obj.subjects = obj.subjects.filter(s => {
             if (!s || typeof s !== 'object') return false;
             if (typeof s.id !== 'string' || typeof s.name !== 'string') return false;
             if (!Array.isArray(s.chapters)) s.chapters = [];
-            // ensure every chapter entry is a string
+            
             s.chapters = s.chapters.filter(c => typeof c === 'string');
             return true;
         });
@@ -1260,17 +1209,17 @@ const Storage = {
         if (obj.chapterStats !== null && typeof obj.chapterStats !== 'object') obj.chapterStats = {};
         if (obj.userProfile !== null && typeof obj.userProfile !== 'object') obj.userProfile = { exams: [], resources: [] };
 
-        // Bug 2 fix — migrate legacy chapterStats.debt (breach counter, 1 unit = 20 min)
-        // into debtMinutes so all debt paths use a single canonical field.
+        
+        
         if (obj.chapterStats && typeof obj.chapterStats === 'object') {
             Object.keys(obj.chapterStats).forEach(k => {
                 const s = obj.chapterStats[k];
                 if (s && typeof s === 'object') {
                     if (typeof s.debt === 'number' && s.debt > 0) {
                         s.debtMinutes = (s.debtMinutes || 0) + (s.debt * 20);
-                        delete s.debt;         // remove legacy field once migrated
+                        delete s.debt;         
                     } else if ('debt' in s) {
-                        delete s.debt;         // clean up zero / invalid legacy field
+                        delete s.debt;         
                     }
                     if (typeof s.debtMinutes !== 'number') s.debtMinutes = 0;
                     if (typeof s.xp !== 'number') s.xp = 0;
@@ -1278,7 +1227,7 @@ const Storage = {
             });
         }
 
-        // Validate session sub-fields if session exists
+        
         if (obj.session && typeof obj.session === 'object') {
             obj.session.active    = !!obj.session.active;
             obj.session.paused    = !!obj.session.paused;
@@ -1290,10 +1239,10 @@ const Storage = {
     _migrate(old) {
         State = Object.assign(JSON.parse(JSON.stringify(DEFAULT_STATE)), {
             username: old.username || '',
-            totalXP: Math.max(0, Math.floor(old.totalXP || old.rank || 0)),
-            rank: Math.max(0, Math.floor(old.totalXP || old.rank || 0)),
-            wallet: Math.max(0, Math.floor(old.wallet || 0)),
-            dailyXP: Math.max(0, Math.floor(old.dailyXP || 0)),
+            totalXP: Math.min(9999999, Math.max(0, Math.floor(old.totalXP || old.rank || 0))),
+            rank: Math.min(9999999, Math.max(0, Math.floor(old.totalXP || old.rank || 0))),
+            wallet: Math.min(9999999, Math.max(0, Math.floor(old.wallet || 0))),
+            dailyXP: Math.min(CONSTANTS.DAILY_XP_CAP * 3, Math.max(0, Math.floor(old.dailyXP || 0))),
             dailySeconds: old.dailySeconds || 0,
             allTimeSeconds: old.allTimeSeconds || old.rank || 0,
             systemIntegrity: old.systemIntegrity !== undefined ? Math.max(0, Math.min(100, old.systemIntegrity)) : 100,
@@ -1313,7 +1262,7 @@ const Storage = {
             activeBoost: old.activeBoost || null,
             schemaVersion: CONSTANTS.SCHEMA_VERSION
         });
-        // Bug 2 fix — migrate legacy debt field in chapterStats for old save data
+        
         if (State.chapterStats && typeof State.chapterStats === 'object') {
             Object.keys(State.chapterStats).forEach(k => {
                 const s = State.chapterStats[k];
@@ -1327,7 +1276,7 @@ const Storage = {
                 }
             });
         }
-        // Bug 7 fix — strip any subjects that are bare strings (from pre-v10 saves)
+        
         State.subjects = State.subjects.filter(s => {
             if (!s || typeof s !== 'object') return false;
             if (typeof s.id !== 'string' || typeof s.name !== 'string') return false;
@@ -1360,7 +1309,7 @@ const OverlayManager = {
     },
     show(id) {
         if (this._active === id) return;
-        // If a higher-priority overlay is active, don't override it
+        
         const incomingPriority = this._PRIORITY[id] || 1;
         const activePriority   = this._active ? (this._PRIORITY[this._active] || 1) : 0;
         if (this._active && activePriority > incomingPriority) return;
@@ -1369,7 +1318,7 @@ const OverlayManager = {
         if (el) { el.style.display = 'flex'; this._active = id; }
     },
     hide(id) {
-        // If id specified, only hide if that overlay is active
+        
         if (id && this._active !== id) return;
         document.querySelectorAll('.overlay').forEach(o => { o.style.display = 'none'; });
         this._active = null;
@@ -1423,10 +1372,13 @@ const Logic = {
             setInterval(() => UI.updateMissionsResetTimer(), 60000);
             UI.updateMissionsResetTimer();
 
-            // Fix 7: Mobile keyboard viewport handler
+            
             if (window.visualViewport) {
+                let _maxVPHeight = window.visualViewport.height;
                 window.visualViewport.addEventListener('resize', () => {
-                    const isKeyboardOpen = window.visualViewport.height < window.innerHeight * 0.75;
+                    _maxVPHeight = Math.max(_maxVPHeight, window.visualViewport.height);
+                    const heightDrop = _maxVPHeight - window.visualViewport.height;
+                    const isKeyboardOpen = heightDrop > 150;
                     document.body.classList.toggle('keyboard-open', isKeyboardOpen);
                 });
             }
@@ -1483,34 +1435,36 @@ const Logic = {
                 if (!State.session.active || State.session.paused) return;
                 if (document.hidden) {
                     if (State.session.mode === 'hard') {
-                        // Hard mode: record exact moment tab was hidden.
-                        // The tick loop checks document.hidden every second, but mobile/desktop
-                        // browsers can throttle timers in background tabs, so we cannot rely
-                        // solely on tick frequency. Storing the timestamp lets us reconstruct
-                        // the full off-tab duration the instant the user returns.
+                        
+                        
+                        
+                        
+                        
                         Logic.Session._hardBreachFromVisibility = true;
                         Logic.Session._hiddenAt = Date.now();
                     } else {
                         Logic.Session.breach("TAB SWITCH");
                     }
                 } else {
-                    // Tab became visible again — recalculate elapsed to handle sleep drift
+                    
                     if (State.session.active && !State.session.paused) {
                         const elapsed = Math.floor((Date.now() - State.session.startTs - State.session.pausedMs) / 1000);
                         State.session.remaining = Math.max(0, State.session.total - elapsed);
                         if (State.session.remaining <= 0) { Logic.Session.finish(); return; }
                         UI.updateTimer();
                     }
-                    // Bug 4 fix — if returning from a hard-mode tab-hide, immediately
-                    // apply the full off-tab duration to breachSeconds so the penalty is
-                    // proportional to time away, not just the ticks that may have fired.
+                    
+                    
+                    
                     if (State.session.mode === 'hard' && Logic.Session._hiddenAt) {
                         const offTabSecs = Math.floor((Date.now() - Logic.Session._hiddenAt) / 1000);
-                        if (offTabSecs > breachSeconds) {
+                        const SLEEP_THRESHOLD = 120;
+                        if (offTabSecs > SLEEP_THRESHOLD) {
+                            breachSeconds = Math.max(breachSeconds, CONSTANTS.HARD_FORCE_ABORT_SECS - 10);
+                        } else if (offTabSecs > breachSeconds) {
                             breachSeconds = offTabSecs;
                         }
                         Logic.Session._hiddenAt = null;
-                        // If already past the force-abort threshold, abort immediately
                         if (breachSeconds >= CONSTANTS.HARD_FORCE_ABORT_SECS) {
                             Logic.Session.abort("FORCE ABORT: EXTENDED OFF-TAB BREACH");
                             return;
@@ -1521,7 +1475,7 @@ const Logic = {
             };
             document.addEventListener('visibilitychange', this._boundVisFn);
 
-            // Also handle window blur/focus for extra coverage (mobile, alt-tab)
+            
             window.addEventListener('blur', () => {
                 if (!State.session.active || State.session.paused) return;
                 if (State.session.mode === 'normal') Logic.Session.breach("WINDOW LOST FOCUS");
@@ -1547,15 +1501,15 @@ const Logic = {
 
         checkIntegrityOnLoad() {
             if (State.session.active) {
-                // Check heartbeat for more intelligent crash detection
+                
                 let crashedMidSession = true;
                 try {
                     const hbRaw = localStorage.getItem(CONSTANTS.APP_ID + '_hb');
                     if (hbRaw) {
                         const hb = JSON.parse(hbRaw);
                         const elapsed = Date.now() - hb.ts;
-                        // If heartbeat was recent (< 10s) and session was active, it's a fresh reload not a crash
-                        if (elapsed < 10000 && hb.active) crashedMidSession = false;
+                        
+                        if (elapsed < 35000 && hb.active) crashedMidSession = false;
                     }
                 } catch(e) {}
 
@@ -1571,7 +1525,7 @@ const Logic = {
                     Storage.save();
                     alert("CRITICAL FAILURE DETECTED.\nSession terminated abnormally.\nPenalty: -15% Integrity\nStreak: RESET");
                 } else {
-                    // Fresh reload during active session - restore gracefully
+                    
                     State.session.active = false;
                     Storage.save();
                 }
@@ -1593,12 +1547,30 @@ const Logic = {
             reader.onload = (e) => {
                 try {
                     const data = JSON.parse(e.target.result);
-                    if (data.rank !== undefined || data.totalXP !== undefined) {
-                        Storage._migrate(data);
-                        Storage.save();
-                        alert("System Restoration Successful.");
-                        location.reload();
-                    } else { alert("Corrupt Data Signature."); }
+                    if (typeof data !== 'object' || data === null) { alert("Invalid data format."); return; }
+                    if (data.rank === undefined && data.totalXP === undefined) { alert("Corrupt Data Signature."); return; }
+                    if (!Array.isArray(data.logs)) data.logs = [];
+                    if (!Array.isArray(data.subjects)) data.subjects = [];
+                    if (!Array.isArray(data.quests)) data.quests = [];
+                    if (!Array.isArray(data.dailyMissions)) data.dailyMissions = [];
+                    if (!Array.isArray(data.ownedItems)) data.ownedItems = [];
+                    data.logs = data.logs.filter(l => l && typeof l === 'object' && typeof l.date === 'number').slice(0, 200);
+                    data.subjects = data.subjects.filter(s => s && typeof s === 'object' && typeof s.id === 'string' && typeof s.name === 'string');
+                    data.subjects.forEach(s => { if (!Array.isArray(s.chapters)) s.chapters = []; s.chapters = s.chapters.filter(c => typeof c === 'string'); });
+                    if (data.chapterStats && typeof data.chapterStats === 'object') {
+                        Object.keys(data.chapterStats).forEach(k => {
+                            const cs = data.chapterStats[k];
+                            if (!cs || typeof cs !== 'object') { delete data.chapterStats[k]; return; }
+                            if (typeof cs.xp !== 'number') cs.xp = 0;
+                            if (typeof cs.debtMinutes !== 'number') cs.debtMinutes = 0;
+                            cs.xp = Math.min(9999999, Math.max(0, cs.xp));
+                            cs.debtMinutes = Math.min(99999, Math.max(0, cs.debtMinutes));
+                        });
+                    }
+                    Storage._migrate(data);
+                    Storage.save();
+                    alert("System Restoration Successful.");
+                    location.reload();
                 } catch(err) { alert("Parse Error."); }
             };
             reader.readAsText(file);
@@ -1686,7 +1658,10 @@ const Logic = {
             if (State.quests.length < CONSTANTS.QUEST_TEMPLATES.length) {
                 CONSTANTS.QUEST_TEMPLATES.forEach(t => {
                     if (!State.quests.find(q => q.id === t.id)) {
-                        State.quests.push({ ...t, current: 0, claimed: false });
+                        const baseline = t.type === 'xp'           ? State.totalXP          :
+                                         t.type === 'time'          ? State.allTimeSeconds   :
+                                         t.type === 'hard_sessions' ? State.hardSessionsTotal : 0;
+                        State.quests.push({ ...t, current: 0, claimed: false, baseline });
                     }
                 });
             }
@@ -1702,9 +1677,10 @@ const Logic = {
             });
             State.quests.forEach(q => {
                 if (!q.claimed) {
-                    if (q.type === 'xp') q.current = Math.min(q.target, State.totalXP);
-                    if (q.type === 'time') q.current = Math.min(q.target, State.allTimeSeconds);
-                    if (q.type === 'hard_sessions') q.current = Math.min(q.target, State.hardSessionsTotal);
+                    const base = q.baseline || 0;
+                    if (q.type === 'xp') q.current = Math.min(q.target, Math.max(0, State.totalXP - base));
+                    if (q.type === 'time') q.current = Math.min(q.target, Math.max(0, State.allTimeSeconds - base));
+                    if (q.type === 'hard_sessions') q.current = Math.min(q.target, Math.max(0, State.hardSessionsTotal - base));
                     if (q.type === 'repay' && type === 'repay') q.current = Math.min(q.target, q.current + value);
                     updated = true;
                 }
@@ -1749,13 +1725,13 @@ const Logic = {
                 UI.showToast("ACTIVE DEBT TAX: -50%");
             }
             let actual = Math.floor(amount * multiplier);
-            if (State.dailyXP >= CONSTANTS.DAILY_XP_CAP && reason !== 'MISSION REWARD') {
+            if (State.dailyXP >= CONSTANTS.DAILY_XP_CAP) {
                 actual = Math.floor(actual * 0.1);
                 UI.showToast("DAILY CAP REACHED. 90% TAX.");
             }
             State.dailyXP += actual;
-            State.totalXP += actual;
-            State.wallet += actual;
+            State.totalXP = Math.min(9999999, State.totalXP + actual);
+            State.wallet  = Math.min(9999999, State.wallet + actual);
             State.rank = State.totalXP;
             Logic.Missions.update('xp_gain', actual);
             UI.renderStats();
@@ -1858,8 +1834,8 @@ const Logic = {
             let total = 0;
             if (!State.chapterStats) return 0;
             Object.values(State.chapterStats).forEach(s => {
-                // debt field is fully migrated to debtMinutes by _validateSchema / _migrate.
-                // Use only debtMinutes to avoid any NaN from legacy data.
+                
+                
                 total += (s.debtMinutes || 0);
             });
             return total;
@@ -2056,7 +2032,6 @@ const Logic = {
             if (mode === 'hard' && !confirm("⚠ BLOOD PACT WARNING ⚠\n\nHard Focus V3 is BRUTAL:\n• -10 XP every 10s breach\n• Force abort at 30s breach\n• 2× debt on hard abort\n• 3s ping window\n\nYou have been warned. Proceed?")) return;
 
             this._startDebounce = true;
-            this._sessionLocked = true;  // locked until session actually starts
 
             OverlayManager.forceHide();
             if (mode === 'hard') document.documentElement.requestFullscreen().catch(() => {});
@@ -2081,7 +2056,8 @@ const Logic = {
         },
 
         start(subId, ch, mode, durMins, goal) {
-            if (State.session.active) { this._sessionLocked = false; return; }
+            if (State.session.active) { return; }
+            this._sessionLocked = true;
             try {
                 breachSeconds = 0;
                 this._hardBreachFromVisibility = false;
@@ -2101,7 +2077,7 @@ const Logic = {
                 UI.switchMobileTab('ops');
                 UI.updateSessionView();
                 Storage.save();
-                // Enable reduce-animations after 45+ min sessions
+                
                 if (durMins >= 45) {
                     setTimeout(() => {
                         if (State.session.active) document.body.classList.add('reduce-animations');
@@ -2109,15 +2085,15 @@ const Logic = {
                 }
                 if (durMins >= 20) this.schedulePing(durMins);
             } catch(err) {
-                // If anything throws during session initialisation, reset the session to a
-                // safe idle state and release the mutex so the user can try again without
-                // needing a page refresh.
+                
+                
+                
                 console.error('[RankLock] Session start failed:', err);
                 State.session.active = false;
                 document.body.classList.remove('mode-hard-focus');
                 UI.showToast("SESSION START ERROR — PLEASE RETRY");
             } finally {
-                // Always release the lock, regardless of success or failure.
+                
                 this._sessionLocked = false;
             }
         },
@@ -2129,9 +2105,9 @@ const Logic = {
         tick() {
             if (!State.session.active) return;
 
-            // Save heartbeat periodically (every ~30s) for crash detection
+            
             const now = Date.now();
-            if (!this._lastHbSave || now - this._lastHbSave > 30000) {
+            if (!this._lastHbSave || now - this._lastHbSave > 5000) {
                 this._lastHbSave = now;
                 try {
                     localStorage.setItem(CONSTANTS.APP_ID + '_hb', JSON.stringify({ ts: now, active: true }));
@@ -2139,7 +2115,7 @@ const Logic = {
             }
 
             if (State.session.mode === 'hard') {
-                // Visibility breach: if tab hidden and hard mode, treat as fullscreen exit
+                
                 if (document.hidden || this._hardBreachFromVisibility) {
                     this.handleBreachTick();
                     return;
@@ -2161,7 +2137,7 @@ const Logic = {
             if (State.session.paused) {
                 const pausedDuration = Date.now() - State.session.pauseTs;
                 if (pausedDuration > 120000) {
-                    // Penalize excessive pausing — every 5s tick
+                    
                     if (Math.floor(pausedDuration / 1000) % 5 === 0) {
                         State.session.integrity = Math.max(0, State.session.integrity - 1);
                         UI.updateSessionView();
@@ -2170,7 +2146,7 @@ const Logic = {
                 return;
             }
 
-            // Timestamp-based elapsed calculation (immune to sleep/tab drift)
+            
             const elapsed = Math.floor((Date.now() - State.session.startTs - State.session.pausedMs) / 1000);
             const remaining = Math.max(0, State.session.total - elapsed);
             State.session.remaining = remaining;
@@ -2178,7 +2154,7 @@ const Logic = {
             if (remaining <= 0) { this.finish(); return; }
             UI.updateTimer();
 
-            // Auto-save state every 15s during session for crash recovery
+            
             if (elapsed % 15 === 0) Storage.save();
         },
 
@@ -2297,7 +2273,7 @@ const Logic = {
             const fc = document.getElementById('focus-container-main');
             if (fc) fc.classList.remove('session-active');
             breachSeconds = 0;
-            // Clear the active-session heartbeat
+            
             try {
                 localStorage.setItem(CONSTANTS.APP_ID + '_hb', JSON.stringify({ ts: Date.now(), active: false }));
             } catch(e) {}
@@ -2305,7 +2281,7 @@ const Logic = {
 
         abort(reason) {
             if (!State.session.active) return;
-            if (this._aborting) return;  // prevent double-abort race
+            if (this._aborting) return;  
             this._aborting = true;
             const r = reason || "MANUAL ABORT";
             const timeSpent = State.session.total - State.session.remaining;
@@ -2942,7 +2918,7 @@ const UI = {
     updateStats() { this.renderStats(); },
 
     closeOverlays() {
-        if (State.session.active) return; // Don't close overlays during active session
+        if (State.session.active) return; 
         OverlayManager.hide();
     },
     closeResourceEditor() { document.getElementById('overlay-resources').style.display = 'none'; },
@@ -3144,9 +3120,10 @@ const UI = {
         if (grade === 'S') Logic.Missions.update('quality_grade', 1);
         if (State.session.integrity >= 100) Logic.Missions.update('clean_session', 1);
 
-        if (State.session.mode === 'debt' && (grade === 'A' || grade === 'S')) {
+        if (State.session.mode === 'debt') {
             Logic.Debt.repay(State.session.subjectId, State.session.chapter, durMins);
-            pts = Math.floor(pts * 0.1);
+            const debtEarnPct = grade === 'S' ? 0.15 : grade === 'A' ? 0.10 : grade === 'B' ? 0.05 : 0;
+            if (debtEarnPct > 0) Logic.Economy.earn(Math.floor(pts * debtEarnPct), 'DEBT REPAY');
         } else {
             if (this.autopsy.mistake) {
                 Logic.Debt.add(State.session.subjectId, State.session.chapter, 15);
