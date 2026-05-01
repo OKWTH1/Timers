@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RANKLOCK v12.2 | WAR ROOM</title>
+    <title>RANKLOCK v12.3 | WAR ROOM</title>
     <meta name="author" content="Ojas Kadam">
-    <meta name="description" content="RankLock v12.2 | Stability patch. 8 issues resolved: template literal syntax, debt calculation NaN, mobile 100dvh height, hard-mode visibility loophole, session lock deadlock, clean_slate implementation, schema content validation, quest scroll.">
+    <meta name="description" content="RankLock v12.3 | Bug fix: normal-mode timer no longer collapses sidebar on PC. Major mobile/tablet SaaS-grade UI overhaul.">
     
     <style>
         
@@ -229,6 +229,21 @@
 
         .session-integrity-badge { position: absolute; top: 16px; right: 16px; background: rgba(24,24,34,0.8); backdrop-filter: blur(8px); padding: 6px 14px; border-radius: var(--radius-lg); font-weight: 700; border: 1px solid var(--border-ui); display: none; }
         .session-integrity-badge.active { display: block; animation: fadeIn 0.5s; }
+        /* Mobile-only elements hidden on PC */
+        #mobile-ops-screen, #mobile-session-bar, .mob-stats-strip, #mobile-ring-wrap,
+        #mobile-ring-svg, #mobile-timer-inner, #mobile-session-meta-card,
+        #mobile-active-controls, #mobile-mode-label { display: none; }
+        /* On mobile (≤1024), override: show mobile ops screen, hide PC focus-container */
+        @media (max-width: 1024px) {
+            #mobile-ops-screen  { display: flex; flex-direction: column; height: 100%; }
+            #mobile-ring-wrap   { display: flex; }
+            #mobile-timer-inner { display: flex; }
+            #mobile-session-meta-card { display: flex; }
+            #mobile-active-controls.hidden { display: none !important; }
+            #mobile-active-controls:not(.hidden) { display: flex; }
+            .mob-stats-strip    { display: flex; }
+            #mobile-mode-label  { display: block; }
+        }
 
         .controls { display: flex; gap: 14px; margin-top: 36px; z-index: 2; }
         
@@ -469,30 +484,547 @@
         
         .focus-container.session-active { border-color: rgba(6,182,212,0.3); box-shadow: 0 0 30px rgba(6,182,212,0.06); }
 
+        /* ═══════════════════════════════════════════════════════════
+           MOBILE & TABLET  (≤ 1024px)  —  RANKLOCK v12.3
+           Completely distinct from PC layout.
+           ═══════════════════════════════════════════════════════════ */
         @media (max-width: 1024px) {
+
+            /* ─── Layout Foundation ─── */
             body { overflow: hidden; }
-            #app-container { height: calc(100vh - var(--mobile-nav-height)); height: calc(100dvh - var(--mobile-nav-height)); }
-            main, main.sidebar-collapsed { grid-template-columns: 1fr !important; gap: 0; padding: 10px; height: 100%; overflow-y: auto; }
+            #app-container {
+                height: calc(100vh - var(--mobile-nav-height));
+                height: calc(100dvh - var(--mobile-nav-height));
+            }
+            main, main.sidebar-collapsed {
+                grid-template-columns: 1fr !important;
+                gap: 0; padding: 0;
+                height: 100%;
+                overflow: hidden;
+            }
+
+            /* ─── Top Nav ─── */
             .sidebar-toggle { display: none; }
-            nav { padding: 0 12px; }
-            .nav-logo { font-size: 0.95rem; }
+            nav {
+                height: 52px;
+                padding: 0 16px;
+                background: rgba(5,5,8,0.96);
+                backdrop-filter: blur(16px);
+                -webkit-backdrop-filter: blur(16px);
+            }
+            .nav-logo { font-size: 0.85rem; letter-spacing: 0.05em; gap: 8px; }
+            .nav-logo .ver-badge { font-size: 0.5rem; }
             .nav-rank-badge { display: none; }
-            .bottom-nav { display: flex; }
-            .sidebar { display: none; min-width: 100%; padding: 0; margin-bottom: 80px; border: none; opacity: 1 !important; pointer-events: auto !important; }
-            .stage { display: none; height: 100%; }
-            .mobile-tab-active { display: flex !important; animation: fadeIn 0.2s; }
-            #timer-display { font-size: 20vw; }
-            .controls { flex-direction: column; width: 100%; gap: 10px; }
-            .controls .btn { width: 100%; height: 54px; font-size: 0.95rem; }
-            .modal { padding: 18px; max-height: 95vh; width: 95%; }
+            .stat-item { margin-right: 2px; }
+            .stat-item .stat-label { font-size: 0.5rem; }
+            .stat-item .stat-value { font-size: 0.75rem; }
+            .icon-btn { padding: 5px; }
+
+            /* ─── Panel Switching ─── */
+            .sidebar {
+                display: none;
+                flex-direction: column;
+                min-width: 100%;
+                width: 100%;
+                height: 100%;
+                padding: 0;
+                margin: 0;
+                border: none;
+                background: var(--bg-deep);
+                overflow-y: auto;
+                opacity: 1 !important;
+                pointer-events: auto !important;
+                gap: 0;
+                scrollbar-width: thin;
+            }
+            .stage {
+                display: none;
+                flex-direction: column;
+                height: 100%;
+                width: 100%;
+                background: var(--bg-deep);
+                overflow: hidden;
+            }
+            .mobile-tab-active { display: flex !important; animation: fadeIn 0.18s ease; }
+
+            /* PC focus container — hidden on mobile */
+            .focus-container { display: none !important; }
+
+            /* ─────────────────────────────────────────
+               OPS SCREEN — Ring Timer
+            ───────────────────────────────────────── */
+            #mobile-ops-screen {
+                display: flex;
+                flex-direction: column;
+                height: 100%;
+                background: var(--bg-deep);
+            }
+
+            /* Ring area */
+            #mobile-ring-wrap {
+                flex: 1;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+                padding: 20px;
+                min-height: 0;
+            }
+            #mobile-ring-svg {
+                width: min(72vw, 280px);
+                height: min(72vw, 280px);
+                transform: rotate(-90deg);
+                overflow: visible;
+            }
+            #mobile-ring-track {
+                fill: none;
+                stroke: var(--bg-elevated);
+                stroke-width: 5;
+            }
+            #mobile-ring-fill {
+                fill: none;
+                stroke: var(--accent-lock);
+                stroke-width: 5;
+                stroke-linecap: round;
+                transition: stroke-dashoffset 1s linear, stroke 0.4s;
+                filter: drop-shadow(0 0 8px var(--accent-lock));
+                stroke-dasharray: 282.74;
+                stroke-dashoffset: 282.74;
+            }
+            body.mode-hard-focus #mobile-ring-fill {
+                stroke: var(--accent-crit);
+                filter: drop-shadow(0 0 12px var(--accent-crit));
+            }
+
+            /* Timer digits inside ring */
+            #mobile-timer-inner {
+                position: absolute;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+                pointer-events: none;
+            }
+            #timer-display {
+                font-size: min(16vw, 60px) !important;
+                font-weight: 900 !important;
+                font-family: var(--font-mono) !important;
+                letter-spacing: -0.03em;
+                line-height: 1;
+                color: var(--text-primary);
+            }
+            body.mode-hard-focus #timer-display { color: var(--accent-crit) !important; }
+            #mobile-mode-label {
+                font-size: 0.6rem;
+                font-weight: 800;
+                letter-spacing: 0.1em;
+                color: var(--text-muted);
+                text-transform: uppercase;
+                font-family: var(--font-mono);
+            }
+
+            /* Session meta card */
+            #mobile-session-meta-card {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 10px 18px;
+                background: var(--bg-card);
+                border-top: 1px solid var(--border-ui);
+                border-bottom: 1px solid var(--border-ui);
+                min-height: 60px;
+                gap: 10px;
+            }
+            #mobile-session-meta-card .session-context {
+                text-align: left;
+                margin: 0;
+                flex: 1;
+                min-width: 0;
+            }
+            #mobile-session-meta-card .context-subject {
+                font-size: 0.88rem;
+                font-weight: 800;
+                color: var(--accent-lock);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            #mobile-session-meta-card .context-chapter {
+                font-size: 0.72rem;
+                color: var(--text-secondary);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            #mobile-session-meta-card .context-goal {
+                font-size: 0.62rem;
+                color: var(--text-muted);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                border-top: none;
+                padding-top: 2px;
+                display: block;
+            }
+            /* Integrity badge inside meta card */
+            .session-integrity-badge {
+                position: static !important;
+                display: none;
+                flex-direction: column;
+                align-items: center;
+                background: rgba(16,185,129,0.08);
+                border: 1px solid rgba(16,185,129,0.25);
+                border-radius: var(--radius-md);
+                padding: 6px 12px;
+                flex-shrink: 0;
+                backdrop-filter: none;
+            }
+            .session-integrity-badge.active {
+                display: flex !important;
+            }
+            #mob-badge-label {
+                font-size: 0.5rem;
+                color: var(--text-muted);
+                font-weight: 700;
+                letter-spacing: 0.06em;
+                text-transform: uppercase;
+            }
+            #session-integrity-val {
+                font-size: 1rem;
+                font-weight: 900;
+                font-family: var(--font-mono);
+                color: var(--accent-succ);
+                line-height: 1.1;
+            }
+
+            /* Controls dock */
+            #session-controls {
+                flex-direction: column;
+                gap: 10px;
+                padding: 14px 16px;
+                background: var(--bg-card);
+                border-top: 1px solid var(--border-ui);
+                margin: 0;
+            }
+            #session-controls .btn {
+                width: 100%;
+                height: 54px;
+                font-size: 0.88rem;
+                border-radius: var(--radius-lg);
+            }
+            #btn-init-session {
+                background: linear-gradient(135deg, var(--accent-lock) 0%, #1d6fa8 100%) !important;
+                color: #000 !important;
+                font-weight: 900 !important;
+                font-size: 1rem !important;
+                letter-spacing: 0.06em;
+                box-shadow: 0 4px 20px rgba(6,182,212,0.3), 0 1px 0 rgba(255,255,255,0.08) inset !important;
+                border: none !important;
+            }
+            #mobile-active-controls {
+                display: flex;
+                gap: 10px;
+                width: 100%;
+            }
+            #mobile-active-controls .btn {
+                flex: 1;
+            }
+            #btn-pause-session {
+                background: rgba(6,182,212,0.08) !important;
+                border: 1px solid rgba(6,182,212,0.3) !important;
+                color: var(--accent-lock) !important;
+            }
+            #btn-emergency-exit {
+                flex: 0.6 !important;
+            }
+
+            /* ─────────────────────────────────────────
+               INTEL SCREEN — Sidebar Cards
+            ───────────────────────────────────────── */
+
+            /* Active session banner at top of INTEL */
+            #mobile-session-bar {
+                display: none;
+                align-items: center;
+                justify-content: space-between;
+                padding: 10px 16px;
+                background: rgba(6,182,212,0.06);
+                border-bottom: 1px solid rgba(6,182,212,0.18);
+                position: sticky;
+                top: 0;
+                z-index: 50;
+                cursor: pointer;
+                transition: background 0.2s;
+                gap: 10px;
+            }
+            #mobile-session-bar:active { background: rgba(6,182,212,0.12); }
+            #mobile-session-bar.visible { display: flex; }
+            .msb-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+            .msb-dot {
+                width: 8px; height: 8px; border-radius: 50%;
+                background: var(--accent-succ);
+                box-shadow: 0 0 8px var(--accent-succ);
+                flex-shrink: 0;
+                animation: pingPulse 1.4s infinite;
+            }
+            .msb-text { flex: 1; min-width: 0; }
+            .msb-label {
+                font-size: 0.62rem; font-weight: 800;
+                color: var(--accent-lock); letter-spacing: 0.06em;
+                text-transform: uppercase;
+            }
+            .msb-chapter {
+                font-size: 0.68rem; color: var(--text-secondary);
+                white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            }
+            .msb-right { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
+            #msb-timer {
+                font-family: var(--font-mono);
+                font-size: 1.05rem;
+                font-weight: 900;
+                color: var(--text-primary);
+                letter-spacing: -0.02em;
+            }
+            .msb-tap {
+                font-size: 0.52rem; color: var(--text-muted);
+                font-weight: 700; letter-spacing: 0.04em;
+                text-transform: uppercase;
+            }
+
+            /* Stats strip */
+            .mob-stats-strip {
+                display: flex;
+                gap: 0;
+                background: var(--bg-surface);
+                border-bottom: 1px solid var(--border-ui);
+                overflow-x: auto;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+                flex-shrink: 0;
+            }
+            .mob-stats-strip::-webkit-scrollbar { display: none; }
+            .mob-stat-chip {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 10px 16px;
+                border-right: 1px solid var(--border-ui);
+                flex-shrink: 0;
+                gap: 2px;
+            }
+            .mob-stat-chip:last-child { border-right: none; }
+            .mob-stat-chip-label {
+                font-size: 0.5rem; font-weight: 800;
+                color: var(--text-muted); letter-spacing: 0.06em;
+                text-transform: uppercase; white-space: nowrap;
+            }
+            .mob-stat-chip-val {
+                font-size: 0.82rem; font-weight: 900;
+                font-family: var(--font-mono);
+                color: var(--text-primary); white-space: nowrap;
+            }
+
+            /* Section headings inside sidebar on mobile */
+            .mob-section-header {
+                padding: 12px 16px 6px;
+                font-size: 0.58rem;
+                font-weight: 800;
+                color: var(--text-muted);
+                letter-spacing: 0.1em;
+                text-transform: uppercase;
+                background: var(--bg-deep);
+                position: sticky;
+                top: 0;
+                z-index: 10;
+            }
+
+            /* All cards in sidebar become edge-to-edge rows */
+            .sidebar .card {
+                border-radius: 0;
+                border-left: none;
+                border-right: none;
+                border-top: none;
+                border-bottom: 1px solid var(--border-ui);
+                padding: 14px 16px;
+                margin: 0;
+                box-shadow: none;
+            }
+            .sidebar .card:hover { border-color: var(--border-ui); }
+            .sidebar .card:first-child { border-top: none; }
+
+            /* Rank card — horizontal layout */
+            .rank-box {
+                display: flex;
+                align-items: center;
+                gap: 14px;
+                text-align: left;
+                padding: 0;
+            }
+            .rank-tier-icon { font-size: 2rem; margin-bottom: 0; display: inline; flex-shrink: 0; }
+            .rank-box > div { flex: 1; min-width: 0; }
+            .rank-value { font-size: 1.6rem; }
+            .rank-label { font-size: 0.68rem; letter-spacing: 0.1em; }
+            .rank-perk-badge { font-size: 0.56rem; padding: 2px 8px; margin-top: 5px; }
+            .rank-progress { margin-top: 6px; }
+            .rank-milestones { margin-top: 5px; }
+
+            /* Rank actions — scrollable pill row */
+            .rank-actions {
+                display: flex; gap: 8px;
+                margin-top: 12px;
+                overflow-x: auto;
+                padding-bottom: 2px;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+            }
+            .rank-actions::-webkit-scrollbar { display: none; }
+            .rank-action-btn {
+                flex-shrink: 0;
+                white-space: nowrap;
+                padding: 8px 16px;
+                font-size: 0.62rem;
+                border-radius: 20px;
+                background: var(--bg-elevated);
+                border: 1px solid var(--border-ui);
+                color: var(--text-secondary);
+                cursor: pointer;
+                transition: 0.18s;
+                font-weight: 800;
+                letter-spacing: 0.04em;
+            }
+            .rank-action-btn:hover { border-color: var(--accent-lock); color: var(--accent-lock); }
+
+            /* Operational Intel card — inline mini grid */
+            #desktop-map-card .card-header { margin-bottom: 8px; }
+            #desktop-map-card .btn-outline {
+                font-size: 0.72rem;
+                padding: 10px;
+                border-radius: var(--radius-md);
+            }
+
+            /* Debt + logs list items */
+            .log-item { padding: 10px 0; border-radius: 0; background: transparent; border-left: 2px solid var(--border-ui); padding-left: 10px; }
+            .log-item:hover { background: rgba(255,255,255,0.02); transform: none; }
+
+            /* Arsenal */
+            .arsenal-sidebar-grid { gap: 5px; }
+            .arsenal-tag-small { font-size: 0.62rem; padding: 4px 10px; }
+
+            /* ─── Bottom Nav ─── */
+            .bottom-nav {
+                display: flex;
+                height: var(--mobile-nav-height);
+                background: rgba(5,5,8,0.98);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                border-top: 1px solid var(--border-ui);
+                padding: 0 4px;
+                padding-bottom: env(safe-area-inset-bottom, 0px);
+                position: fixed; bottom: 0; left: 0; right: 0;
+                z-index: 900;
+                align-items: center;
+                gap: 0;
+            }
+            .nav-tab {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+                font-size: 0.58rem;
+                font-weight: 800;
+                letter-spacing: 0.05em;
+                text-transform: uppercase;
+                color: var(--text-muted);
+                background: none;
+                border: none;
+                height: 100%;
+                border-radius: var(--radius-md);
+                transition: color 0.18s;
+                position: relative;
+                cursor: pointer;
+                padding: 6px 0;
+            }
+            .nav-tab span { line-height: 1; }
+            .nav-tab svg { transition: transform 0.18s; }
+            .nav-tab.active { color: var(--accent-lock); }
+            .nav-tab.active svg { transform: scale(1.08); }
+            .nav-tab.active::after {
+                content: '';
+                position: absolute;
+                bottom: 6px;
+                left: 50%; transform: translateX(-50%);
+                width: 20px; height: 2px;
+                background: var(--accent-lock);
+                border-radius: 2px;
+                box-shadow: 0 0 8px var(--accent-lock);
+            }
+
+            /* ─── Modal tweaks ─── */
+            .modal {
+                padding: 18px;
+                max-height: 92dvh;
+                width: 96%;
+                border-radius: var(--radius-xl);
+            }
+            .modal-title { font-size: 1.15rem; }
             .goal-chip-grid { grid-template-columns: repeat(2, 1fr); }
             .choice-grid { grid-template-columns: 1fr; }
             .custom-time-input { grid-column: span 1; }
             .map-layout { flex-direction: column; }
-            .map-sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border-ui); height: auto; max-height: 30vh; overflow-y: auto; }
+            .map-sidebar {
+                width: 100%; border-right: none;
+                border-bottom: 1px solid var(--border-ui);
+                height: auto; max-height: 30vh; overflow-y: auto;
+            }
             .map-content { flex: 1; }
-            #integrity-toast { bottom: 74px; left: 14px; right: 14px; width: auto; text-align: center; }
             .breach-stat-grid { grid-template-columns: 1fr 1fr; }
+
+            /* ─── Toast ─── */
+            #integrity-toast {
+                bottom: calc(var(--mobile-nav-height) + 10px);
+                left: 14px; right: 14px; width: auto;
+                text-align: center;
+                border-radius: var(--radius-lg);
+            }
+
+            /* ─── Hard Focus on mobile ─── */
+            body.mode-hard-focus .sidebar { display: none !important; }
+            body.mode-hard-focus .stage { display: flex !important; }
+            body.mode-hard-focus nav,
+            body.mode-hard-focus .bottom-nav { opacity: 0 !important; pointer-events: none !important; }
+            body.mode-hard-focus main { grid-template-columns: 1fr !important; }
+            body.mode-hard-focus #mobile-ops-screen {
+                background: #060303;
+            }
+            body.mode-hard-focus #mobile-ring-fill {
+                stroke: var(--accent-crit);
+                filter: drop-shadow(0 0 14px var(--accent-crit));
+            }
+            body.mode-hard-focus #mobile-session-meta-card {
+                background: #0a0303;
+                border-color: rgba(239,68,68,0.2);
+            }
+            body.mode-hard-focus #session-controls { background: #0a0303; }
+        }
+
+        /* ─── Tablet-specific overrides 768–1024px ─── */
+        @media (min-width: 768px) and (max-width: 1024px) {
+            #mobile-ring-svg {
+                width: min(50vw, 300px);
+                height: min(50vw, 300px);
+            }
+            #timer-display { font-size: min(12vw, 72px) !important; }
+            #session-controls { flex-direction: row; }
+            #btn-init-session { font-size: 0.92rem !important; }
+            #mobile-active-controls { flex-direction: row; }
+            .sidebar { display: grid !important; grid-template-columns: 1fr 1fr; align-content: start; }
+            .sidebar .card { border: 1px solid var(--border-ui) !important; border-radius: var(--radius-lg) !important; margin: 6px !important; }
+            .sidebar #mobile-session-bar { grid-column: 1 / -1; }
+            .mob-stats-strip { grid-column: 1 / -1; }
         }
     </style>
 </head>
@@ -503,7 +1035,7 @@
     <nav>
         <div class="nav-left">
             <button class="sidebar-toggle" onclick="UI.toggleSidebar()">☰</button>
-            <div class="nav-logo">RANKLOCK <span class="ver-badge"> v12.2</span></div>
+            <div class="nav-logo">RANKLOCK <span class="ver-badge"> v12.3</span></div>
             <div class="nav-rank-badge" id="nav-rank-badge">⬜ UNINITIATED</div>
         </div>
         <div class="nav-right">
@@ -525,8 +1057,42 @@
     <main id="main-layout" class="sidebar-collapsed"> 
         
         <aside class="sidebar" id="sidebar">
-
-            
+            <!-- Mobile: session banner + stats strip (hidden on PC via CSS) -->
+            <div id="mobile-session-bar" onclick="UI.switchMobileTab('ops')" style="display:none;">
+                <div class="msb-left">
+                    <div class="msb-dot"></div>
+                    <div class="msb-text">
+                        <div class="msb-label">Session Active — Tap to return</div>
+                        <div class="msb-chapter"><span id="msb-subject"></span> · <span id="msb-chapter"></span></div>
+                    </div>
+                </div>
+                <div class="msb-right">
+                    <div id="msb-timer" class="msb-timer">--:--</div>
+                    <div class="msb-tap">TAP TO VIEW</div>
+                </div>
+            </div>
+            <div class="mob-stats-strip" id="mob-stats-strip">
+                <div class="mob-stat-chip">
+                    <div class="mob-stat-chip-label">Wallet</div>
+                    <div class="mob-stat-chip-val" id="mob-stat-wallet" style="color:var(--accent-gold);">0</div>
+                </div>
+                <div class="mob-stat-chip">
+                    <div class="mob-stat-chip-label">Integrity</div>
+                    <div class="mob-stat-chip-val integrity-ok" id="mob-stat-integrity">100%</div>
+                </div>
+                <div class="mob-stat-chip">
+                    <div class="mob-stat-chip-label">Daily</div>
+                    <div class="mob-stat-chip-val" id="mob-stat-daily" style="color:var(--accent-lock);">0h 0m</div>
+                </div>
+                <div class="mob-stat-chip">
+                    <div class="mob-stat-chip-label">All Time</div>
+                    <div class="mob-stat-chip-val" id="mob-stat-alltime" style="color:var(--text-secondary);">0h 0m</div>
+                </div>
+                <div class="mob-stat-chip">
+                    <div class="mob-stat-chip-label">Rank</div>
+                    <div class="mob-stat-chip-val" id="mob-stat-rank" style="color:var(--accent-lock);">UNINITIATED</div>
+                </div>
+            </div>
             <div class="card">
                 <div class="card-header">
                     <span class="card-title">System Rank</span>
@@ -603,6 +1169,38 @@
 
         
         <section class="stage" id="stage">
+            <!-- Mobile SVG ring (hidden on PC via CSS) -->
+            <div id="mobile-ops-screen">
+                <div id="mobile-ring-wrap">
+                    <svg id="mobile-ring-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <circle id="mobile-ring-track" cx="50" cy="50" r="45"/>
+                        <circle id="mobile-ring-fill"  cx="50" cy="50" r="45"/>
+                    </svg>
+                    <div id="mobile-timer-inner">
+                        <div id="timer-display" class="tabular">00:00</div>
+                        <div id="mobile-mode-label">READY</div>
+                    </div>
+                </div>
+                <div id="mobile-session-meta-card">
+                    <div id="active-session-meta" class="session-context">
+                        <div class="context-subject">SYSTEM IDLE</div>
+                        <div class="context-chapter">Ready for initialization</div>
+                    </div>
+                    <div class="session-integrity-badge" id="session-integrity-badge">
+                        <span id="mob-badge-label">SESSION LOCK</span>
+                        <span id="session-integrity-val">100%</span>
+                    </div>
+                </div>
+                <div class="controls" id="session-controls">
+                    <button class="btn btn-primary" id="btn-init-session">⚡ INITIALIZE SESSION</button>
+                    <div id="mobile-active-controls" class="hidden">
+                        <button class="btn btn-outline" id="btn-pause-session">PAUSE</button>
+                        <button class="btn btn-crit" id="btn-emergency-exit">ABORT</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PC focus container (hidden on mobile via CSS) -->
             <div class="focus-container" id="focus-container-main">
                 <div class="focus-bg-pulse"></div>
                 <div id="integrity-visual-overlay"></div>
@@ -611,45 +1209,40 @@
                     <div class="countdown-val" id="countdown-val">3</div>
                     <div class="countdown-label">Visualize. Lock In.</div>
                 </div>
-                
-                <div class="session-integrity-badge" id="session-integrity-badge">
+                <div class="session-integrity-badge" id="pc-session-integrity-badge">
                     <span style="font-size:0.65rem; color:var(--text-muted);">SESSION LOCK</span><br>
-                    <span id="session-integrity-val" style="font-size:1.1rem; color:var(--accent-succ);">100%</span>
+                    <span id="pc-session-integrity-val" style="font-size:1.1rem; color:var(--accent-succ);">100%</span>
                 </div>
-
-                <div class="session-context" id="active-session-meta">
+                <div class="session-context" id="pc-session-meta">
                     <div class="context-subject">SYSTEM IDLE</div>
                     <div class="context-chapter">Ready for initialization</div>
                 </div>
-
-                <div id="timer-display" class="tabular">00:00</div>
-
-                <div class="controls" id="session-controls">
-                    <button class="btn btn-primary" id="btn-init-session">INITIALIZE SESSION</button>
-                    <button class="btn btn-outline hidden" id="btn-pause-session">PAUSE</button>
-                    <button class="btn btn-crit hidden" id="btn-emergency-exit">ABORT</button>
+                <div id="pc-timer-display" class="tabular" style="font-size:9rem;font-weight:800;font-family:var(--font-mono);z-index:2;line-height:1;">00:00</div>
+                <div class="controls" id="pc-session-controls">
+                    <button class="btn btn-primary" id="pc-btn-init-session">INITIALIZE SESSION</button>
+                    <button class="btn btn-outline hidden" id="pc-btn-pause-session">PAUSE</button>
+                    <button class="btn btn-crit hidden" id="pc-btn-emergency-exit">ABORT</button>
                 </div>
             </div>
         </section>
     </main>
     
-    
     <div class="bottom-nav">
-        <button class="nav-tab active" onclick="UI.switchMobileTab('ops')">
-            <svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-            OPS
+        <button class="nav-tab active" data-tab="ops" onclick="UI.switchMobileTab('ops')">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            <span>OPS</span>
         </button>
-        <button class="nav-tab" onclick="UI.switchMobileTab('intel')">
-            <svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"></path></svg>
-            INTEL
+        <button class="nav-tab" data-tab="intel" onclick="UI.switchMobileTab('intel')">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"></path></svg>
+            <span>INTEL</span>
         </button>
-        <button class="nav-tab" onclick="UI.switchMobileTab('map')">
-            <svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
-            MAP
+        <button class="nav-tab" data-tab="map" onclick="UI.switchMobileTab('map')">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
+            <span>MAP</span>
         </button>
-        <button class="nav-tab" onclick="UI.openEvents()">
-            <svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-            EVENTS
+        <button class="nav-tab" data-tab="events" onclick="UI.openEvents()">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            <span>EVENTS</span>
         </button>
     </div>
 </div>
@@ -1030,10 +1623,10 @@
 window.submitted = false;
 
 const CONSTANTS = {
-    VERSION: 12.2,
+    VERSION: 12.3,
     SCHEMA_VERSION: 3,
-    APP_ID: "RANKLOCK_JEE_V12_2",
-    LEGACY_IDS: ["RANKLOCK_JEE_V12_0","RANKLOCK_JEE_V11_0","RANKLOCK_JEE_V10_0","RANKLOCK_JEE_V9_8"],
+    APP_ID: "RANKLOCK_JEE_V12_3",
+    LEGACY_IDS: ["RANKLOCK_JEE_V12_2","RANKLOCK_JEE_V12_0","RANKLOCK_JEE_V11_0","RANKLOCK_JEE_V10_0","RANKLOCK_JEE_V9_8"],
 
     RANKS: [
         { t: 0,     title: "UNINITIATED",  perk: "None",                 icon: "⬜" },
@@ -2076,6 +2669,7 @@ const Logic = {
                 document.getElementById('focus-container-main').classList.add('session-active');
                 UI.switchMobileTab('ops');
                 UI.updateSessionView();
+                UI._updateMobileSessionBar();
                 Storage.save();
                 
                 if (durMins >= 45) {
@@ -2422,22 +3016,39 @@ const UI = {
     _minimalMode: false,
 
     init() {
+        /* Wire mobile OPS buttons */
         const btnInit = document.getElementById('btn-init-session');
         if (btnInit) btnInit.onclick = () => { this.resetWizard(); OverlayManager.show('overlay-setup'); this.wizardStep('subject'); };
-
-        const btnLaunch = document.getElementById('btn-setup-launch');
-        if (btnLaunch) btnLaunch.onclick = () => {
-            const disp = document.getElementById('generated-goal-text').textContent;
-            if (!goalState.type || !goalState.resource) { alert("Protocol Incomplete. Select mission type and resource."); return; }
-            if (!this.wizard.subject || !this.wizard.chapter) { alert("Select a subject and chapter."); return; }
-            Logic.Session.preFlight(this.wizard.subject, this.wizard.chapter, this.wizard.mode, this.wizard.duration, disp);
-        };
 
         const btnPause = document.getElementById('btn-pause-session');
         if (btnPause) btnPause.onclick = () => Logic.Session.togglePause();
 
         const btnAbort = document.getElementById('btn-emergency-exit');
         if (btnAbort) btnAbort.onclick = () => {
+            if (State.session.mode === 'hard') {
+                if (confirm("Abort Hard Focus? (2× Penalty Applied)")) Logic.Session.abort("HARD ABORT");
+            } else if (confirm("Abort session?")) {
+                Logic.Session.abort();
+            }
+        };
+
+        /* Wire PC focus-container buttons */
+        const pcBtnInit = document.getElementById('pc-btn-init-session');
+        if (pcBtnInit) pcBtnInit.onclick = () => { this.resetWizard(); OverlayManager.show('overlay-setup'); this.wizardStep('subject'); };
+
+        const pcBtnLaunch = document.getElementById('btn-setup-launch');
+        if (pcBtnLaunch) pcBtnLaunch.onclick = () => {
+            const disp = document.getElementById('generated-goal-text').textContent;
+            if (!goalState.type || !goalState.resource) { alert("Protocol Incomplete. Select mission type and resource."); return; }
+            if (!this.wizard.subject || !this.wizard.chapter) { alert("Select a subject and chapter."); return; }
+            Logic.Session.preFlight(this.wizard.subject, this.wizard.chapter, this.wizard.mode, this.wizard.duration, disp);
+        };
+
+        const pcBtnPause = document.getElementById('pc-btn-pause-session');
+        if (pcBtnPause) pcBtnPause.onclick = () => Logic.Session.togglePause();
+
+        const pcBtnAbort = document.getElementById('pc-btn-emergency-exit');
+        if (pcBtnAbort) pcBtnAbort.onclick = () => {
             if (State.session.mode === 'hard') {
                 if (confirm("Abort Hard Focus? (2× Penalty Applied)")) Logic.Session.abort("HARD ABORT");
             } else if (confirm("Abort session?")) {
@@ -2475,20 +3086,47 @@ const UI = {
     },
 
     switchMobileTab(tab) {
+        /* ── MOBILE ONLY: never touch display on PC (>1024px) ── */
+        const isMobile = window.innerWidth <= 1024;
         document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+        document.querySelector(`.nav-tab[data-tab="${tab}"]`)?.classList.add('active');
+
+        if (!isMobile) return; /* PC: CSS handles everything, don't set inline styles */
+
         const sidebar = document.getElementById('sidebar');
         const stage   = document.getElementById('stage');
+        /* Reset both first */
+        if (sidebar) sidebar.style.display = 'none';
+        if (stage)   stage.style.display   = 'none';
+
         if (tab === 'ops') {
             if (stage) stage.style.display = 'flex';
-            if (sidebar) sidebar.style.display = 'none';
-            document.querySelector('.nav-tab:nth-child(1)')?.classList.add('active');
+            this._updateMobileSessionBar();
         } else if (tab === 'intel') {
-            if (stage) stage.style.display = 'none';
             if (sidebar) sidebar.style.display = 'flex';
-            document.querySelector('.nav-tab:nth-child(2)')?.classList.add('active');
+            this._updateMobileSessionBar();
         } else if (tab === 'map') {
             this.openMap();
-            document.querySelector('.nav-tab:nth-child(3)')?.classList.add('active');
+        }
+    },
+
+    _updateMobileSessionBar() {
+        const bar = document.getElementById('mobile-session-bar');
+        if (!bar) return;
+        if (State.session.active) {
+            bar.style.display = 'flex';
+            const chEl  = document.getElementById('msb-chapter');
+            const subEl = document.getElementById('msb-subject');
+            const msbT  = document.getElementById('msb-timer');
+            const sub = State.subjects.find(s => s.id === State.session.subjectId);
+            if (chEl)  chEl.textContent  = State.session.chapter || '';
+            if (subEl) subEl.textContent = sub ? sub.name : '';
+            const r  = State.session.remaining || 0;
+            const mm = Math.floor(r / 60).toString().padStart(2,'0');
+            const ss = (r % 60).toString().padStart(2,'0');
+            if (msbT) msbT.textContent = `${mm}:${ss}`;
+        } else {
+            bar.style.display = 'none';
         }
     },
 
@@ -2693,6 +3331,20 @@ const UI = {
             }
             summaryText.textContent = `${examName} · ${State.subjects.length} Subjects · ${totalCh} Chapters`;
         }
+        /* Update mobile stat chips */
+        const mobW = document.getElementById('mob-stat-wallet');
+        if (mobW) mobW.textContent = State.wallet.toLocaleString();
+        const mobI = document.getElementById('mob-stat-integrity');
+        if (mobI) {
+            mobI.textContent = `${Math.floor(State.systemIntegrity)}%`;
+            mobI.className = `mob-stat-chip-val ${State.systemIntegrity > 80 ? 'integrity-ok' : (State.systemIntegrity > 50 ? 'integrity-warn' : 'integrity-crit')}`;
+        }
+        const mobD = document.getElementById('mob-stat-daily');
+        if (mobD) mobD.textContent = `${h}h ${m}m`;
+        const mobA = document.getElementById('mob-stat-alltime');
+        if (mobA) mobA.textContent = `${ht}h ${mt}m`;
+        const mobR = document.getElementById('mob-stat-rank');
+        if (mobR) mobR.textContent = rankData.title;
         Logic.Missions.update('xp_gain', 0);
     },
 
@@ -3004,56 +3656,136 @@ const UI = {
     },
 
     updateSessionView() {
-        const metaEl   = document.getElementById('active-session-meta');
-        const btnInit  = document.getElementById('btn-init-session');
-        const btnAbort = document.getElementById('btn-emergency-exit');
-        const btnPause = document.getElementById('btn-pause-session');
-        const overlay  = document.getElementById('integrity-visual-overlay');
-        const badge    = document.getElementById('session-integrity-badge');
-        const badgeVal = document.getElementById('session-integrity-val');
-        const fc       = document.getElementById('focus-container-main');
+        const isMobile = window.innerWidth <= 1024;
+
+        /* ── Shared state ── */
+        const sn = State.session.active
+            ? (State.subjects.find(s => s.id === State.session.subjectId)?.name || 'Unknown')
+            : '';
+        const goalHtml = (State.session.active && State.session.goal)
+            ? `<div class="context-goal">MISSION: ${State.session.goal}</div>` : '';
+
+        /* ── Mobile elements ── */
+        const mobMeta   = document.getElementById('active-session-meta');
+        const mobInit   = document.getElementById('btn-init-session');
+        const mobActive = document.getElementById('mobile-active-controls');
+        const mobPause  = document.getElementById('btn-pause-session');
+        const mobAbort  = document.getElementById('btn-emergency-exit');
+        const mobBadge  = document.getElementById('session-integrity-badge');
+        const mobBadgeV = document.getElementById('session-integrity-val');
+        const mobMode   = document.getElementById('mobile-mode-label');
+        const mobRing   = document.getElementById('mobile-ring-fill');
+
+        /* ── PC elements ── */
+        const pcMeta    = document.getElementById('pc-session-meta');
+        const pcInit    = document.getElementById('pc-btn-init-session');
+        const pcAbort   = document.getElementById('pc-btn-emergency-exit');
+        const pcPause   = document.getElementById('pc-btn-pause-session');
+        const pcBadge   = document.getElementById('pc-session-integrity-badge');
+        const pcBadgeV  = document.getElementById('pc-session-integrity-val');
+        const pcTimerEl = document.getElementById('pc-timer-display');
+        const pcOverlay = document.getElementById('integrity-visual-overlay');
+        const fc        = document.getElementById('focus-container-main');
 
         if (State.session.active) {
-            const sn = State.subjects.find(s => s.id === State.session.subjectId)?.name || 'Unknown';
-            const goalHtml = State.session.goal ? `<div class="context-goal">MISSION: ${State.session.goal}</div>` : '';
-            if (metaEl) metaEl.innerHTML = `<div class="context-subject">${sn}</div><div class="context-chapter">${State.session.chapter}</div>${goalHtml}`;
-            if (btnInit)  btnInit.classList.add('hidden');
-            if (btnAbort) btnAbort.classList.remove('hidden');
-            if (btnPause) {
-                if (State.session.mode === 'normal') { btnPause.classList.remove('hidden'); btnPause.textContent = State.session.paused ? "RESUME" : "PAUSE"; }
-                else btnPause.classList.add('hidden');
+            /* Mobile meta */
+            if (mobMeta) mobMeta.innerHTML = `<div class="context-subject">${sn}</div><div class="context-chapter">${State.session.chapter}</div>${goalHtml}`;
+            if (mobInit)   mobInit.classList.add('hidden');
+            if (mobActive) mobActive.classList.remove('hidden');
+            if (mobPause && State.session.mode === 'normal') {
+                mobPause.classList.remove('hidden');
+                mobPause.textContent = State.session.paused ? "RESUME" : "PAUSE";
+            } else if (mobPause) { mobPause.classList.add('hidden'); }
+            if (mobBadge && mobBadgeV) {
+                mobBadge.classList.add('active');
+                mobBadgeV.textContent = `${State.session.integrity}%`;
+                mobBadgeV.style.color = State.session.integrity > 80 ? 'var(--accent-succ)' : 'var(--accent-crit)';
             }
-            if (badge && badgeVal) {
-                badge.classList.add('active');
-                badgeVal.textContent = `${State.session.integrity}%`;
-                badgeVal.style.color = State.session.integrity > 80 ? 'var(--accent-succ)' : 'var(--accent-crit)';
+            if (mobMode) {
+                mobMode.textContent = State.session.mode === 'hard' ? '⚡ HARD FOCUS' : State.session.mode === 'debt' ? '⚖ DEBT MODE' : 'NORMAL MODE';
+                mobMode.style.color = State.session.mode === 'hard' ? 'var(--accent-crit)' : State.session.mode === 'debt' ? 'var(--accent-warn)' : 'var(--accent-lock)';
+            }
+            /* Ring init */
+            if (mobRing) {
+                const R = 45; const circ = 2 * Math.PI * R;
+                const pct = State.session.remaining / (State.session.total || 1);
+                mobRing.style.strokeDasharray  = circ;
+                mobRing.style.strokeDashoffset = circ * (1 - pct);
+                mobRing.style.stroke = State.session.mode === 'hard' ? 'var(--accent-crit)' : 'var(--accent-lock)';
+            }
+
+            /* PC meta */
+            if (pcMeta) pcMeta.innerHTML = `<div class="context-subject">${sn}</div><div class="context-chapter">${State.session.chapter}</div>${goalHtml}`;
+            if (pcInit)  pcInit.classList.add('hidden');
+            if (pcAbort) pcAbort.classList.remove('hidden');
+            if (pcPause && State.session.mode === 'normal') {
+                pcPause.classList.remove('hidden');
+                pcPause.textContent = State.session.paused ? "RESUME" : "PAUSE";
+            } else if (pcPause) { pcPause.classList.add('hidden'); }
+            if (pcBadge && pcBadgeV) {
+                pcBadge.classList.add('active');
+                pcBadgeV.textContent = `${State.session.integrity}%`;
+                pcBadgeV.style.color = State.session.integrity > 80 ? 'var(--accent-succ)' : 'var(--accent-crit)';
             }
             const integ = State.session.integrity;
-            if (overlay) { overlay.style.opacity = integ < 50 ? (0.8 - (integ / 100)) : 0; }
-            if (integ < 40 && overlay) overlay.style.backgroundColor = `rgba(239,68,68,${0.3 - (integ / 200)})`;
+            if (pcOverlay) { pcOverlay.style.opacity = integ < 50 ? (0.8 - (integ / 100)) : 0; }
+            if (integ < 40 && pcOverlay) pcOverlay.style.backgroundColor = `rgba(239,68,68,${0.3 - (integ / 200)})`;
             if (fc) fc.classList.add('session-active');
+
+            this._updateMobileSessionBar();
             this.updateStats();
         } else {
-            if (metaEl) metaEl.innerHTML = `<div class="context-subject">SYSTEM IDLE</div><div class="context-chapter">Ready for initialization</div>`;
-            if (btnInit)  btnInit.classList.remove('hidden');
-            if (btnAbort) btnAbort.classList.add('hidden');
-            if (btnPause) btnPause.classList.add('hidden');
-            if (overlay) { overlay.style.opacity = 0; overlay.style.backgroundColor = 'transparent'; }
-            if (badge) badge.classList.remove('active');
-            const timerDisp = document.getElementById('timer-display');
-            if (timerDisp) { timerDisp.textContent = "00:00"; timerDisp.style.opacity = 1; }
+            /* Reset mobile */
+            if (mobMeta) mobMeta.innerHTML = `<div class="context-subject">SYSTEM IDLE</div><div class="context-chapter">Ready for initialization</div>`;
+            if (mobInit)   mobInit.classList.remove('hidden');
+            if (mobActive) mobActive.classList.add('hidden');
+            if (mobBadge)  mobBadge.classList.remove('active');
+            if (mobMode)   { mobMode.textContent = 'READY'; mobMode.style.color = 'var(--text-muted)'; }
+            if (mobRing) {
+                const R = 45; const circ = 2 * Math.PI * R;
+                mobRing.style.strokeDasharray  = circ;
+                mobRing.style.strokeDashoffset = circ;
+            }
+            const mobTimer = document.getElementById('timer-display');
+            if (mobTimer) { mobTimer.textContent = "00:00"; mobTimer.style.opacity = 1; }
+
+            /* Reset PC */
+            if (pcMeta) pcMeta.innerHTML = `<div class="context-subject">SYSTEM IDLE</div><div class="context-chapter">Ready for initialization</div>`;
+            if (pcInit)  pcInit.classList.remove('hidden');
+            if (pcAbort) pcAbort.classList.add('hidden');
+            if (pcPause) pcPause.classList.add('hidden');
+            if (pcOverlay) { pcOverlay.style.opacity = 0; pcOverlay.style.backgroundColor = 'transparent'; }
+            if (pcBadge)   pcBadge.classList.remove('active');
+            if (pcTimerEl) { pcTimerEl.textContent = "00:00"; pcTimerEl.style.opacity = 1; }
             if (fc) fc.classList.remove('session-active');
+            this._updateMobileSessionBar();
         }
     },
 
     updateTimer() {
         if (!State.session.active) return;
-        const r = State.session.remaining;
-        const timerDisp = document.getElementById('timer-display');
-        if (timerDisp) {
-            timerDisp.textContent = `${Math.floor(r / 60).toString().padStart(2,'0')}:${(r % 60).toString().padStart(2,'0')}`;
-            timerDisp.style.opacity = State.session.paused ? 0.3 : 1;
+        const r  = State.session.remaining;
+        const mm = Math.floor(r / 60).toString().padStart(2,'0');
+        const ss = (r % 60).toString().padStart(2,'0');
+        const timeStr = `${mm}:${ss}`;
+        const opac = State.session.paused ? 0.3 : 1;
+        /* Mobile timer */
+        const mobTimer = document.getElementById('timer-display');
+        if (mobTimer) { mobTimer.textContent = timeStr; mobTimer.style.opacity = opac; }
+        /* PC timer */
+        const pcTimer = document.getElementById('pc-timer-display');
+        if (pcTimer)  { pcTimer.textContent  = timeStr; pcTimer.style.opacity  = opac; }
+        /* Mobile ring progress */
+        const ring = document.getElementById('mobile-ring-fill');
+        if (ring) {
+            const R = 45; const circ = 2 * Math.PI * R;
+            const pct = r / (State.session.total || 1);
+            ring.style.strokeDasharray  = circ;
+            ring.style.strokeDashoffset = circ * (1 - pct);
         }
+        /* Session bar mini timer */
+        const msbTimer = document.getElementById('msb-timer');
+        if (msbTimer) msbTimer.textContent = timeStr;
     },
 
     showToast(msg, type = 'normal') {
