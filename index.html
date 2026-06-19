@@ -86,6 +86,7 @@
                 <span class="text-xs text-gray-500 font-mono mt-0.5">Version 12.5</span>
             </div>
             <div class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-300">
+                <a href="#inside" class="hover:text-accentLock transition-colors">Inside RankLock</a>
                 <a href="#features" class="hover:text-accentLock transition-colors">Features</a>
                 <a href="#calculator" class="hover:text-accentLock transition-colors">Calculator</a>
                 <a href="#about" class="hover:text-accentLock transition-colors">About</a>
@@ -117,7 +118,7 @@
                 <a href="https://ranklock.vercel.app" class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-accentPrimary to-accentLock text-bgDeep font-bold rounded-lg text-center shadow-lg hover:shadow-accentLock/20 transition-all transform hover:-translate-y-0.5">
                     Start Studying
                 </a>
-                <a href="#features" class="w-full sm:w-auto px-8 py-4 bg-bgSurface hover:bg-bgElevated text-gray-200 border border-gray-800 rounded-lg text-center font-medium transition-all">
+                <a href="#inside" class="w-full sm:w-auto px-8 py-4 bg-bgSurface hover:bg-bgElevated text-gray-200 border border-gray-800 rounded-lg text-center font-medium transition-all">
                     See How It Works
                 </a>
             </div>
@@ -201,7 +202,7 @@
 
                     <!-- Live Demo Log -->
                     <div class="bg-bgDeep border border-gray-900 rounded-lg p-3 h-24 overflow-y-auto text-xs font-mono text-gray-400 space-y-1.5" id="sim-terminal">
-                        <div class="text-gray-500">Welcome to RankLock. Set your topic and start the timer.</div>
+                        <div class="text-gray-500 font-mono">Welcome to RankLock. Set your topic and start the timer.</div>
                     </div>
 
                     <!-- Simulator Controls -->
@@ -217,6 +218,201 @@
             </div>
         </div>
     </header>
+
+    <!-- REAL PRODUCT WALKTHROUGH SECTION -->
+    <section id="inside" class="border-t border-gray-800/60 bg-bgSurface/20 py-20">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="text-center max-w-2xl mx-auto mb-12 space-y-4">
+                <span class="text-xs font-mono text-accentLock bg-accentLock/10 border border-accentLock/20 px-3 py-1 rounded-full uppercase tracking-wider">Product Tour</span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">Inside RankLock</h2>
+                <p class="text-gray-400 text-sm sm:text-base">We don't use flashy mockups or sketches. Here is exactly what the actual application interface looks like.</p>
+            </div>
+
+            <!-- Showcase browser interface -->
+            <div class="bg-bgSurface border border-gray-800 rounded-2xl overflow-hidden shadow-2xl">
+                <!-- Navigation tabs for the screenshots -->
+                <div class="bg-gray-900 border-b border-gray-800 px-4 pt-4 flex flex-wrap gap-2">
+                    <button onclick="showAppTab('tab-dashboard')" id="btn-tab-dashboard" class="px-4 py-3 text-xs sm:text-sm font-semibold rounded-t-lg border-t-2 border-x border-accentLock bg-bgSurface text-white transition-all flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-accentLock"></span>
+                        Dashboard
+                    </button>
+                    <button onclick="showAppTab('tab-focus')" id="btn-tab-focus" class="px-4 py-3 text-xs sm:text-sm font-semibold rounded-t-lg border-t-2 border-transparent text-gray-400 hover:text-gray-200 hover:bg-bgSurface/50 transition-all flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-accentPrimary"></span>
+                        Focus Session
+                    </button>
+                    <button onclick="showAppTab('tab-analytics')" id="btn-tab-analytics" class="px-4 py-3 text-xs sm:text-sm font-semibold rounded-t-lg border-t-2 border-transparent text-gray-400 hover:text-gray-200 hover:bg-bgSurface/50 transition-all flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-accentSucc"></span>
+                        Analytics Dashboard
+                    </button>
+                </div>
+
+                <!-- Showcase Canvas Container -->
+                <div class="p-4 sm:p-8 bg-bgDeep/40 min-h-[400px] flex items-center justify-center">
+                    
+                    <!-- TAB 1: Dashboard Screenshot Render -->
+                    <div id="tab-dashboard" class="w-full max-w-4xl bg-bgDeep border border-gray-800 rounded-xl overflow-hidden shadow-lg transition-all duration-300 block">
+                        <div class="p-4 bg-gray-950 border-b border-gray-800 flex justify-between items-center text-xs text-gray-500">
+                            <span>Main Hub Dashboard</span>
+                            <span class="text-accentLock font-mono">User: Aspirant_429</span>
+                        </div>
+                        <div class="p-6 space-y-6">
+                            <!-- Header Grid -->
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="bg-bgSurface p-4 rounded-xl border border-gray-800">
+                                    <div class="text-xs text-gray-400 uppercase tracking-wider">Current Rank</div>
+                                    <div class="text-xl font-bold text-white mt-1">Aspirant Level 14</div>
+                                    <div class="w-full bg-gray-800 h-1.5 rounded-full mt-2 overflow-hidden">
+                                        <div class="bg-accentLock h-full w-[65%]"></div>
+                                    </div>
+                                    <span class="text-[10px] text-gray-500 mt-1 block">350 XP to Level 15</span>
+                                </div>
+                                <div class="bg-bgSurface p-4 rounded-xl border border-gray-800">
+                                    <div class="text-xs text-gray-400 uppercase tracking-wider">Study Streak</div>
+                                    <div class="text-xl font-bold text-accentSucc mt-1 flex items-center gap-2">
+                                        🔥 12 Days
+                                    </div>
+                                    <span class="text-[10px] text-gray-500 mt-1 block">Consistency Rate: 96%</span>
+                                </div>
+                                <div class="bg-bgSurface p-4 rounded-xl border border-gray-800">
+                                    <div class="text-xs text-gray-400 uppercase tracking-wider">Study Time Today</div>
+                                    <div class="text-xl font-bold text-accentPrimary mt-1">4h 15m</div>
+                                    <span class="text-[10px] text-gray-500 mt-1 block">Daily Goal: 6h 00m</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Recent active tasks list -->
+                            <div class="bg-bgSurface p-4 rounded-xl border border-gray-800 space-y-3">
+                                <div class="text-xs font-semibold text-gray-300">Active Daily Missions</div>
+                                <div class="space-y-2">
+                                    <div class="flex justify-between items-center bg-bgDeep p-3 rounded-lg border border-gray-800/80 text-xs">
+                                        <div class="flex items-center gap-3">
+                                            <span class="w-2.5 h-2.5 rounded-full bg-accentSucc"></span>
+                                            <span class="text-gray-300">Organic Chemistry revision notes</span>
+                                        </div>
+                                        <span class="text-gray-500 font-mono">Completed (+120 XP)</span>
+                                    </div>
+                                    <div class="flex justify-between items-center bg-bgDeep p-3 rounded-lg border border-gray-800/80 text-xs">
+                                        <div class="flex items-center gap-3">
+                                            <span class="w-2.5 h-2.5 rounded-full bg-accentPrimary"></span>
+                                            <span class="text-gray-300">Electrostatics MCQ assignment</span>
+                                        </div>
+                                        <span class="text-accentPrimary font-mono">Pending [Start]</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 2: Focus Session Screenshot Render -->
+                    <div id="tab-focus" class="w-full max-w-4xl bg-bgDeep border border-gray-800 rounded-xl overflow-hidden shadow-lg transition-all duration-300 hidden">
+                        <div class="p-4 bg-gray-950 border-b border-gray-800 flex justify-between items-center text-xs text-gray-500">
+                            <span>Active Focus Session</span>
+                            <span class="text-accentPrimary font-mono">Detection: ENABLED</span>
+                        </div>
+                        <div class="p-8 text-center space-y-6">
+                            <div class="inline-flex items-center gap-2 px-3 py-1 bg-accentPrimary/10 border border-accentPrimary/20 rounded-full text-xs text-accentPrimary">
+                                <span class="w-1.5 h-1.5 bg-accentPrimary rounded-full animate-ping"></span>
+                                Focus Active: Do not leave or minimize this tab
+                            </div>
+                            
+                            <!-- Massive Clock Display -->
+                            <div class="space-y-1">
+                                <div class="text-5xl sm:text-6xl font-bold font-mono text-white tracking-widest">38:42</div>
+                                <p class="text-xs text-gray-500 uppercase tracking-widest font-mono">Module: Rotational Dynamics Series</p>
+                            </div>
+
+                            <!-- Objective block -->
+                            <div class="bg-bgSurface max-w-md mx-auto p-3 rounded-lg border border-gray-800 text-xs text-gray-400">
+                                Target Objective: Solve 15 Advanced-level MCQs
+                            </div>
+
+                            <div class="flex justify-center gap-4 pt-2">
+                                <button class="px-5 py-2 bg-gray-800 hover:bg-gray-700 text-xs text-white rounded font-semibold transition-all">Pause Timer</button>
+                                <button class="px-5 py-2 bg-accentCrit/15 border border-accentCrit/20 text-accentCrit text-xs rounded font-semibold hover:bg-accentCrit/25 transition-all">Abandon Mission</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 3: Analytics Screenshot Render -->
+                    <div id="tab-analytics" class="w-full max-w-4xl bg-bgDeep border border-gray-800 rounded-xl overflow-hidden shadow-lg transition-all duration-300 hidden">
+                        <div class="p-4 bg-gray-950 border-b border-gray-800 flex justify-between items-center text-xs text-gray-500">
+                            <span>Weekly Study Diagnostics</span>
+                            <span class="text-accentSucc font-mono">Integrity Status: High</span>
+                        </div>
+                        <div class="p-6 space-y-6">
+                            <!-- Analytics Charts Row -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="bg-bgSurface p-4 rounded-xl border border-gray-800 space-y-4">
+                                    <div class="text-xs font-semibold text-gray-300">Focus Hours Per Day</div>
+                                    <!-- Simple Pure CSS Bar Graph to mimic app graphics -->
+                                    <div class="h-32 flex items-end justify-between gap-2 pt-2">
+                                        <div class="w-full flex flex-col items-center gap-1.5">
+                                            <div class="w-full bg-accentPrimary/20 rounded-t h-[40%]"></div>
+                                            <span class="text-[9px] text-gray-500">Mon</span>
+                                        </div>
+                                        <div class="w-full flex flex-col items-center gap-1.5">
+                                            <div class="w-full bg-accentPrimary/20 rounded-t h-[65%]"></div>
+                                            <span class="text-[9px] text-gray-500">Tue</span>
+                                        </div>
+                                        <div class="w-full flex flex-col items-center gap-1.5">
+                                            <div class="w-full bg-accentPrimary/20 rounded-t h-[80%]"></div>
+                                            <span class="text-[9px] text-gray-500">Wed</span>
+                                        </div>
+                                        <div class="w-full flex flex-col items-center gap-1.5">
+                                            <div class="w-full bg-accentPrimary rounded-t h-[95%]"></div>
+                                            <span class="text-[9px] text-gray-500">Thu</span>
+                                        </div>
+                                        <div class="w-full flex flex-col items-center gap-1.5">
+                                            <div class="w-full bg-accentPrimary/40 rounded-t h-[50%]"></div>
+                                            <span class="text-[9px] text-gray-500">Fri</span>
+                                        </div>
+                                        <div class="w-full flex flex-col items-center gap-1.5">
+                                            <div class="w-full bg-accentPrimary/20 rounded-t h-[20%]"></div>
+                                            <span class="text-[9px] text-gray-500">Sat</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="bg-bgSurface p-4 rounded-xl border border-gray-800 space-y-4">
+                                    <div class="text-xs font-semibold text-gray-300">Subject Allocation</div>
+                                    <div class="space-y-3 pt-2">
+                                        <div class="space-y-1">
+                                            <div class="flex justify-between text-[10px] text-gray-400">
+                                                <span>Physics</span>
+                                                <span>45% (12 hours)</span>
+                                            </div>
+                                            <div class="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden">
+                                                <div class="bg-accentPrimary h-full w-[45%]"></div>
+                                            </div>
+                                        </div>
+                                        <div class="space-y-1">
+                                            <div class="flex justify-between text-[10px] text-gray-400">
+                                                <span>Chemistry</span>
+                                                <span>35% (9.5 hours)</span>
+                                            </div>
+                                            <div class="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden">
+                                                <div class="bg-accentLock h-full w-[35%]"></div>
+                                            </div>
+                                        </div>
+                                        <div class="space-y-1">
+                                            <div class="flex justify-between text-[10px] text-gray-400">
+                                                <span>Mathematics</span>
+                                                <span>20% (5.5 hours)</span>
+                                            </div>
+                                            <div class="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden">
+                                                <div class="bg-purple-500 h-full w-[20%]"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- Factual Opportunity Cost Calculator -->
     <section id="calculator" class="bg-bgSurface/40 border-y border-gray-800/40 py-16">
@@ -254,8 +450,11 @@
                     </div>
                     <div>
                         <h4 class="text-sm font-semibold text-accentPrimary">Why we built RankLock</h4>
-                        <p class="text-sm text-gray-400 mt-1 leading-relaxed">
+                        <p class="text-sm text-gray-400 mt-1 leading-relaxed font-sans">
                             We know how easy it is to get distracted. RankLock is designed to help students notice when they drift away from their study tabs, helping to gently recover a portion of this lost time by building awareness and consistency.
+                        </p>
+                        <p class="text-[11px] text-gray-500 mt-2 italic">
+                            *Illustrative estimate based on 30 questions/hour. Actual study efficiency and question solving speed varies per subject.
                         </p>
                     </div>
                 </div>
@@ -277,8 +476,8 @@
                     <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                 </div>
                 <h3 class="text-lg font-semibold text-white">Active Tab Detection</h3>
-                <p class="text-gray-400 text-sm mt-3 leading-relaxed">
-                    If you enable Focus Mode, RankLock detects if you minimize the timer or open a new browser tab. It alerts you that you've lost focus, holding you accountable to your session.
+                <p class="text-gray-400 text-sm mt-3 leading-relaxed font-sans">
+                    Detects if you open other browser tabs or minimize the window. A gentle nudge reminds you to return to your work, keeping you accountable.
                 </p>
             </div>
 
@@ -288,8 +487,8 @@
                     <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
                 </div>
                 <h3 class="text-lg font-semibold text-white">Study Progression</h3>
-                <p class="text-gray-400 text-sm mt-3 leading-relaxed">
-                    Completed study minutes convert into XP. This provides immediate, positive feedback for finishing your daily study blocks, helping you build a consistent habit over time.
+                <p class="text-gray-400 text-sm mt-3 leading-relaxed font-sans">
+                    Convert completed study minutes directly into XP. Visual feedback rewards your consistent efforts, turning daily study blocks into engaging, measurable milestones.
                 </p>
             </div>
 
@@ -299,8 +498,8 @@
                     <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
                 </div>
                 <h3 class="text-lg font-semibold text-white">Intentional Sessions</h3>
-                <p class="text-gray-400 text-sm mt-3 leading-relaxed">
-                    You must set a specific topic or task before starting the timer. This simple friction ensures you aren't just starting the clock passively, but have a clear goal in mind.
+                <p class="text-gray-400 text-sm mt-3 leading-relaxed font-sans">
+                    You must input your current study topic before starting the timer. This slight friction ensures you begin with clear intentions, avoiding directionless study.
                 </p>
             </div>
 
@@ -310,8 +509,8 @@
                     <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                 </div>
                 <h3 class="text-lg font-semibold text-white">Session History</h3>
-                <p class="text-gray-400 text-sm mt-3 leading-relaxed">
-                    Review how many hours you actually spent studying versus how many times you got distracted. Use your own data to find your most productive times of the day.
+                <p class="text-gray-400 text-sm mt-3 leading-relaxed font-sans">
+                    Review your daily active study hours and focus levels. Secure history charts make it easy to spot trends and optimize your productivity patterns.
                 </p>
             </div>
             
@@ -321,8 +520,8 @@
                     <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 </div>
                 <h3 class="text-lg font-semibold text-white">Consistency Score</h3>
-                <p class="text-gray-400 text-sm mt-3 leading-relaxed">
-                    Your score drops if you abandon a session midway. It encourages you to sit through the discomfort of a tough physics problem instead of giving up and closing the tab.
+                <p class="text-gray-400 text-sm mt-3 leading-relaxed font-sans">
+                    Your focus rating drops when you quit sessions midway. This encourages you to push through difficult syllabus segments instead of closing the tab.
                 </p>
             </div>
 
@@ -332,8 +531,8 @@
                     <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
                 </div>
                 <h3 class="text-lg font-semibold text-white">Made for Students</h3>
-                <p class="text-gray-400 text-sm mt-3 leading-relaxed">
-                    No subscription fees, no locked features, and no intrusive advertisements. RankLock is built as a tool, not a monetization platform.
+                <p class="text-gray-400 text-sm mt-3 leading-relaxed font-sans">
+                    No hidden subscription fees, lockouts, or distracting banners. RankLock operates as a clean, reliable study resource tailored for your exam preparation.
                 </p>
             </div>
         </div>
@@ -345,9 +544,9 @@
             
             <!-- About the Creator -->
             <div class="bg-bgSurface border border-gray-800 rounded-2xl p-8">
-                <span class="text-[10px] text-accentPrimary uppercase tracking-widest font-semibold">About the Creator</span>
+                <span class="text-[10px] text-accentPrimary uppercase tracking-widest font-bold">About the Creator</span>
                 <h3 class="text-xl font-bold text-white mt-2">Hi, I'm Ojas Kadam.</h3>
-                <div class="text-gray-400 text-sm mt-4 space-y-4 leading-relaxed">
+                <div class="text-gray-400 text-sm mt-4 space-y-4 leading-relaxed font-sans">
                     <p>
                         I built RankLock because I struggled with consistency during competitive exam preparation. I realized that a standard stopwatch wasn't enough—I needed something that held me accountable when I inevitably tried to open YouTube during a difficult revision block.
                     </p>
@@ -358,22 +557,22 @@
             </div>
 
             <!-- Privacy Policy Summary -->
-            <div class="bg-gray-900 border border-gray-800 rounded-2xl p-8">
-                <span class="text-[10px] text-accentSucc uppercase tracking-widest font-semibold">Transparency</span>
-                <h3 class="text-xl font-bold text-white mt-2">Privacy & How It Works</h3>
+            <div class="bg-gray-900 border border-gray-800 rounded-2xl p-8 font-sans">
+                <span class="text-[10px] text-accentSucc uppercase tracking-widest font-bold">Transparency</span>
+                <h3 class="text-xl font-bold text-white mt-2 font-sans">Privacy & How It Works</h3>
                 <div class="text-gray-400 text-sm mt-4 space-y-4 leading-relaxed">
                     <p>Students care about tracking, and you should. Here is exactly what RankLock does and doesn't do:</p>
                     <ul class="space-y-2 mt-2">
                         <li class="flex items-start gap-2">
-                            <svg class="w-4 h-4 text-accentSucc mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            <svg class="w-4 h-4 text-accentSucc mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                             <span><strong>Focus Detection:</strong> We use standard browser Visibility APIs to know if the RankLock tab is minimized or hidden.</span>
                         </li>
                         <li class="flex items-start gap-2">
-                            <svg class="w-4 h-4 text-accentSucc mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            <svg class="w-4 h-4 text-accentSucc mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                             <span><strong>No Browsing History:</strong> RankLock cannot see what websites you open or what apps you use.</span>
                         </li>
                         <li class="flex items-start gap-2">
-                            <svg class="w-4 h-4 text-accentSucc mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            <svg class="w-4 h-4 text-accentSucc mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                             <span><strong>No Data Selling:</strong> Your session history stays under your account and is never sold to advertisers.</span>
                         </li>
                     </ul>
@@ -430,10 +629,10 @@
             <h4 class="text-sm font-semibold text-gray-200 flex items-center gap-2">
                 💬 Open Feedback Channel
             </h4>
-            <p class="text-xs text-gray-400 mt-2 max-w-sm">
+            <p class="text-xs text-gray-400 mt-2 max-w-sm font-sans">
                 Found a bug? Have a feature request? Every feedback message is personally reviewed by the creator to help improve the app.
             </p>
-            <a href="mailto:support@ranklock.app" class="text-xs text-accentLock hover:underline mt-3 inline-block">Send feedback -></a>
+            <a href="mailto:support@ranklock.app" class="text-xs text-accentLock hover:underline mt-3 inline-block font-mono">Send feedback -></a>
         </div>
     </section>
 
@@ -449,7 +648,7 @@
                 <a href="#" class="hover:text-gray-300 transition-colors">Terms of Service</a>
                 <a href="#" class="hover:text-gray-300 transition-colors">Privacy Policy</a>
             </div>
-            <div class="text-xs text-gray-600 text-center md:text-right">
+            <div class="text-xs text-gray-600 text-center md:text-right font-mono">
                 &copy; 2026 RankLock. All rights reserved.
             </div>
         </div>
@@ -626,6 +825,32 @@
 
             document.getElementById('calc-hours').innerText = `${hoursLost.toLocaleString()} Hours`;
             document.getElementById('calc-questions').innerText = `~${questionsMissed.toLocaleString()} MCQs`;
+        }
+
+        // Handle high fidelity app tabs inside RankLock tour
+        function showAppTab(tabId) {
+            // Hide all tabs
+            document.getElementById('tab-dashboard').style.display = 'none';
+            document.getElementById('tab-focus').style.display = 'none';
+            document.getElementById('tab-analytics').style.display = 'none';
+
+            // Reset tab button states
+            const buttons = ['btn-tab-dashboard', 'btn-tab-focus', 'btn-tab-analytics'];
+            buttons.forEach(btn => {
+                const el = document.getElementById(btn);
+                el.className = "px-4 py-3 text-xs sm:text-sm font-semibold rounded-t-lg border-t-2 border-transparent text-gray-400 hover:text-gray-200 hover:bg-bgSurface/50 transition-all flex items-center gap-2";
+            });
+
+            // Show active tab
+            document.getElementById(tabId).style.display = 'block';
+
+            // Style active tab button
+            const activeBtn = document.getElementById('btn-' + tabId);
+            let activeColor = "border-accentLock";
+            if (tabId === 'tab-focus') activeColor = "border-accentPrimary";
+            if (tabId === 'tab-analytics') activeColor = "border-accentSucc";
+
+            activeBtn.className = `px-4 py-3 text-xs sm:text-sm font-semibold rounded-t-lg border-t-2 ${activeColor} border-x bg-bgSurface text-white transition-all flex items-center gap-2`;
         }
 
         window.onload = function() {
