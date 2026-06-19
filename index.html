@@ -1,725 +1,523 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RankLock v12.5 | Deep Work for Aspirants</title>
+    <title>RankLock | Distraction-Free Study Timer for JEE/NEET</title>
     <meta name="author" content="Ojas Kadam">
-    <meta name="description" content="RankLock v12.5 - Stay focused. Finish what you start. Built for JEE/NEET aspirants.">
+    <meta name="description" content="RankLock - A free, privacy-focused study timer and progress tracker built to help JEE and NEET aspirants reduce distractions and study more consistently.">
     
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bgDeep: '#030712',
+                        bgSurface: '#0b0f19',
+                        bgElevated: '#161d30',
+                        accentLock: '#06b6d4',
+                        accentPrimary: '#2563eb',
+                        accentCrit: '#ef4444',
+                        accentSucc: '#10b981',
+                        accentWarn: '#f59e0b'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', '-apple-system', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
     <style>
-        :root {
-            --bg-deep: #050508;
-            --bg-surface: #0d0d14;
-            --bg-elevated: #181822;
-            --text-primary: #f0f0f8;
-            --text-secondary: #c8cad4;
-            --text-muted: #8a8f9e;
-            --accent-lock: #06b6d4;
-            --accent-primary: #3b82f6;
-            --accent-crit: #ef4444;
-            --accent-succ: #10b981;
-            --font-main: 'Inter', -apple-system, sans-serif;
-            --font-mono: 'JetBrains Mono', monospace;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
         body {
-            background-color: var(--bg-deep);
-            color: var(--text-primary);
-            font-family: var(--font-main);
-            overflow-x: hidden;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            background-image: radial-gradient(circle at 50% -20%, rgba(6, 182, 212, 0.08) 0%, transparent 70%);
+            background-color: #030712;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(6, 182, 212, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 100% 60%, rgba(37, 99, 235, 0.04) 0%, transparent 40%);
+            background-attachment: fixed;
         }
-
-        a { color: var(--accent-lock); text-decoration: none; }
-
-        /* Nav */
-        nav {
-            padding: 20px 5%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            background: rgba(5, 5, 8, 0.8);
-            backdrop-filter: blur(10px);
-            position: sticky;
-            top: 0;
-            z-index: 100;
+        /* Custom Glowing effects */
+        .glow-lock {
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.25);
         }
-
-        .logo {
-            font-size: 1.2rem;
-            font-weight: 800;
-            letter-spacing: 0.05em;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .glow-lock:hover {
+            box-shadow: 0 0 30px rgba(6, 182, 212, 0.45);
         }
-
-        .version-badge {
-            font-size: 0.65rem;
-            background: rgba(6, 182, 212, 0.15);
-            color: var(--accent-lock);
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-weight: 700;
-            border: 1px solid rgba(6, 182, 212, 0.3);
+        .glow-border {
+            border-color: rgba(6, 182, 212, 0.15);
+            transition: all 0.3s ease;
         }
-
-        /* Hero Section */
-        header {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 80px 20px 20px;
+        .glow-border:hover {
+            border-color: rgba(6, 182, 212, 0.4);
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.1);
         }
-
-        h1 {
-            font-size: clamp(2.5rem, 5vw, 4.5rem);
-            font-weight: 800;
-            letter-spacing: -0.02em;
-            line-height: 1.1;
-            margin-bottom: 20px;
+        /* Notification Flash */
+        @keyframes flashRed {
+            0%, 100% { background-color: rgba(239, 68, 68, 0); }
+            50% { background-color: rgba(239, 68, 68, 0.15); }
         }
-
-        .highlight {
-            color: var(--accent-lock);
-            background: -webkit-linear-gradient(0deg, var(--accent-lock), var(--accent-primary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        p.subtitle {
-            font-size: 1.15rem;
-            color: var(--text-secondary);
-            max-width: 650px;
-            margin-bottom: 40px;
-            line-height: 1.6;
-        }
-
-        /* CTA Buttons */
-        .cta-container {
-            display: flex;
-            gap: 16px;
-            margin-bottom: 40px;
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            padding: 14px 32px;
-            font-weight: 700;
-            font-size: 0.95rem;
-            border-radius: 8px;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            cursor: pointer;
-        }
-
-        .btn-primary {
-            background: var(--accent-lock);
-            color: var(--bg-deep);
-            box-shadow: 0 4px 15px rgba(6, 182, 212, 0.25);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
-            filter: brightness(1.1);
-        }
-
-        .btn-outline {
-            background: var(--bg-surface);
-            color: var(--text-primary);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .btn-outline:hover {
-            border-color: rgba(255, 255, 255, 0.3);
-            background: var(--bg-elevated);
-        }
-
-        /* LIVE INTERACTIVE SIMULATOR (Dwell Time Booster) */
-        .simulator-section {
-            width: 100%;
-            max-width: 800px;
-            margin: 20px auto 60px;
-            padding: 0 20px;
-        }
-
-        .sim-container {
-            background: var(--bg-surface);
-            border: 1px solid rgba(6, 182, 212, 0.2);
-            border-radius: 16px;
-            padding: 30px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-        }
-
-        .sim-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            padding-bottom: 16px;
-        }
-
-        .sim-title {
-            font-family: var(--font-mono);
-            font-size: 0.9rem;
-            color: var(--accent-lock);
-            letter-spacing: 0.05em;
-        }
-
-        .sim-stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .sim-stat-card {
-            background: var(--bg-deep);
-            padding: 16px;
-            border-radius: 8px;
-            border: 1px solid rgba(255,255,255,0.03);
-            text-align: center;
-        }
-
-        .sim-stat-label {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            margin-bottom: 6px;
-        }
-
-        .sim-stat-val {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-
-        .sim-progress-wrapper {
-            margin-bottom: 24px;
-        }
-
-        .sim-progress-bar {
-            width: 100%;
-            height: 8px;
-            background: var(--bg-deep);
-            border-radius: 4px;
-            overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .sim-progress-fill {
-            width: 35%;
-            height: 100%;
-            background: linear-gradient(90deg, var(--accent-primary), var(--accent-lock));
-            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .sim-controls {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-        }
-
-        .sim-btn {
-            font-family: var(--font-mono);
-            font-size: 0.8rem;
-            padding: 10px 18px;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-            font-weight: 700;
-            transition: all 0.2s ease;
-        }
-
-        .sim-btn-succ { background: var(--accent-succ); color: var(--bg-deep); }
-        .sim-btn-succ:hover { filter: brightness(1.1); transform: translateY(-1px); }
-        .sim-btn-crit { background: rgba(239, 68, 68, 0.1); color: var(--accent-crit); border: 1px solid rgba(239, 68, 68, 0.2); }
-        .sim-btn-crit:hover { background: rgba(239, 68, 68, 0.2); }
-
-        /* Generic Section Styling */
-        section {
-            padding: 80px 20px;
-            max-width: 1200px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        .section-header {
-            text-align: center;
-            margin-bottom: 50px;
-        }
-
-        .section-header h2 {
-            font-size: 2.2rem;
-            margin-bottom: 12px;
-        }
-
-        .section-header p {
-            color: var(--text-muted);
-            font-size: 1.1rem;
-        }
-
-        /* Category Filter Tabs for Features */
-        .feature-tabs {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            margin-bottom: 40px;
-        }
-
-        .tab-btn {
-            background: var(--bg-surface);
-            color: var(--text-muted);
-            border: 1px solid rgba(255,255,255,0.05);
-            padding: 10px 20px;
-            border-radius: 30px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .tab-btn.active, .tab-btn:hover {
-            background: rgba(6, 182, 212, 0.1);
-            color: var(--accent-lock);
-            border-color: rgba(6, 182, 212, 0.3);
-        }
-
-        /* Feature Grid */
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 24px;
-        }
-
-        .feature-card {
-            background: var(--bg-surface);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            padding: 32px;
-            border-radius: 12px;
-            transition: transform 0.3s ease, border-color 0.3s ease;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-4px);
-            border-color: rgba(6, 182, 212, 0.3);
-        }
-
-        .feature-icon {
-            font-size: 1.8rem;
-            margin-bottom: 16px;
-        }
-
-        .feature-title {
-            font-size: 1.2rem;
-            font-weight: 700;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .cs-badge {
-            font-size: 0.6rem;
-            background: var(--bg-elevated);
-            color: var(--text-muted);
-            padding: 3px 8px;
-            border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .feature-desc {
-            font-size: 0.95rem;
-            color: var(--text-secondary);
-            line-height: 1.6;
-        }
-
-        /* Comparison Section */
-        .comparison-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0;
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .comp-col { padding: 40px; }
-        .comp-col.generic { background: var(--bg-surface); }
-        .comp-col.ranklock {
-            background: rgba(6, 182, 212, 0.02);
-            border-left: 1px solid rgba(6, 182, 212, 0.1);
-        }
-
-        .comp-col h3 {
-            font-size: 1.3rem;
-            margin-bottom: 24px;
-        }
-
-        .comp-list { list-style: none; }
-        .comp-list li {
-            margin-bottom: 16px;
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            color: var(--text-secondary);
-            line-height: 1.4;
-        }
-
-        .generic .comp-list li::before { content: "✕"; color: var(--accent-crit); font-weight: bold; }
-        .ranklock .comp-list li::before { content: "✓"; color: var(--accent-succ); font-weight: bold; }
-
-        /* Social Proof Section */
-        .social-proof {
-            background: var(--bg-surface);
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .proof-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-        }
-
-        .proof-badge {
-            display: inline-block;
-            padding: 8px 16px;
-            background: var(--bg-elevated);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            margin-bottom: 30px;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 40px;
-            width: 100%;
-            max-width: 800px;
-            margin-bottom: 40px;
-        }
-
-        .stat-item h4 {
-            font-size: 2.5rem;
-            color: var(--accent-lock);
-            font-family: var(--font-mono);
-            margin-bottom: 5px;
-        }
-
-        .stat-item p {
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            text-transform: uppercase;
-        }
-
-        .quote {
-            max-width: 650px;
-            font-style: italic;
-            color: var(--text-secondary);
-            font-size: 1.05rem;
-            line-height: 1.6;
-            margin-top: 20px;
-            border-left: 3px solid var(--accent-lock);
-            padding-left: 20px;
-            text-align: left;
-        }
-
-        .quote-author {
-            display: block;
-            margin-top: 10px;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            font-style: normal;
-        }
-
-        /* Bottom CTA */
-        .bottom-cta { text-align: center; padding: 100px 20px; }
-        .bottom-cta h2 { font-size: 2.5rem; margin-bottom: 16px; }
-        .bottom-cta p { color: var(--text-secondary); margin-bottom: 32px; font-size: 1.1rem; }
-
-        /* Footer */
-        footer {
-            padding: 40px 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 16px;
-            background: var(--bg-surface);
-        }
-
-        .footer-credits { color: var(--text-muted); font-size: 0.9rem; }
-        .footer-links { display: flex; gap: 24px; font-size: 0.85rem; }
-        .footer-links a { color: var(--text-secondary); }
-
-        @media (max-width: 768px) {
-            .cta-container { flex-direction: column; width: 100%; max-width: 300px; }
-            .btn { width: 100%; }
-            .comparison-grid { grid-template-columns: 1fr; }
-            .stats-grid { grid-template-columns: 1fr; gap: 24px; }
-            .sim-stats { grid-template-columns: 1fr; }
-            .sim-controls { flex-direction: column; }
-            .feature-tabs { flex-wrap: wrap; }
+        .animate-flash-red {
+            animation: flashRed 0.5s ease 2;
         }
     </style>
 </head>
-<body>
+<body class="text-gray-100 font-sans antialiased min-h-screen flex flex-col">
 
-    <nav>
-        <div class="logo">RANKLOCK <span class="version-badge">v12.5</span></div>
+    <!-- Sticky Navigation -->
+    <nav class="sticky top-0 z-50 bg-bgDeep/80 backdrop-blur-md border-b border-gray-800/60 px-6 py-4 transition-all">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-gradient-to-tr from-accentPrimary to-accentLock rounded-lg">
+                    <!-- Custom SVG lock icon -->
+                    <svg class="w-5 h-5 text-bgDeep" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                </div>
+                <span class="text-lg font-extrabold tracking-wider font-mono text-white">RANKLOCK</span>
+                <span class="text-xs text-gray-500 font-mono mt-0.5">Version 12.5</span>
+            </div>
+            <div class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-300">
+                <a href="#features" class="hover:text-accentLock transition-colors">Features</a>
+                <a href="#calculator" class="hover:text-accentLock transition-colors">Calculator</a>
+                <a href="#about" class="hover:text-accentLock transition-colors">About</a>
+                <a href="#roadmap" class="hover:text-accentLock transition-colors">Roadmap</a>
+            </div>
+            <div>
+                <a href="https://ranklock.vercel.app" class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-accentPrimary to-accentLock text-bgDeep text-xs font-bold tracking-wider uppercase rounded-md glow-lock hover:scale-[1.02] active:scale-[0.98] transition-all">
+                    <span>Open App</span>
+                </a>
+            </div>
+        </div>
     </nav>
 
-    <header>
-        <h1>Stay Focused.<br><span class="highlight">Finish What You Start.</span></h1>
-        <p class="subtitle">Built for JEE/NEET aspirants who want fewer distractions and more completed study sessions.</p>
-        
-        <div class="cta-container">
-            <a href="https://ranklock.vercel.app" class="btn btn-primary">START STUDYING</a>
-            <a href="#features" class="btn btn-outline">SEE FEATURES</a>
+    <!-- Header / Hero Section -->
+    <header class="max-w-7xl mx-auto px-6 pt-16 pb-12 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-900 border border-gray-800 rounded-full text-xs text-gray-400">
+                <span class="w-2 h-2 rounded-full bg-accentPrimary"></span>
+                <span>Join fellow JEE & NEET aspirants building better study habits</span>
+            </div>
+            <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1] text-white">
+                Build Unshakable Focus.<br>
+                <span class="text-accentLock">Study More Consistently.</span>
+            </h1>
+            <p class="text-base sm:text-lg text-gray-400 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+                RankLock is a study timer designed to help you reduce digital distractions. It tracks when you lose focus on your current tab, helping you stay accountable to your study schedule without tracking your personal data.
+            </p>
+            <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
+                <a href="https://ranklock.vercel.app" class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-accentPrimary to-accentLock text-bgDeep font-bold rounded-lg text-center shadow-lg hover:shadow-accentLock/20 transition-all transform hover:-translate-y-0.5">
+                    Start Studying
+                </a>
+                <a href="#features" class="w-full sm:w-auto px-8 py-4 bg-bgSurface hover:bg-bgElevated text-gray-200 border border-gray-800 rounded-lg text-center font-medium transition-all">
+                    See How It Works
+                </a>
+            </div>
+            
+            <!-- Real, Grounded Badging -->
+            <div class="pt-6 grid grid-cols-3 gap-4 border-t border-gray-800/60 max-w-lg mx-auto lg:mx-0">
+                <div class="text-center lg:text-left">
+                    <div class="text-accentSucc mb-1 flex justify-center lg:justify-start">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    </div>
+                    <div class="text-sm font-semibold text-gray-200">100% Free</div>
+                    <div class="text-xs text-gray-500 mt-0.5">No ads, no paywalls</div>
+                </div>
+                <div class="text-center lg:text-left">
+                    <div class="text-accentPrimary mb-1 flex justify-center lg:justify-start">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    </div>
+                    <div class="text-sm font-semibold text-gray-200">Privacy First</div>
+                    <div class="text-xs text-gray-500 mt-0.5">We don't track history</div>
+                </div>
+                <div class="text-center lg:text-left">
+                    <div class="text-accentLock mb-1 flex justify-center lg:justify-start">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                    </div>
+                    <div class="text-sm font-semibold text-gray-200">For Aspirants</div>
+                    <div class="text-xs text-gray-500 mt-0.5">Built for JEE/NEET</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Feature Demo Window -->
+        <div class="lg:col-span-5 w-full">
+            <div id="sim-main-container" class="bg-bgSurface border border-gray-800 rounded-2xl overflow-hidden shadow-2xl transition-all duration-300">
+                <!-- Mac-style top bar -->
+                <div class="bg-gray-900/90 border-b border-gray-800/80 px-4 py-3 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-gray-700"></span>
+                        <span class="w-3 h-3 rounded-full bg-gray-700"></span>
+                        <span class="w-3 h-3 rounded-full bg-gray-700"></span>
+                        <span class="text-xs text-gray-500 ml-2">Interactive Demo</span>
+                    </div>
+                    <div class="text-xs font-medium text-gray-400 flex items-center gap-1.5" id="sim-status-alert">
+                        Ready
+                    </div>
+                </div>
+
+                <!-- Simulation body -->
+                <div class="p-6 space-y-6">
+                    <!-- Top stats layout -->
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="bg-bgDeep border border-gray-800/50 p-3 rounded-lg text-center">
+                            <span class="block text-[10px] text-gray-500 uppercase tracking-wide">Study Level</span>
+                            <span id="sim-rank" class="text-sm font-semibold text-accentLock mt-1 block">Level 4</span>
+                        </div>
+                        <div class="bg-bgDeep border border-gray-800/50 p-3 rounded-lg text-center">
+                            <span class="block text-[10px] text-gray-500 uppercase tracking-wide">Total XP</span>
+                            <span id="sim-xp" class="text-sm font-semibold text-gray-100 mt-1 block">350 XP</span>
+                        </div>
+                        <div class="bg-bgDeep border border-gray-800/50 p-3 rounded-lg text-center">
+                            <span class="block text-[10px] text-gray-500 uppercase tracking-wide">Consistency</span>
+                            <span id="sim-integrity" class="text-sm font-semibold text-accentSucc mt-1 block">100%</span>
+                        </div>
+                    </div>
+
+                    <!-- Demo Timer Box -->
+                    <div class="bg-bgDeep/75 rounded-xl border border-gray-800 p-5 flex flex-col items-center justify-center relative overflow-hidden">
+                        <!-- Progress circle visualization -->
+                        <div class="relative w-28 h-28 flex items-center justify-center">
+                            <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="42" stroke="rgba(255,255,255,0.05)" stroke-width="6" fill="transparent"></circle>
+                                <circle id="sim-circle-fill" cx="50" cy="50" r="42" stroke="var(--accent-primary)" stroke-width="6" fill="transparent" stroke-dasharray="263.89" stroke-dashoffset="171.5" class="transition-all duration-300"></circle>
+                            </svg>
+                            <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+                                <span id="sim-timer-display" class="text-xl font-mono text-white">00:10</span>
+                            </div>
+                        </div>
+                        <div class="mt-4 text-center">
+                            <p class="text-sm text-gray-400" id="sim-timer-title">Physics: Rotational Dynamics</p>
+                        </div>
+                    </div>
+
+                    <!-- Live Demo Log -->
+                    <div class="bg-bgDeep border border-gray-900 rounded-lg p-3 h-24 overflow-y-auto text-xs font-mono text-gray-400 space-y-1.5" id="sim-terminal">
+                        <div class="text-gray-500">Welcome to RankLock. Set your topic and start the timer.</div>
+                    </div>
+
+                    <!-- Simulator Controls -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                        <button onclick="startSimulatedMission()" id="btn-start-mission" class="w-full py-2.5 bg-accentPrimary/10 border border-accentPrimary/30 hover:bg-accentPrimary/20 text-accentPrimary font-medium text-sm rounded-lg transition-all">
+                            Test 10s Timer
+                        </button>
+                        <button onclick="simulateDistraction()" id="btn-breach" class="w-full py-2.5 bg-bgDeep border border-gray-700 hover:border-gray-500 text-gray-400 hover:text-gray-200 font-medium text-sm rounded-lg transition-all">
+                            Simulate Tab Change
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     </header>
 
-    <div class="simulator-section">
-        <div class="sim-container">
-            <div class="sim-header">
-                <div class="sim-title">LIVE ENGINE PREVIEW // INTERACTIVE PROTOCOL</div>
-                <div class="version-badge" style="background:transparent; border-color:rgba(16,185,129,0.3); color:var(--accent-succ);" id="sim-status-alert">READY FOR DEPLOYMENT</div>
+    <!-- Factual Opportunity Cost Calculator -->
+    <section id="calculator" class="bg-bgSurface/40 border-y border-gray-800/40 py-16">
+        <div class="max-w-4xl mx-auto px-6 text-center">
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-white">The Cost of Daily Distractions</h2>
+            <p class="text-gray-400 mt-2 max-w-xl mx-auto text-sm sm:text-base">
+                Discover how much potential study time is lost per year from small daily habits like scrolling or gaming.
+            </p>
+
+            <div class="mt-10 bg-bgSurface border border-gray-800 p-6 sm:p-8 rounded-2xl max-w-2xl mx-auto space-y-6 text-left">
+                <div>
+                    <div class="flex justify-between items-center text-sm font-semibold mb-2">
+                        <label for="hours-slider" class="text-gray-300">Unplanned screen time per day:</label>
+                        <span id="hours-val" class="text-accentLock font-mono text-lg font-bold">2.5 Hours</span>
+                    </div>
+                    <input id="hours-slider" type="range" min="0.5" max="8" step="0.5" value="2.5" class="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-accentLock" oninput="calculateProcrastination()">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 pt-4 border-t border-gray-800/60">
+                    <div>
+                        <div class="text-[10px] text-gray-500 uppercase tracking-widest font-semibold">Lost Time Annually</div>
+                        <div id="calc-hours" class="text-2xl sm:text-3xl font-bold text-white mt-1">912 Hours</div>
+                        <div class="text-xs text-gray-400 mt-1">Total hours per year</div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] text-gray-500 uppercase tracking-widest font-semibold">Missed Practice</div>
+                        <div id="calc-questions" class="text-2xl sm:text-3xl font-bold text-gray-300 mt-1">~27,300 MCQs</div>
+                        <div class="text-xs text-gray-400 mt-1">At 30 questions per hour</div>
+                    </div>
+                </div>
+
+                <div class="bg-accentPrimary/5 border border-accentPrimary/20 rounded-xl p-4 flex items-start gap-4">
+                    <div class="p-2 bg-accentPrimary/10 rounded-lg text-accentPrimary mt-1">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-semibold text-accentPrimary">Why we built RankLock</h4>
+                        <p class="text-sm text-gray-400 mt-1 leading-relaxed">
+                            We know how easy it is to get distracted. RankLock is designed to help students notice when they drift away from their study tabs, helping to gently recover a portion of this lost time by building awareness and consistency.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="max-w-7xl mx-auto px-6 py-20">
+        <div class="text-center max-w-2xl mx-auto mb-16 space-y-4">
+            <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">How RankLock Works</h2>
+            <p class="text-gray-400 text-sm sm:text-base">Features designed to encourage deep work rather than just tracking the clock.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 transition-all duration-300">
+            <!-- Focus Detection -->
+            <div class="bg-bgSurface p-6 rounded-xl border border-gray-800 hover:border-gray-700 transition-colors">
+                <div class="text-accentLock mb-4">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                </div>
+                <h3 class="text-lg font-semibold text-white">Active Tab Detection</h3>
+                <p class="text-gray-400 text-sm mt-3 leading-relaxed">
+                    If you enable Focus Mode, RankLock detects if you minimize the timer or open a new browser tab. It alerts you that you've lost focus, holding you accountable to your session.
+                </p>
+            </div>
+
+            <!-- XP Progression -->
+            <div class="bg-bgSurface p-6 rounded-xl border border-gray-800 hover:border-gray-700 transition-colors">
+                <div class="text-accentPrimary mb-4">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                </div>
+                <h3 class="text-lg font-semibold text-white">Study Progression</h3>
+                <p class="text-gray-400 text-sm mt-3 leading-relaxed">
+                    Completed study minutes convert into XP. This provides immediate, positive feedback for finishing your daily study blocks, helping you build a consistent habit over time.
+                </p>
+            </div>
+
+            <!-- Intentional Starting -->
+            <div class="bg-bgSurface p-6 rounded-xl border border-gray-800 hover:border-gray-700 transition-colors">
+                <div class="text-purple-400 mb-4">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                </div>
+                <h3 class="text-lg font-semibold text-white">Intentional Sessions</h3>
+                <p class="text-gray-400 text-sm mt-3 leading-relaxed">
+                    You must set a specific topic or task before starting the timer. This simple friction ensures you aren't just starting the clock passively, but have a clear goal in mind.
+                </p>
+            </div>
+
+            <!-- Basic Analytics -->
+            <div class="bg-bgSurface p-6 rounded-xl border border-gray-800 hover:border-gray-700 transition-colors">
+                <div class="text-accentSucc mb-4">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                </div>
+                <h3 class="text-lg font-semibold text-white">Session History</h3>
+                <p class="text-gray-400 text-sm mt-3 leading-relaxed">
+                    Review how many hours you actually spent studying versus how many times you got distracted. Use your own data to find your most productive times of the day.
+                </p>
             </div>
             
-            <div class="sim-stats">
-                <div class="sim-stat-card">
-                    <div class="sim-stat-label">Current Rank</div>
-                    <div class="sim-stat-val" id="sim-rank" style="color: var(--accent-lock);">ASPIRANT V</div>
+            <!-- Consistency Score -->
+            <div class="bg-bgSurface p-6 rounded-xl border border-gray-800 hover:border-gray-700 transition-colors">
+                <div class="text-accentWarn mb-4">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 </div>
-                <div class="sim-stat-card">
-                    <div class="sim-stat-label">Experience Points</div>
-                    <div class="sim-stat-val" id="sim-xp">350 / 1000 XP</div>
+                <h3 class="text-lg font-semibold text-white">Consistency Score</h3>
+                <p class="text-gray-400 text-sm mt-3 leading-relaxed">
+                    Your score drops if you abandon a session midway. It encourages you to sit through the discomfort of a tough physics problem instead of giving up and closing the tab.
+                </p>
+            </div>
+
+            <!-- Free -->
+            <div class="bg-bgSurface p-6 rounded-xl border border-gray-800 hover:border-gray-700 transition-colors">
+                <div class="text-gray-300 mb-4">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
                 </div>
-                <div class="sim-stat-card">
-                    <div class="sim-stat-label">Integrity Rating</div>
-                    <div class="sim-stat-val" id="sim-integrity" style="color: var(--accent-succ);">100%</div>
-                </div>
-            </div>
-
-            <div class="sim-progress-wrapper">
-                <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-muted); margin-bottom:6px; font-family:var(--font-mono);">
-                    <span>RANK EXPANSION PROGRESS</span>
-                    <span id="sim-xp-pct">35%</span>
-                </div>
-                <div class="sim-progress-bar">
-                    <div class="sim-progress-fill" id="sim-progress-fill"></div>
-                </div>
-            </div>
-
-            <div class="sim-controls">
-                <button class="sim-btn sim-btn-succ" onclick="simulateSession()">⚡ COMPLETE 1-HOUR MISSION</button>
-                <button class="sim-btn sim-btn-crit" onclick="simulateDistraction()">⚠️ SIMULATE DISTRACTION / TAB SWITCH</button>
-            </div>
-        </div>
-    </div>
-
-    <section id="features">
-        <div class="section-header">
-            <h2>System Capabilities</h2>
-            <p>Every tool you need to transform pure focus into elite rank progress.</p>
-        </div>
-
-        <div class="feature-tabs">
-            <button class="tab-btn active" onclick="filterFeatures('all')">All Subsystems</button>
-            <button class="tab-btn" onclick="filterFeatures('focus')">Core Focus & Content</button>
-            <button class="tab-btn" onclick="filterFeatures('gamified')">Gamification & Progress</button>
-            <button class="tab-btn" onclick="filterFeatures('discipline')">Accountability & Rules</button>
-        </div>
-
-        <div class="features-grid" id="features-grid">
-            <div class="feature-card" data-cat="focus">
-                <div class="feature-icon">🎯</div>
-                <div class="feature-title">Focus Sessions</div>
-                <div class="feature-desc">Ranklock is built around structured focus sessions that help you stay committed to a single task for a fixed period of time. Choose your study duration, lock onto your target, and focus on completing meaningful work instead of constantly restarting timers.</div>
-            </div>
-
-            <div class="feature-card" data-cat="gamified">
-                <div class="feature-icon">📈</div>
-                <div class="feature-title">XP & Progression System</div>
-                <div class="feature-desc">Every completed session contributes to your growth. Earn XP through consistent effort, successful study sessions, and disciplined execution. Your progress becomes visible over time, turning daily focus into measurable advancement rather than just another number on a timer.</div>
-            </div>
-
-            <div class="feature-card" data-cat="gamified">
-                <div class="feature-icon">🏆</div>
-                <div class="feature-title">Rank System</div>
-                <div class="feature-desc">Climb through a hierarchy of ranks as you build stronger study habits and maintain consistency. Your rank reflects your commitment, effort, and discipline, giving you a long-term goal that extends beyond simply counting hours spent studying.</div>
-            </div>
-
-            <div class="feature-card" data-cat="focus">
-                <div class="feature-icon">📋</div>
-                <div class="feature-title">Mission-Based Studying</div>
-                <div class="feature-desc">Transform study sessions into clear missions with defined objectives and targets. Instead of randomly starting a timer, Ranklock encourages purposeful work by helping you associate every session with a meaningful task or chapter goal.</div>
-            </div>
-
-            <div class="feature-card" data-cat="discipline">
-                <div class="feature-icon">📊</div>
-                <div class="feature-title">Session Analytics</div>
-                <div class="feature-desc">Track your performance through detailed statistics including study time, completed sessions, productivity trends, and consistency metrics. Analytics provide a clear picture of your study habits and help identify areas where improvement is needed.</div>
-            </div>
-
-            <div class="feature-card" data-cat="discipline">
-                <div class="feature-icon">🔥</div>
-                <div class="feature-title">Hard Focus Mode</div>
-                <div class="feature-desc">Designed for students who want maximum accountability during study sessions. Hard Focus Mode introduces stricter rules and consequences, encouraging uninterrupted concentration and reducing the temptation to abandon sessions midway through important work.</div>
-            </div>
-
-            <div class="feature-card" data-cat="discipline">
-                <div class="feature-icon">🛡️</div>
-                <div class="feature-title">Integrity System</div>
-                <div class="feature-desc">Your integrity score reflects how consistently you follow through on your commitments. By maintaining focus and completing sessions responsibly, you build a record of disciplined behavior that reinforces long-term consistency and accountability.</div>
-            </div>
-
-            <div class="feature-card" data-cat="focus">
-                <div class="feature-icon">⚡</div>
-                <div class="feature-title">Quick Start</div>
-                <div class="feature-desc">Start studying immediately without navigating complicated menus or lengthy setup processes. Quick Start is designed for moments when you simply want to open Ranklock, begin a session, and get straight to work.</div>
-            </div>
-
-            <div class="feature-card" data-cat="gamified">
-                <div class="feature-icon">🎮</div>
-                <div class="feature-title">Gamified Discipline</div>
-                <div class="feature-desc">Ranklock combines productivity with meaningful progression systems to make consistency more engaging. Instead of relying solely on motivation, users are rewarded for disciplined behavior through ranks, XP, achievements, and measurable progress.</div>
-            </div>
-
-            <div class="feature-card" data-cat="focus" style="border: 1px solid rgba(6, 182, 212, 0.25); background: rgba(6, 182, 212, 0.01);">
-                <div class="feature-icon">🎓</div>
-                <div class="feature-title">Built for JEE & NEET Aspirants</div>
-                <div class="feature-desc">Unlike generic productivity applications, Ranklock is designed around the realities of competitive exam preparation. The system focuses on long study hours, syllabus completion, consistency, and accountability, making it especially suitable for serious aspirants.</div>
+                <h3 class="text-lg font-semibold text-white">Made for Students</h3>
+                <p class="text-gray-400 text-sm mt-3 leading-relaxed">
+                    No subscription fees, no locked features, and no intrusive advertisements. RankLock is built as a tool, not a monetization platform.
+                </p>
             </div>
         </div>
     </section>
 
-    <section id="comparison">
-        <div class="section-header">
-            <h2>Why Ranklock?</h2>
-        </div>
-        <div class="comparison-grid">
-            <div class="comp-col generic">
-                <h3>Most Study Timers</h3>
-                <ul class="comp-list">
-                    <li>Count time passively</li>
-                    <li>Easy to ignore or pause</li>
-                    <li>Generic, non-student design</li>
-                    <li>Basic tracking with no stakes</li>
-                </ul>
-            </div>
-            <div class="comp-col ranklock">
-                <h3 style="color: var(--accent-lock);">RankLock Architecture</h3>
-                <ul class="comp-list">
-                    <li>Builds actual discipline</li>
-                    <li>Accountability systems & penalties</li>
-                    <li>Built exclusively for aspirants</li>
-                    <li>Progression & XP system</li>
-                </ul>
-            </div>
-        </div>
-    </section>
-
-    <section class="social-proof">
-        <div class="proof-container">
-            <div class="proof-badge">🚀 Engineered by a JEE Aspirant</div>
+    <!-- Founder & Privacy / Split Section -->
+    <section id="about" class="max-w-5xl mx-auto px-6 py-12">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <h4>100%</h4>
-                    <p>Built for Students</p>
-                </div>
-                <div class="stat-item">
-                    <h4>0</h4>
-                    <p>Distractions</p>
-                </div>
-                <div class="stat-item">
-                    <h4>12.5</h4>
-                    <p>Iterative Versions</p>
+            <!-- About the Creator -->
+            <div class="bg-bgSurface border border-gray-800 rounded-2xl p-8">
+                <span class="text-[10px] text-accentPrimary uppercase tracking-widest font-semibold">About the Creator</span>
+                <h3 class="text-xl font-bold text-white mt-2">Hi, I'm Ojas Kadam.</h3>
+                <div class="text-gray-400 text-sm mt-4 space-y-4 leading-relaxed">
+                    <p>
+                        I built RankLock because I struggled with consistency during competitive exam preparation. I realized that a standard stopwatch wasn't enough—I needed something that held me accountable when I inevitably tried to open YouTube during a difficult revision block.
+                    </p>
+                    <p>
+                        RankLock started as a personal project. It doesn't use magic algorithms to make you smarter. It just adds a layer of friction to getting distracted, helping you build better discipline.
+                    </p>
                 </div>
             </div>
 
-            <div class="quote">
-                "Generic pomodoro timers were too easy to cheat. RankLock forces you to sit down, face the syllabus, and actually do the work without opening a new tab."
-                <span class="quote-author">— Early Beta Tester</span>
+            <!-- Privacy Policy Summary -->
+            <div class="bg-gray-900 border border-gray-800 rounded-2xl p-8">
+                <span class="text-[10px] text-accentSucc uppercase tracking-widest font-semibold">Transparency</span>
+                <h3 class="text-xl font-bold text-white mt-2">Privacy & How It Works</h3>
+                <div class="text-gray-400 text-sm mt-4 space-y-4 leading-relaxed">
+                    <p>Students care about tracking, and you should. Here is exactly what RankLock does and doesn't do:</p>
+                    <ul class="space-y-2 mt-2">
+                        <li class="flex items-start gap-2">
+                            <svg class="w-4 h-4 text-accentSucc mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            <span><strong>Focus Detection:</strong> We use standard browser Visibility APIs to know if the RankLock tab is minimized or hidden.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-4 h-4 text-accentSucc mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            <span><strong>No Browsing History:</strong> RankLock cannot see what websites you open or what apps you use.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-4 h-4 text-accentSucc mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            <span><strong>No Data Selling:</strong> Your session history stays under your account and is never sold to advertisers.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Version & Roadmap Section -->
+    <section id="roadmap" class="max-w-4xl mx-auto px-6 py-16">
+        <div class="text-center mb-10">
+            <h2 class="text-2xl font-bold text-white">Project Status & Roadmap</h2>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div class="border-l-2 border-gray-700 pl-4 py-1">
+                <div class="text-xs text-gray-500 font-mono mb-1">CURRENT: v12.5 (June 2026)</div>
+                <h4 class="text-sm font-semibold text-gray-200">Recent Updates</h4>
+                <ul class="text-xs text-gray-400 mt-2 space-y-1.5 list-disc list-inside">
+                    <li>Improved focus detection reliability</li>
+                    <li>Faster analytics dashboard loading</li>
+                    <li>Mobile browser UI improvements</li>
+                    <li>Bug fix: Timer lag on background tabs</li>
+                </ul>
+            </div>
+            
+            <div class="border-l-2 border-accentPrimary pl-4 py-1">
+                <div class="text-xs text-accentPrimary font-mono mb-1">COMING SOON</div>
+                <h4 class="text-sm font-semibold text-gray-200">In Development</h4>
+                <ul class="text-xs text-gray-400 mt-2 space-y-1.5 list-disc list-inside">
+                    <li>Subject-wise analytics breakdown</li>
+                    <li>Daily study streak tracking</li>
+                    <li>Dedicated Android Application</li>
+                    <li>Customizable sound alerts</li>
+                </ul>
             </div>
         </div>
     </section>
 
-    <section class="bottom-cta">
-        <h2>Ready to Lock In?</h2>
-        <p>Start your next study session with Ranklock.</p>
-        <a href="https://ranklock.vercel.app/" class="btn btn-primary">[ Launch Ranklock ]</a>
+    <!-- Bottom CTA & Feedback -->
+    <section class="max-w-4xl mx-auto px-6 py-16 text-center space-y-6 border-t border-gray-800/40">
+        <h2 class="text-3xl font-bold text-white">Ready to try it out?</h2>
+        <p class="text-gray-400 max-w-xl mx-auto text-sm leading-relaxed">
+            RankLock is free to use. Set up your first study session and see if the extra accountability works for you.
+        </p>
+        <div class="pt-4 pb-8">
+            <a href="https://ranklock.vercel.app/" class="inline-flex items-center gap-3 px-8 py-3.5 bg-accentPrimary hover:bg-blue-500 text-white text-sm font-bold rounded-lg transition-all">
+                <span>Create Free Account</span>
+            </a>
+        </div>
+
+        <div class="bg-bgSurface border border-gray-800 p-6 rounded-xl inline-block text-left">
+            <h4 class="text-sm font-semibold text-gray-200 flex items-center gap-2">
+                💬 Open Feedback Channel
+            </h4>
+            <p class="text-xs text-gray-400 mt-2 max-w-sm">
+                Found a bug? Have a feature request? Every feedback message is personally reviewed by the creator to help improve the app.
+            </p>
+            <a href="mailto:support@ranklock.app" class="text-xs text-accentLock hover:underline mt-3 inline-block">Send feedback -></a>
+        </div>
     </section>
 
-    <footer>
-        <div class="footer-credits">
-            Built by Ojas Kadam | Ranklock v12.5
-        </div>
-        <div class="footer-links">
-            <a href="#">Contact</a>
-            <a href="#">Discord</a>
-            <a href="#">Feedback</a>
+    <!-- Footer -->
+    <footer class="bg-bgDeep border-t border-gray-800/80 px-6 py-8 mt-auto">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="flex items-center gap-2">
+                <span class="text-sm font-bold text-gray-300">RankLock</span>
+                <span class="text-xs text-gray-600">| By Ojas Kadam</span>
+            </div>
+            <div class="flex items-center gap-6 text-xs text-gray-500">
+                <a href="mailto:support@ranklock.app" class="hover:text-gray-300 transition-colors">Contact</a>
+                <a href="#" class="hover:text-gray-300 transition-colors">Terms of Service</a>
+                <a href="#" class="hover:text-gray-300 transition-colors">Privacy Policy</a>
+            </div>
+            <div class="text-xs text-gray-600 text-center md:text-right">
+                &copy; 2026 RankLock. All rights reserved.
+            </div>
         </div>
     </footer>
 
+    <!-- Interactive Script Mechanics -->
     <script>
-        // Feature categorization logic
-        function filterFeatures(category) {
-            const cards = document.querySelectorAll('.feature-card');
-            const tabs = document.querySelectorAll('.tab-btn');
-            
-            tabs.forEach(tab => tab.classList.remove('active'));
-            event.target.classList.add('active');
-
-            cards.forEach(card => {
-                if (category === 'all' || card.getAttribute('data-cat') === category) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
+        // Custom Audio Synthesizer (No external assets required!)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playChime(type) {
+            try {
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
                 }
-            });
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                if (type === 'success') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+                    osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.1); // A5
+                    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.4);
+                } else if (type === 'breach') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                    osc.frequency.setValueAtTime(200, audioCtx.currentTime + 0.1);
+                    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.3);
+                }
+            } catch(e) {
+                // Fail-safe for browser audio restrictions
+            }
         }
 
         // Live Simulator Interactive Logic
         let currentXP = 350;
         let currentIntegrity = 100;
-        let ranksArray = ["ASPIRANT V", "ASPIRANT IV", "ASPIRANT III", "ASPIRANT II", "ASPIRANT I", "SCHOLAR V"];
-        let rankIndex = 0;
+        let timerInterval = null;
+        let activeSecondsLeft = 10;
+        let simulationIsRunning = false;
+
+        const terminal = document.getElementById('sim-terminal');
+
+        function appendLog(text, colorClass = 'text-gray-400') {
+            const line = document.createElement('div');
+            line.className = colorClass;
+            const timeStr = new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            line.innerText = `[${timeStr}] ${text}`;
+            terminal.appendChild(line);
+            terminal.scrollTop = terminal.scrollHeight;
+        }
 
         function updateSimUI() {
-            document.getElementById('sim-xp').innerText = `${currentXP} / 1000 XP`;
+            document.getElementById('sim-xp').innerText = `${currentXP} XP`;
             document.getElementById('sim-integrity').innerText = `${currentIntegrity}%`;
-            document.getElementById('sim-rank').innerText = ranksArray[rankIndex];
             
             let pct = Math.floor((currentXP / 1000) * 100);
-            document.getElementById('sim-xp-pct').innerText = `${pct}%`;
-            document.getElementById('sim-progress-fill').style.width = `${pct}%`;
+            let offset = 263.89 - (263.89 * (currentXP / 1000));
+            // simplified representation for demo
+            document.getElementById('sim-circle-fill').style.strokeDashoffset = offset;
 
             const integrityElement = document.getElementById('sim-integrity');
             if (currentIntegrity < 60) {
@@ -731,35 +529,107 @@
             }
         }
 
-        function simulateSession() {
-            currentXP += 250;
-            if (currentXP >= 1000) {
-                currentXP -= 1000;
-                if (rankIndex < ranksArray.length - 1) {
-                    rankIndex++;
+        // Start Simulated 10s Blitz Study Mission
+        function startSimulatedMission() {
+            if (simulationIsRunning) return;
+            simulationIsRunning = true;
+            
+            const alertBox = document.getElementById('sim-status-alert');
+            const startBtn = document.getElementById('btn-start-mission');
+            
+            alertBox.innerText = "Session Active";
+            alertBox.className = "text-xs font-medium text-accentPrimary flex items-center gap-1.5";
+            startBtn.disabled = true;
+            startBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+            activeSecondsLeft = 10;
+            document.getElementById('sim-timer-display').innerText = `00:10`;
+
+            appendLog("Timer started. Tab focus detection is active.", "text-gray-300");
+
+            timerInterval = setInterval(() => {
+                activeSecondsLeft--;
+                let displaySec = activeSecondsLeft < 10 ? `0${activeSecondsLeft}` : activeSecondsLeft;
+                document.getElementById('sim-timer-display').innerText = `00:${displaySec}`;
+
+                if (activeSecondsLeft <= 0) {
+                    clearInterval(timerInterval);
+                    completeSessionSuccess();
                 }
-            }
+            }, 1000);
+        }
+
+        function completeSessionSuccess() {
+            simulationIsRunning = false;
+            currentXP += 50;
+            
             if (currentIntegrity < 100) {
                 currentIntegrity = Math.min(100, currentIntegrity + 10);
             }
-            
+
+            const startBtn = document.getElementById('btn-start-mission');
+            startBtn.disabled = false;
+            startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+            playChime('success');
+
             const alertBox = document.getElementById('sim-status-alert');
-            alertBox.innerText = "MISSION ACCOMPLISHED: +250 XP";
-            alertBox.style.color = 'var(--accent-succ)';
-            alertBox.style.borderColor = 'rgba(16,185,129,0.3)';
-            
+            alertBox.innerText = "Completed (+50 XP)";
+            alertBox.className = "text-xs font-medium text-accentSucc flex items-center gap-1.5";
+
+            appendLog("Session finished successfully. XP added.", "text-accentSucc");
             updateSimUI();
         }
 
+        // Simulate Distraction Action
         function simulateDistraction() {
-            currentIntegrity = Math.max(0, currentIntegrity - 25);
-            currentXP = Math.max(0, currentXP - 100);
+            playChime('breach');
             
+            const container = document.getElementById('sim-main-container');
+            container.classList.add('border-accentCrit', 'animate-flash-red');
+            setTimeout(() => {
+                container.classList.remove('border-accentCrit', 'animate-flash-red');
+            }, 1000);
+
+            if (simulationIsRunning) {
+                clearInterval(timerInterval);
+                simulationIsRunning = false;
+                const startBtn = document.getElementById('btn-start-mission');
+                startBtn.disabled = false;
+                startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+
+            currentIntegrity = Math.max(0, currentIntegrity - 15);
+
             const alertBox = document.getElementById('sim-status-alert');
-            alertBox.innerText = "ATTENTION BREACH: INTEGRITY PENALTY";
-            alertBox.style.color = 'var(--accent-crit)';
-            alertBox.style.borderColor = 'rgba(239,68,68,0.3)';
+            alertBox.innerText = "Focus Lost";
+            alertBox.className = "text-xs font-medium text-accentCrit flex items-center gap-1.5";
+
+            document.getElementById('sim-timer-display').innerText = `00:00`;
+
+            appendLog("Alert: Browser tab changed. Session abandoned. Consistency score dropped.", "text-accentCrit");
+            updateSimUI();
+        }
+
+        // Factual Procrastination Calculator Logic
+        function calculateProcrastination() {
+            const slider = document.getElementById('hours-slider');
+            const sliderVal = parseFloat(slider.value);
             
+            document.getElementById('hours-val').innerText = `${sliderVal} ${sliderVal === 1 ? 'Hour' : 'Hours'}`;
+
+            // Factual Math: Wasted hours per day * 365 = Total Wasted Hours
+            const hoursLost = Math.round(sliderVal * 365);
+            
+            // Factual Math: Assuming 30 questions per hour of study
+            const questionsMissed = Math.round(hoursLost * 30);
+
+            document.getElementById('calc-hours').innerText = `${hoursLost.toLocaleString()} Hours`;
+            document.getElementById('calc-questions').innerText = `~${questionsMissed.toLocaleString()} MCQs`;
+        }
+
+        window.onload = function() {
+            calculateProcrastination();
             updateSimUI();
         }
     </script>
